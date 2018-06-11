@@ -1,13 +1,20 @@
-# delve
+# Delve
+
+[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
 Inspect layer saturation and spectral data in your PyTorch models.
 
-**delve**, *verb*:
-```
-1. Reach inside a receptacle and search for something
-2. Research or make painstaking inquiries into something
-```
-## Getting started
+Delve is a Python package for visualizing deep learning model training data.
+
+## Motivation
+
+delve (*verb*):
+
+   to carry on intensive and thorough research for data, information, or the like
+
+Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training.  
+
+## Getting Started
 
 ```bash
 pip install delve

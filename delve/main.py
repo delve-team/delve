@@ -9,7 +9,9 @@ from delve.metrics import *
 
 from tensorboardX import SummaryWriter
 
-logging.basicConfig(format='%(levelname)s:delve:%(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(levelname)s:delve:%(message)s', level=logging.INFO)
+
 
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX

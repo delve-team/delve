@@ -7,7 +7,6 @@ from delve.utils import *
 from tensorboardX import SummaryWriter
 
 
-
 def add_eigen_dist(layer, eig_vals=None, n_iter=None):
     if eig_vals is None:
         eig_vals = get_layer_prop(layer, 'eig_vals')
