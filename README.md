@@ -1,7 +1,6 @@
 # DELVE: DEep Layer Visualization and Estimation
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
-[![MIT]]
 
 Inspect layer saturation and spectral data in your PyTorch models.
 
