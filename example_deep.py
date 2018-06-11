@@ -65,7 +65,7 @@ for h2 in [8, 32, 128]:
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    logger = Logger(
+    stats = CheckLayerSat(
         'convNet/h2-{}/subsample_rate1'.format(h2),
         [net.fc1, net.fc2, net.fc3],
         log_interval=100)
