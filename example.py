@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 
 from delve import CheckLayerSat
-from torch.autograd import Variable # torch0.3
+from torch.autograd import Variable
+
 
 class TwoLayerNet(torch.nn.Module):
     def __init__(self, D_in, H, D_out):
@@ -17,6 +18,7 @@ class TwoLayerNet(torch.nn.Module):
         y_pred = self.linear2(h_relu)
         return y_pred
 
+
 # N is batch size; D_in is input dimension;
 # H is hidden dimension; D_out is output dimension.
 N, D_in, H, D_out = 64, 1000, 30, 100
@@ -27,7 +29,7 @@ y = Variable(torch.randn(N, D_out))
 
 torch.manual_seed(1)
 
-for h in [5,8,100]:
+for h in [5, 8, 100]:
     N, D_in, H, D_out = 64, 1000, h, 10
 
     # Create random Tensors to hold inputs and outputs
@@ -50,7 +52,7 @@ for h in [5,8,100]:
         # Zero gradients, perform a backward pass, and update the weights.
         optimizer.zero_grad()
         loss.backward()
-        stats.writer.add_scalar('loss', loss.data, t)
+        stats.add_scalar('loss', loss.data, t)
 
         optimizer.step()
-    stats.writer.close()
+    stats.close()

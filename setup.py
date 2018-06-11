@@ -5,7 +5,9 @@ from setuptools import setup, find_packages
 try:
     import torch
 except:
-    raise ImportError("Install Pytorch via conda or pip first:\n   conda install pytorch -c pytorch")
+    raise ImportError(
+        "Install Pytorch via conda or pip first:\n   conda install pytorch -c pytorch"
+    )
 
 setup(
     name='delve',
@@ -16,7 +18,7 @@ setup(
     author_email='shenk.justin@gmail.com',
     long_description=open("README.md").read(),
     license='MIT',
-    install_requires = [
-    "tensorboardX",
+    install_requires=[
+        "tensorboardX",
     ],
     packages=find_packages())

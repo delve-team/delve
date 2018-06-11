@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import time
 
@@ -7,6 +8,7 @@ from .metrics import *
 
 from tensorboardX import SummaryWriter
 
+logging.basicConfig(format='%(levelname)s:delve:%(message)s', level=logging.INFO)
 
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
@@ -22,6 +24,15 @@ class CheckLayerSat(object):
         for name, layer in self.layers.items():
             self._register_hooks(
                 layer=layer, layer_name=name, interval=log_interval)
+
+    def __getattr__(self, name):
+        if name.startswith('add_'):
+            return getattr(self.writer, name)
+        elif name == 'close':
+            return getattr(self.writer, name)
+        else:
+            # Default behaviour
+            return self.__getattribute__(name)
 
     def __repr__(self):
         return self.layers.keys().__repr__()
@@ -52,14 +63,14 @@ class CheckLayerSat(object):
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
                 layers[layer_name] = layer
-            print(layers)
+            logging.info("Recording layers {}".format(layers))
             return layers
 
     def _get_writer(self, writer_dir):
         """Create a writer to log history to `writer_dir`."""
         writer = SummaryWriter(writer_dir)
         writer_name = list(writer.all_writers.keys())[0]  # eg, linear1
-        print("Adding summaries to directory: {}".format(writer_name))
+        logging.info("Adding summaries to directory: {}".format(writer_name))
         return writer
 
     def _register_hooks(self, layer, layer_name, interval):
@@ -91,9 +102,10 @@ class CheckLayerSat(object):
                 eig_vals = None
                 if 'bcov' in stats:
                     hooks.add_covariance(layer, activations_batch,
-                                   layer.forward_iter)
+                                         layer.forward_iter)
                 if 'mean' in stats:
-                    hooks.add_mean(layer, activations_batch, layer.forward_iter)
+                    hooks.add_mean(layer, activations_batch,
+                                   layer.forward_iter)
                 if 'spectral' in stats:
                     if layer.forward_iter % (
                             layer.interval *
@@ -101,14 +113,15 @@ class CheckLayerSat(object):
                         eig_vals = hooks.record_spectral_analysis(
                             layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
-                    eig_vals = hooks.add_layer_saturation(layer, eig_vals=eig_vals)
+                    eig_vals = hooks.add_layer_saturation(
+                        layer, eig_vals=eig_vals)
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
-                        eig_vals = hooks.add_eigen_dist(layer, eig_vals,
-                                                  layer.forward_iter)
+                        eig_vals = hooks.add_eigen_dist(
+                            layer, eig_vals, layer.forward_iter)
                     if 'neigendist' in stats:
-                        eig_vals = hooks.add_neigen_dist(layer, eig_vals,
-                                                   layer.forward_iter)
+                        eig_vals = hooks.add_neigen_dist(
+                            layer, eig_vals, layer.forward_iter)
                     if 'spectrum' in stats:
                         eig_vals = hooks.add_spectrum(
                             layer,
