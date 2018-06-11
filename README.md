@@ -30,9 +30,9 @@ Pass a PyTorch model (or layers) to CheckLayerSat:
 ```python
 from delve import CheckLayerSat
 
-model = TwoLayerNet()
+model = TwoLayerNet() # PyTorch network
 layers = [model.linear1, model.linear2]
-stats = CheckLayerSat('runs', layers)
+stats = CheckLayerSat(layers) #log_dir and input
 ```
 
 #### Optimize neural network topology
