@@ -16,6 +16,12 @@ logging.basicConfig(
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
     summaries to `logging_dir`.
+
+    Args:
+        logging_dir (str)  : Where to write summaries
+        modules (torch modules or list of modules) : layer-containing object
+        log_interval (int) : int
+        stats (list of str): list of stats to collect
     """
 
     def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
