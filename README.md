@@ -1,8 +1,8 @@
-# DELVE: DEep Layer Visualization and Extraction
+# DELVE: Deep Layer-wise Visualization and Extraction
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
-Inspect layer saturation and spectral data in your PyTorch models.
+Inspect layer saturation and spectral data of your PyTorch models.
 
 Delve is a Python package for visualizing deep learning model training data.
 
