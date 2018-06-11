@@ -1,10 +1,11 @@
+import delve
 import numpy as np
 import time
 
+from delve.metrics import *
+from delve.utils import *
 from tensorboardX import SummaryWriter
-from . import hooks
-from .metrics import *
-from .utils import *
+
 
 
 def add_eigen_dist(layer, eig_vals=None, n_iter=None):

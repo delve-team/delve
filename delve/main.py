@@ -2,9 +2,10 @@ import logging
 import numpy as np
 import time
 
-from .hooks import *
-from .utils import *
-from .metrics import *
+import delve
+from delve import hooks
+from delve.utils import *
+from delve.metrics import *
 
 from tensorboardX import SummaryWriter
 

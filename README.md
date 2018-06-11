@@ -13,8 +13,6 @@ Inspect layer saturation and spectral data in your PyTorch models.
 pip install delve
 ```
 
-Tested on Python3
-
 ### Layer Saturation
 Pass a PyTorch model (or layers) to CheckLayerSat:
 
@@ -26,9 +24,15 @@ layers = [model.linear1, model.linear2]
 stats = CheckLayerSat('runs', layers)
 ```
 
-Compare models with varying length layers (here 5, 8 and 10) to optimize network topology:
+#### Optimize neural network topology
 
-![saturation](images/saturation.png)
+Ever wonder how big your layer size should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
+
+For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first. Here we show variations of the fully-connected "linear2" layer (blue is 256 and orange is 8):
+
+![saturation](images/layer1-saturation.png)
+
+![saturation](images/layer2-saturation.png)
 
 ### Spectral analysis
 
@@ -42,10 +46,9 @@ stats = CheckLayerSat('runs', layers, 'spectrum')
 
 ### Intrinsic dimensionality
 
-View the intrinsic dimensionality of models in realtime. For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first:
+View the intrinsic dimensionality of models in realtime:
 
-![intrinsic_dimensionality-layer1](images/intrinsic_dimensionality.png)
 
-![intrinsic_dimensionality-layer2](images/intrinsic_dimensionality_layer2.png)
+![intrinsic_dimensionality-layer2](images/layer2-intrinsic.png)
 
 This comparison suggests that the 8-unit layer is too saturated and that a larger layer is needed.
