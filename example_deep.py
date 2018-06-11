@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -26,13 +25,6 @@ testloader = torch.utils.data.DataLoader(
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
            'ship', 'truck')
-
-
-def imshow(img):
-    img = img / 2 + 0.5  # unnormalize
-    npimg = img.cpu().numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-
 
 class Net(nn.Module):
     def __init__(self, h2):
@@ -76,20 +68,16 @@ for h2 in [8, 32, 128]:
         step = 0
         for i, data in enumerate(trainloader, 0):
             step = epoch * len(trainloader) + i
-            # get the inputs
             inputs, labels = data
             inputs = Variable(inputs).cuda()
             labels = Variable(labels).cuda()
-            # zero the parameter gradients
             optimizer.zero_grad()
 
-            # forward + backward + optimize
             outputs = net(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
-            # print statistics
             running_loss += loss.data
             if i % 2000 == 1999:  # print every 2000 mini-batches
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
