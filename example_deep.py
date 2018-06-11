@@ -57,7 +57,7 @@ class Net(nn.Module):
 torch.manual_seed(1)
 cuda = torch.cuda.is_available()
 
-for h2 in [8, 16, 32, 64, 128, 256]:
+for h2 in [8, 32, 128]:
     net = Net(h2=h2)
 
     if cuda:
@@ -70,7 +70,7 @@ for h2 in [8, 16, 32, 64, 128, 256]:
         [net.fc1, net.fc2, net.fc3],
         log_interval=100)
 
-    for epoch in range(50):  # loop over the dataset multiple times
+    for epoch in range(5):  # loop over the dataset multiple times
         net.train()
         running_loss = 0.0
         step = 0
