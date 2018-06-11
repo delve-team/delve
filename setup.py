@@ -3,13 +3,6 @@
 
 from setuptools import setup, find_packages
 
-try:
-    import torch
-except:
-    raise ImportError(
-        "Install Pytorch via conda or pip first:\n   conda install pytorch -c pytorch"
-    )
-
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
@@ -28,8 +21,9 @@ setup(
     license='MIT license',
     install_requires=requirements,
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 2',
@@ -42,6 +36,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Libraries',
     ],
+    python_requires='>= 2.7, != 3.0.*, != 3.1.*',
     packages=find_packages(),
     include_package_data=True,
+    keywords='deep learning layer saturation topology spectral tensorboard',
     zip_safe=False)
