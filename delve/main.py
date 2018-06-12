@@ -39,14 +39,21 @@ class CheckLayerSat(object):
     def __getattr__(self, name):
         if name.startswith('add_'):
             return getattr(self.writer, name)
-        elif name == 'close':
-            return getattr(self.writer, name)
         else:
             # Default behaviour
             return self.__getattribute__(name)
 
     def __repr__(self):
         return self.layers.keys().__repr__()
+
+    def close(self):
+        return getattr(self.writer, name)
+
+    def saturation(self, silent=False):
+        saturation_status = self.logs['saturation']
+        if not silent:
+            logging.info(saturation_status)
+        return saturation_status
 
     def __check_stats(self, stats):
         supported_stats = [
