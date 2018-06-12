@@ -24,13 +24,14 @@ class CheckLayerSat(object):
         stats (list of str): list of stats to collect
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], store_data=True):
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = stats
-        self.store_data = store_data
         self.logs = {'saturation':{}}
+        self.global_steps = 0
+        self.global_hooks_registered = False
 
         for name, layer in self.layers.items():
             self._register_hooks(
@@ -103,7 +104,21 @@ class CheckLayerSat(object):
         if not hasattr(layer, 'name'):
             layer.name = layer_name
         self.register_forward_hooks(layer, self.stats)
+        self.register_backward_hooks(layer, self.stats)
         return self
+
+    def register_backward_hooks(self, layer, stats):
+        """Register hook to show `stats` in `layer`."""
+        # HACK: Update global changes via arbitrary layer on backwards pass
+        def global_saturation_update(layer, input, output):
+            """Hook to register in `layer` module."""
+            if layer.forward_iter % layer.interval == 0:
+                hooks.add_saturation_collection(self, layer, self.logs['saturation'])
+
+        if not self.global_hooks_registered:
+            if 'lsat' in stats:
+                layer.register_backward_hook(global_saturation_update)
+            self.global_hooks_registered = True
 
     def register_forward_hooks(self, layer, stats):
         """Register hook to show `stats` in `layer`."""
@@ -128,13 +143,12 @@ class CheckLayerSat(object):
                     if layer.forward_iter % (
                             layer.interval *
                             10) == 0:  # expensive spectral analysis
-                        eig_vals = hooks.record_spectral_analysis(
+                        eig_vals = hooks.add_spectral_analysis(
                             layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
                     eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals)
-                    if self.store_data:
-                        self.logs['saturation'][layer.name] = saturation
+                    self.logs['saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(
