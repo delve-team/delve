@@ -20,15 +20,23 @@ class CheckLayerSat(object):
     Args:
         logging_dir (str)  : destination for summaries
         modules (torch modules or list of modules) : layer-containing object
-        log_interval (int) : int
+        log_interval (int) : steps between writing summaries
         stats (list of str): list of stats to collect
+
+            supported stats are:
+                lsat       : layer saturation
+                bcov       : batch covariance
+                eigendist  : eigenvalue distribution
+                neigendist : normalized eigenvalue distribution
+                spectrum   : top-N eigenvalues of covariance matrix
+                spectral   : spectral analysis (eigendist, neigendist, and spectrum)
     """
 
     def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
-        self.stats = stats
+        self.stats = self._check_stats(stats)
         self.logs = {'saturation':{}}
         self.global_steps = 0
         self.global_hooks_registered = False
@@ -50,13 +58,22 @@ class CheckLayerSat(object):
     def close(self):
         return getattr(self.writer, name)
 
+    def _format_saturation(self, saturation_status):
+        {l: "{}".format(s) for l, s in saturated_status.items()}
+        logging.info(formatted_saturation)
+
     def saturation(self, silent=False):
+        self._show_saturation(silent)
+
+    def _show_saturation(self, silent):
         saturation_status = self.logs['saturation']
         if not silent:
-            logging.info(saturation_status)
+            self.format_saturation(saturation_status)
         return saturation_status
 
-    def __check_stats(self, stats):
+    def _check_stats(self, stats):
+        if not isinstance(stats, list):
+            stats = list(stats)
         supported_stats = [
             'lsat', 'bcov', 'eigendist', 'neigendist', 'spectral', 'spectrum'
         ]
