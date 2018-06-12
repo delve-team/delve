@@ -32,14 +32,27 @@ from delve import CheckLayerSat
 
 model = TwoLayerNet() # PyTorch network
 layers = [model.linear1, model.linear2]
-stats = CheckLayerSat(layers) #log_dir and input
+stats = CheckLayerSat('runs', layers) #log_dir and input
+```
+To log the saturation to console, call `stats.saturation()`. For example:
+
+```bash
+INFO:delve:Recording layers {'.linear1': Linear(in_features=1000, out_features=5, bias=True), '.linear2': Linear(in_features=5, out_features=10, bias=True)}
+INFO:delve:Adding summaries to directory: regression/h5
+INFO:delve:{}
+INFO:delve:{'.linear1': 80.0, '.linear2': 50.0}
+INFO:delve:{'.linear1': 80.0, '.linear2': 50.0}
+INFO:delve:{'.linear1': 80.0, '.linear2': 60.0}
+INFO:delve:{'.linear1': 80.0, '.linear2': 60.0}
+INFO:delve:{'.linear1': 80.0, '.linear2': 70.0}
+INFO:delve:{'.linear1': 80.0, '.linear2': 70.0}
 ```
 
 #### Optimize neural network topology
 
 Ever wonder how big your layer size should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
 
-For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first. Here we show variations of the fully-connected "linear2" layer (light blue is 256-wide and orange is 8-wide):
+For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first. Multiple runs show that the fully-connected "linear2" layer (light blue is 256-wide and orange is 8-wide) saturation is sensitive to layer size:
 
 ![saturation](images/layer1-saturation.png)
 
