@@ -69,9 +69,9 @@ class CheckLayerSat(object):
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # is a model with layers
-            for k, v in modules.state_dict().items():
-                layer_name = k.split('.')[0]
-                layers[layer_name] = module.__getattr__(layer_name)
+            for name in modules.state_dict().keys():
+                layer_name = name.split('.')[0]
+                layers[layer_name] = getattr(modules,layer_name)
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
