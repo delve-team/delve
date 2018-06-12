@@ -44,13 +44,12 @@ def add_layer_saturation(layer, eig_vals=None, n_iter=None):
     if n_iter is None:
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
-    saturation = float("{:.2f}".format(100 * nr_eig_vals / layer.out_features))
+    saturation = get_layer_saturation(nr_eig_vals, layer.out_features, precision)
     layer.writer.add_scalar('{}-intrinsic_dimensionality'.format(layer.name),
                             nr_eig_vals, n_iter)
     layer.writer.add_scalar('{}-percent_saturation'.format(layer.name),
                             saturation, n_iter)
     return eig_vals, saturation
-
 
 def add_spectrum(layer, eig_vals=None, top_eigvals=5, n_iter=None):
     if eig_vals is None:

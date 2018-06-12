@@ -23,6 +23,9 @@ def get_explained_variance(eig_vals, threshold=0.99, return_cum=False):
         return nr_eig_vals, cum_var_exp
     return nr_eig_vals
 
+def get_layer_saturation(nr_eig_vals, layer_width, precision):
+    saturation = "{:.2f}".format(100 * nr_eig_vals / layer_width)
+    return float(saturation)
 
 def latent_pca(latent_history, subsample_rate=50):
     """Get NxN matrix of sorted (largest to smallest) principal components from `latent_history`
