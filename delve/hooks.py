@@ -44,7 +44,7 @@ def add_layer_saturation(layer, eig_vals=None, n_iter=None):
     if n_iter is None:
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
-    saturation = get_layer_saturation(nr_eig_vals, layer.out_features, precision)
+    saturation = get_layer_saturation(nr_eig_vals, layer.out_features)
     layer.writer.add_scalar('{}-intrinsic_dimensionality'.format(layer.name),
                             nr_eig_vals, n_iter)
     layer.writer.add_scalar('{}-percent_saturation'.format(layer.name),
