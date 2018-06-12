@@ -18,17 +18,19 @@ class CheckLayerSat(object):
     summaries to `logging_dir`.
 
     Args:
-        logging_dir (str)  : Where to write summaries
+        logging_dir (str)  : destination for summaries
         modules (torch modules or list of modules) : layer-containing object
         log_interval (int) : int
         stats (list of str): list of stats to collect
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], store_data=True):
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = stats
+        self.store_data = store_data
+        self.logs = {'saturation':{}}
 
         for name, layer in self.layers.items():
             self._register_hooks(
@@ -122,8 +124,10 @@ class CheckLayerSat(object):
                         eig_vals = hooks.record_spectral_analysis(
                             layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
-                    eig_vals = hooks.add_layer_saturation(
+                    eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals)
+                    if self.store_data:
+                        self.logs['saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(
@@ -137,5 +141,4 @@ class CheckLayerSat(object):
                             eig_vals,
                             top_eigvals=5,
                             n_iter=layer.forward_iter)
-
         layer.register_forward_hook(record_layer_saturation)
