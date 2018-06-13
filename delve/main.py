@@ -1,6 +1,4 @@
 import sys
-# sys.path.remove('/Users/justinshenk/.local/lib/python3.6/site-packages')
-# sys.path.append('/Users/justinshenk/anaconda3/envs/delve/lib/python3.6/site-packages/pip/_vendor')
 import delve
 import logging
 import numpy as np
