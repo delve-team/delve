@@ -8,14 +8,14 @@ Delve is a Python package for visualizing deep learning model training data.
 
 Use Delve if you need a PyTorch extension that:
 - Plots live statistics of network activations to TensorBoard and to console
-- Performs spectral analysis to identify layer saturation
+- Performs spectral analysis to identify **layer saturation**
 - Is easily extendible and configurable
 
 ------------------
 
 ## Motivation
 
-Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed. Here is an example of the output running `example_deep.py`.
+Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your **layer saturation** during training so you can grow and shrink layers as needed. Here is an example of the output running `example_deep.py`.
 
 ![video of training](images/layer-saturation-convnet.gif)
 
@@ -82,6 +82,10 @@ View the intrinsic dimensionality of models in realtime:
 ![intrinsic_dimensionality-layer2](images/layer2-intrinsic.png)
 
 This comparison suggests that the 8-unit layer (light blue) is too saturated and that a larger layer is needed.
+
+### How is layer saturation calculated?
+
+*Layer saturation* is the number of layers, dimensions, or directions needed to explain 99% of the variance, given the history of activation for a layer.
 
 ### Why this name, Delve?
 
