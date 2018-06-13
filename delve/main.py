@@ -9,11 +9,6 @@ from delve import hooks
 from delve.utils import *
 from delve.metrics import *
 from tensorboardX import SummaryWriter
-try:
-    from tqdm import tqdm
-    use_tqdm = True
-except:
-    use_tqdm = False
 
 logging.basicConfig(
     format='%(levelname)s:delve:%(message)s', level=logging.INFO)
@@ -69,9 +64,11 @@ class CheckLayerSat(object):
         return self.layers.keys().__repr__()
 
     def _init_progress_bar(self):
-        self.progress_bar = use_tqdm
-        if not self.progress_bar:
-            return
+        try:
+            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
+                from tqdm import tqdm_notebook as tqdm
+        except:
+            from tqdm import tqdm
         bars = {}
         for i, layer in enumerate(self.layers.keys()):
             pbar = tqdm(desc=layer, total=100, leave=True, position=i+1)
@@ -99,10 +96,9 @@ class CheckLayerSat(object):
 
     def _show_saturation(self):
         saturation_status = self.logs['saturation']
-        if self.progress_bar:
-            for layer, saturation in saturation_status.items():
-                percent_sat = max(0, saturation - self.bars[layer].n)
-                self.bars[layer].update(percent_sat)
+        for layer, saturation in saturation_status.items():
+            percent_sat = max(0, saturation - self.bars[layer].n)
+            self.bars[layer].update(float(percent_sat))
         # # Global saturations # NOTIMPLEMENTED
         # saturations = [s for s in saturation_status.values()]
         # if len(saturations):
