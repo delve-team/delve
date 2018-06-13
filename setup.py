@@ -8,6 +8,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'tensorboardX',
+    'tqdm'
 ]
 
 setup(
