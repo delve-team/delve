@@ -6,6 +6,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 
+from delve import CheckLayerSat
 from torch.autograd import Variable
 from tqdm import tqdm, trange
 
@@ -14,17 +15,17 @@ transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-bath_size = 128
+batch_size = 128
 
-trainset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+train_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(
+    train_set, batch_size=batch_size, shuffle=True, num_workers=2)
 
-testset = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(
-    testset, batch_size=batch_size, shuffle=False, num_workers=2)
+test_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=False, download=True, transform=transform)
+test_loader = torch.utils.data.DataLoader(
+    test_set, batch_size=batch_size, shuffle=False, num_workers=2)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
            'ship', 'truck')
@@ -51,27 +52,30 @@ class Net(nn.Module):
 
 torch.manual_seed(1)
 cuda = torch.cuda.is_available()
+epochs = 5
 
-for h2 in [8, 32, 128]:
-    net = Net(h2=h2)
+for h2 in [8, 32, 128]: # compare various hidden layer sizes
+    net = Net(h2=h2) # instantiate network with hidden layer size `h2`
 
     if cuda:
         net.cuda()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    stats = CheckLayerSat(
-        'convNet/h2-{}/subsample_rate1'.format(h2),
-        [net.fc1, net.fc2, net.fc3],
-        log_interval=100)
+    layers = [net.fc1, net.fc2, net.fc3]
+    logging_dir = 'convNet/h2-{}'.format(h2)
+    stats = CheckLayerSat(logging_dir, net)
 
-    epoch_iter = trange(5, desc='epochs')
-    for epoch in epoch_iter:  # loop over the dataset multiple times
-        net.train()
+    loader = tqdm(train_loader, total=len(train_loader), leave=True, position=0)
+    loader.write("{:^80}".format("CIFAR10 ConvNet - Hidden layer size {}".format(h2)))
+
+    for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         step = 0
-        for i, data in enumerate(trainloader, 0):
-            step = epoch * len(trainloader) + i
+        # reinstantiate loader
+        loader = tqdm(train_loader, total=len(train_loader), leave=True, position=0)
+        for i, data in enumerate(loader):
+            step = epoch * len(train_loader) + i
             inputs, labels = data
             inputs = Variable(inputs).cuda()
             labels = Variable(labels).cuda()
@@ -87,23 +91,11 @@ for h2 in [8, 32, 128]:
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
                                                 running_loss / 2000))
                 running_loss = 0.0
-            stats.add_scalar('batch_loss', loss.data, step)
-
-        # Validation
-        correct = 0
-        total = 0
-        net.eval()
-        val_samples = 300
-        for i, data in enumerate(testloader):
-            if i * batch_size > val_samples:
-                continue
-            images, labels = data
-            images = Variable(images).cuda()
-            labels = labels.cuda()
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum()
-        stats.add_scalar('val_accuracy', 100 * correct / total, epoch)
-        val_accuracy = 100 * corret / total
-        epoch_iter.set_description('({0.data} images) val_accuracy={:.2%}'.format(loss, val_accuracy))
+            stats.add_scalar('batch_loss', running_loss, step)
+            loader.set_description(desc='[%d/%d, %5d] loss: %.3f' % (epoch + 1, epochs, i + 1,
+                                                                  loss.data))
+            # display layer saturation levels
+            stats.saturation()
+    loader.write('\n')
+    loader.close()
+    stats.close()

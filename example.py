@@ -7,8 +7,6 @@ from delve import CheckLayerSat
 from torch.autograd import Variable
 from tqdm import tqdm, trange
 
-import time
-
 class TwoLayerNet(torch.nn.Module):
     def __init__(self, D_in, H, D_out):
         super(TwoLayerNet, self).__init__()
@@ -21,18 +19,12 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-# N is batch size; D_in is input dimension;
-# H is hidden dimension; D_out is output dimension.
-N, D_in, H, D_out = 64, 1000, 30, 100
-
-# Create random Tensors to hold inputs and outputs
-x = Variable(torch.randn(N, D_in))
-y = Variable(torch.randn(N, D_out))
-
+cuda = torch.cuda.is_available()
 torch.manual_seed(1)
 
-for h in [5,8, 100]:
-    start = time.time()
+for h in [10, 100, 300]:
+    # N is batch size; D_in is input dimension;
+    # H is hidden dimension; D_out is output dimension.
     N, D_in, H, D_out = 64, 1000, h, 10
 
     # Create random Tensors to hold inputs and outputs
@@ -40,27 +32,27 @@ for h in [5,8, 100]:
     y = Variable(torch.randn(N, D_out))
 
     model = TwoLayerNet(D_in, H, D_out)
+
+    if cuda:
+        x, y, model = x.cuda(), y.cuda(), model.cuda()
+
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), layers, verbose=True)
+    stats = CheckLayerSat('regression/h{}'.format(h), layers)
 
     loss_fn = torch.nn.MSELoss(size_average=False)
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
-    steps_iter = trange(2000, desc='steps')
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
+    steps_iter = trange(2000, desc='steps', leave=True, position=0)
+    steps_iter.write("{:^80}".format("Regression - TwoLayerNet - Hidden layer size {}".format(h)))
     for i in steps_iter:
-        # Forward pass: Compute predicted y by passing x to the model
         y_pred = model(x)
-
-        # Compute and print loss
         loss = loss_fn(y_pred, y)
         steps_iter.set_description('loss=%g' % loss.data)
-        # Zero gradients, perform a backward pass, and update the weights.
         optimizer.zero_grad()
         loss.backward()
-        stats.add_scalar('loss', loss.data, i)
-        stats.saturation()
-
         optimizer.step()
-    end = time.time()
-    print("{:.2f} seconds".format(end-start))
 
+        stats.saturation()
+    steps_iter.write('\n')
     stats.close()
+    steps_iter.close()
+

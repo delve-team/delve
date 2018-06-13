@@ -1,6 +1,4 @@
 import sys
-# sys.path.remove('/Users/justinshenk/.local/lib/python3.6/site-packages')
-# sys.path.append('/Users/justinshenk/anaconda3/envs/delve/lib/python3.6/site-packages/pip/_vendor')
 import delve
 import logging
 import numpy as np
@@ -37,12 +35,12 @@ class CheckLayerSat(object):
         verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=True):
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=False):
+        self.verbose = verbose
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
-        self.verbose = verbose
         self.logs = {'saturation':OrderedDict()}
         self.global_steps = 0
         self.global_hooks_registered = False
@@ -53,7 +51,7 @@ class CheckLayerSat(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Called upon closing CheckLayerSat."""
-        bar.finish()
+        self.close()
 
     def __getattr__(self, name):
         if name.startswith('add_'):
@@ -66,16 +64,11 @@ class CheckLayerSat(object):
         return self.layers.keys().__repr__()
 
     def _init_progress_bar(self):
-        progress_bar = False
         try:
             if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
-                progress_bar = False
+                from tqdm import tqdm_notebook as tqdm
         except:
             from tqdm import tqdm
-            progress_bar = True
-        self.progress_bar = progress_bar
-        if not self.progress_bar:
-            return
         bars = {}
         for i, layer in enumerate(self.layers.keys()):
             pbar = tqdm(desc=layer, total=100, leave=True, position=i+1)
@@ -88,7 +81,9 @@ class CheckLayerSat(object):
         raise NotImplementedError
 
     def close(self):
-        """User endpoint to close writer."""
+        """User endpoint to close writer and progress bars."""
+        for bar in self.bars.values():
+            bar.close()
         return self.writer.close()
 
     def _format_saturation(self, saturation_status):
@@ -101,14 +96,9 @@ class CheckLayerSat(object):
 
     def _show_saturation(self):
         saturation_status = self.logs['saturation']
-        if self.verbose:
-            formatted_saturation = saturation_status
-            if self.progress_bar:
-                for layer, saturation in saturation_status.items():
-                    percent_sat = max(0, saturation - self.bars[layer].n)
-                    self.bars[layer].update(percent_sat)
-        else:
-            pass
+        for layer, saturation in saturation_status.items():
+            percent_sat = max(0, saturation - self.bars[layer].n)
+            self.bars[layer].update(float(percent_sat))
         # # Global saturations # NOTIMPLEMENTED
         # saturations = [s for s in saturation_status.values()]
         # if len(saturations):
@@ -131,29 +121,39 @@ class CheckLayerSat(object):
 
     def _get_layers(self, modules):
         layers = {}
+        # TODO: Add support for non-linear layers
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # is a model with layers
             for name in modules.state_dict().keys():
                 layer_name = name.split('.')[0]
-                layers[layer_name] = getattr(modules,layer_name)
+                layer = getattr(modules,layer_name)
+                layer_class = layer.__module__.split('.')[-1]
+                if not 'linear' in layer_class: # TODO: Add support for other layers
+                    continue
+                layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
-                layer_class = layer.__module__.split('modules')[-1].split('.')[-1]
+                layer_class = layer.__module__.split('.')[-1]
+                if layer_class != 'linear': # TODO: Add support for other layers
+                    continue
+                print(layer_class)
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
                 layers[layer_name] = layer
-            logging.info("Recording layers {}".format(layers))
+            if self.verbose:
+                logging.info("Recording layers {}".format(layers))
             return layers
 
     def _get_writer(self, writer_dir):
         """Create a writer to log history to `writer_dir`."""
         writer = SummaryWriter(writer_dir)
         writer_name = list(writer.all_writers.keys())[0]  # eg, linear1
-        logging.info("Adding summaries to directory: {}".format(writer_name))
+        if self.verbose:
+            logging.info("Adding summaries to directory: {}".format(writer_name))
         return writer
 
     def _register_hooks(self, layer, layer_name, interval):

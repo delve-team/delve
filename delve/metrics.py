@@ -42,7 +42,9 @@ def latent_pca(latent_history, subsample_rate=50):
         eig_vals       : numpy.ndarray of eigenvalues, sorted by absolute value in descending order
     """
     history_array = np.vstack(latent_history)
+    history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is 2)
+
     embeddings = np.vstack(
         history_array)[::subsample_rate]  # subsample every Nth representation
     cov = np.cov(embeddings.T)
