@@ -7,21 +7,24 @@ import torchvision
 import torchvision.transforms as transforms
 
 from torch.autograd import Variable
+from tqdm import tqdm, trange
 
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
+bath_size = 128
+
 trainset = torchvision.datasets.CIFAR10(
     root='./data', train=True, download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=2)
+    trainset, batch_size=batch_size, shuffle=True, num_workers=2)
 
 testset = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(
-    testset, batch_size=128, shuffle=False, num_workers=2)
+    testset, batch_size=batch_size, shuffle=False, num_workers=2)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
            'ship', 'truck')
@@ -62,7 +65,8 @@ for h2 in [8, 32, 128]:
         [net.fc1, net.fc2, net.fc3],
         log_interval=100)
 
-    for epoch in range(5):  # loop over the dataset multiple times
+    epoch_iter = trange(5, desc='epochs')
+    for epoch in epoch_iter:  # loop over the dataset multiple times
         net.train()
         running_loss = 0.0
         step = 0
@@ -85,11 +89,14 @@ for h2 in [8, 32, 128]:
                 running_loss = 0.0
             stats.add_scalar('batch_loss', loss.data, step)
 
-    if epoch % 10 == 0:
+        # Validation
         correct = 0
         total = 0
         net.eval()
-        for data in testloader:
+        val_samples = 300
+        for i, data in enumerate(testloader):
+            if i * batch_size > val_samples:
+                continue
             images, labels = data
             images = Variable(images).cuda()
             labels = labels.cuda()
@@ -97,7 +104,6 @@ for h2 in [8, 32, 128]:
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum()
-        stats.add_scalar('epoch_val_accuracy', 100 * correct / total, epoch)
-        print(
-            'Accuracy of the network on the 10000 test images: {:.4f}'.format(
-                100 * correct / total))
+        stats.add_scalar('val_accuracy', 100 * correct / total, epoch)
+        val_accuracy = 100 * corret / total
+        epoch_iter.set_description('({0.data} images) val_accuracy={:.2%}'.format(loss, val_accuracy))

@@ -1,12 +1,15 @@
+import sys
+# sys.path.remove('/Users/justinshenk/.local/lib/python3.6/site-packages')
+# sys.path.append('/Users/justinshenk/anaconda3/envs/delve/lib/python3.6/site-packages/pip/_vendor')
+import delve
 import logging
 import numpy as np
 import time
 
-import delve
+from collections import OrderedDict
 from delve import hooks
 from delve.utils import *
 from delve.metrics import *
-
 from tensorboardX import SummaryWriter
 
 logging.basicConfig(
@@ -30,20 +33,27 @@ class CheckLayerSat(object):
                 neigendist : normalized eigenvalue distribution
                 spectrum   : top-N eigenvalues of covariance matrix
                 spectral   : spectral analysis (eigendist, neigendist, and spectrum)
+
+        verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=True):
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
-        self.logs = {'saturation':{}}
+        self.verbose = verbose
+        self.logs = {'saturation':OrderedDict()}
         self.global_steps = 0
         self.global_hooks_registered = False
-
+        self._init_progress_bar()
         for name, layer in self.layers.items():
             self._register_hooks(
                 layer=layer, layer_name=name, interval=log_interval)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Called upon closing CheckLayerSat."""
+        bar.finish()
 
     def __getattr__(self, name):
         if name.startswith('add_'):
@@ -55,20 +65,56 @@ class CheckLayerSat(object):
     def __repr__(self):
         return self.layers.keys().__repr__()
 
+    def _init_progress_bar(self):
+        progress_bar = False
+        try:
+            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
+                progress_bar = False
+        except:
+            from tqdm import tqdm
+            progress_bar = True
+        self.progress_bar = progress_bar
+        if not self.progress_bar:
+            return
+        bars = {}
+        for i, layer in enumerate(self.layers.keys()):
+            pbar = tqdm(desc=layer, total=100, leave=True, position=i+1)
+            bars[layer] = pbar
+            # bar = ChargingBar('{} Saturation'.format(layer), suffix='%(percent)d%%')
+            # bars[layer] = bar
+        self.bars = bars
+
+    def get_data(self):
+        raise NotImplementedError
+
     def close(self):
-        return getattr(self.writer, name)
+        """User endpoint to close writer."""
+        return self.writer.close()
 
     def _format_saturation(self, saturation_status):
-        {l: "{}".format(s) for l, s in saturated_status.items()}
-        logging.info(formatted_saturation)
+        raise NotImplementedError
 
-    def saturation(self, silent=False):
-        self._show_saturation(silent)
 
-    def _show_saturation(self, silent):
+    def saturation(self):
+        """User endpoint to get or show saturation levels."""
+        return self._show_saturation()
+
+    def _show_saturation(self):
         saturation_status = self.logs['saturation']
-        if not silent:
-            self.format_saturation(saturation_status)
+        if self.verbose:
+            formatted_saturation = saturation_status
+            if self.progress_bar:
+                for layer, saturation in saturation_status.items():
+                    percent_sat = max(0, saturation - self.bars[layer].n)
+                    self.bars[layer].update(percent_sat)
+        else:
+            pass
+        # # Global saturations # NOTIMPLEMENTED
+        # saturations = [s for s in saturation_status.values()]
+        # if len(saturations):
+        #     for bar in self.bars:
+        #         stack.index = sum(saturations)/len(saturations)
+        #         stack.update()
         return saturation_status
 
     def _check_stats(self, stats):
@@ -78,9 +124,10 @@ class CheckLayerSat(object):
             'lsat', 'bcov', 'eigendist', 'neigendist', 'spectral', 'spectrum'
         ]
         compatible = [stat in supported_stats for stat in stats]
-        incompatible = [i for i, x in compatible if not x][0]
+        incompatible = [i for i, x in enumerate(compatible) if not x]
         assert all(compatible), "Stat {} is not supported".format(
-            stats[incompatible])
+            stats[incompatible[0]])
+        return stats
 
     def _get_layers(self, modules):
         layers = {}
@@ -94,7 +141,7 @@ class CheckLayerSat(object):
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
-                layer_class = layer.__module__.split('modules')[-1]
+                layer_class = layer.__module__.split('modules')[-1].split('.')[-1]
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
@@ -179,4 +226,5 @@ class CheckLayerSat(object):
                             eig_vals,
                             top_eigvals=5,
                             n_iter=layer.forward_iter)
+
         layer.register_forward_hook(record_layer_saturation)
