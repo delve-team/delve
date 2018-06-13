@@ -7,7 +7,7 @@ Inspect layer saturation and spectral data of your PyTorch models.
 Delve is a Python package for visualizing deep learning model training data.
 
 Use Delve if you need a lightweight PyTorch extension that:
--  Plots live statistics of network activations to TensorBoard
+- Plots live statistics of network activations to TensorBoard
 - Performs spectral analysis to identify layer saturation
 - Is easily extendible and configurable
 
