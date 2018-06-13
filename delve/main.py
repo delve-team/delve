@@ -125,19 +125,25 @@ class CheckLayerSat(object):
 
     def _get_layers(self, modules):
         layers = {}
+        # TODO: Add support for non-linear layers
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # is a model with layers
             for name in modules.state_dict().keys():
                 layer_name = name.split('.')[0]
-                layers[layer_name] = getattr(modules,layer_name)
+                layer = getattr(modules,layer_name)
+                layer_class = layer.__module__.split('.')[-1]
+                if not 'linear' in layer_class: # TODO: Add support for other layers
+                    continue
+                layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
-                layer_class = layer.__module__.split('modules')[-1].split('.')[-1]
-                if layer_class != 'Linear': # TODO:Add support for other layers
+                layer_class = layer.__module__.split('.')[-1]
+                if layer_class != 'linear': # TODO: Add support for other layers
                     continue
+                print(layer_class)
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)

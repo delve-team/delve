@@ -7,8 +7,6 @@ from delve import CheckLayerSat
 from torch.autograd import Variable
 from tqdm import tqdm, trange
 
-import time
-
 class TwoLayerNet(torch.nn.Module):
     def __init__(self, D_in, H, D_out):
         super(TwoLayerNet, self).__init__()
@@ -25,8 +23,6 @@ cuda = torch.cuda.is_available()
 torch.manual_seed(1)
 
 for h in [10, 100, 300]:
-    start = time.time()
-
     # N is batch size; D_in is input dimension;
     # H is hidden dimension; D_out is output dimension.
     N, D_in, H, D_out = 64, 1000, h, 10
@@ -56,8 +52,6 @@ for h in [10, 100, 300]:
         optimizer.step()
 
         stats.saturation()
-    end = time.time()
-    print("{:.2f} seconds".format(end-start))
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
