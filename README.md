@@ -1,4 +1,4 @@
-# DELVE: Deep Layer-wise Visualization and Extraction
+# DELVE: Deep Live Visualization and Evaluation
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
@@ -37,6 +37,9 @@ model = TwoLayerNet() # PyTorch network
 layers = [model.linear1, model.linear2]
 stats = CheckLayerSat('runs', layers) #log_dir and input
 ```
+
+Only fully-connected layers are currently supported.
+
 To log the saturation to console, call `stats.saturation()`. For example:
 
 ```bash
