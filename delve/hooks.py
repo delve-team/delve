@@ -66,7 +66,7 @@ def add_spectrum(layer, eig_vals=None, top_eigvals=5, n_iter=None):
 def add_covariance(layer, activation_batch, n_iter):
     layer.writer.add_scalar(
         '{}-latent_representation_covariance'.format(layer.name),
-        batch_cov(activations_batch), n_iter)
+        batch_cov(activation_batch), n_iter)
 
 
 def add_mean(layer, activations_batch, n_iter):
