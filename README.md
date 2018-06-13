@@ -16,7 +16,9 @@ Use Delve if you need a lightweight PyTorch extension that:
 ## Motivation
 
 
-Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed.  
+Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed. Here is an example of the output running `example_deep.py`.
+
+![video of training](images/layer-saturation-convnet.gif)
 
 ## Getting Started
 
