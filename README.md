@@ -56,7 +56,7 @@ linear6:  90%|██████████████████████
 
 #### Optimize neural network topology
 
-Ever wonder how big your layer size should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
+Ever wonder how big your fully-connected layers should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
 
 For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first. Multiple runs show that the fully-connected "linear2" layer (light blue is 256-wide and orange is 8-wide) saturation is sensitive to layer size:
 
