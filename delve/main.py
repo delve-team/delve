@@ -44,6 +44,7 @@ class CheckLayerSat(object):
         self.logs = {'saturation':OrderedDict()}
         self.global_steps = 0
         self.global_hooks_registered = False
+        self.is_notebook = None
         self._init_progress_bar()
         for name, layer in self.layers.items():
             self._register_hooks(
@@ -51,7 +52,8 @@ class CheckLayerSat(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Called upon closing CheckLayerSat."""
-        self.close()
+        for bar in self.bars.values():
+            bar.close()
 
     def __getattr__(self, name):
         if name.startswith('add_'):
@@ -67,10 +69,13 @@ class CheckLayerSat(object):
         try:
             if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
                 from tqdm import tqdm_notebook as tqdm
+                self.is_notebook = True
         except:
             from tqdm import tqdm
+            self.is_notebook = False
         bars = {}
         for i, layer in enumerate(self.layers.keys()):
+            # bar_format = "{l_bar}{bar}| {n:.3g}/{total_fmt} [{rate_fmt}{postfix}]" # FIXME: Make it prettier
             pbar = tqdm(desc=layer, total=100, leave=True, position=i+1)
             bars[layer] = pbar
             # bar = ChargingBar('{} Saturation'.format(layer), suffix='%(percent)d%%')
@@ -89,16 +94,31 @@ class CheckLayerSat(object):
     def _format_saturation(self, saturation_status):
         raise NotImplementedError
 
+    def _write(self, text):
+        from tqdm import tqdm # FIXME: Connect to main writer
+        tqdm.write("{:^80}".format(text))
+
+    def write(self, text):
+        self._write(text)
 
     def saturation(self):
         """User endpoint to get or show saturation levels."""
         return self._show_saturation()
 
+    def _update(self, layer, percent_sat):
+        if self.is_notebook:
+            # logging.info("{} - %{} saturated".format(layer, percent_sat))
+            self.bars[layer].update(percent_sat)
+        else:
+            self.bars[layer].update(percent_sat)
+
     def _show_saturation(self):
         saturation_status = self.logs['saturation']
+        # saturation_status = 69
         for layer, saturation in saturation_status.items():
-            percent_sat = max(0, saturation - self.bars[layer].n)
-            self.bars[layer].update(float(percent_sat))
+            curr = self.bars[layer].n
+            percent_sat = int(max(0, saturation - curr))
+            self._update(layer, percent_sat)
         # # Global saturations # NOTIMPLEMENTED
         # saturations = [s for s in saturation_status.values()]
         # if len(saturations):
@@ -139,7 +159,6 @@ class CheckLayerSat(object):
                 layer_class = layer.__module__.split('.')[-1]
                 if layer_class != 'linear': # TODO: Add support for other layers
                     continue
-                print(layer_class)
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)

@@ -40,7 +40,7 @@ class LayerCake(torch.nn.Module):
 # H is hidden dimension; D_out is output dimension.
 N, D_in, D_out = 64, 100, 10
 
-H1, H2, H3, H4, H5 = 100, 100, 100, 100, 100
+H1, H2, H3, H4, H5 = 50, 50, 50, 50, 50
 # Create random Tensors to hold inputs and outputs
 x = Variable(torch.randn(N, D_in))
 y = Variable(torch.randn(N, D_out))

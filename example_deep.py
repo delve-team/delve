@@ -27,9 +27,6 @@ test_set = torchvision.datasets.CIFAR10(
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=batch_size, shuffle=False, num_workers=2)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
-           'ship', 'truck')
-
 class Net(nn.Module):
     def __init__(self, h2):
         super(Net, self).__init__()
@@ -62,20 +59,16 @@ for h2 in [8, 32, 128]: # compare various hidden layer sizes
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    layers = [net.fc1, net.fc2, net.fc3]
     logging_dir = 'convNet/h2-{}'.format(h2)
     stats = CheckLayerSat(logging_dir, net)
+    stats.write("CIFAR10 ConvNet - Changing fc2 - size {}".format(h2)) # optional
 
-    loader = tqdm(train_loader, total=len(train_loader), leave=True, position=0)
-    loader.write("{:^80}".format("CIFAR10 ConvNet - Hidden layer size {}".format(h2)))
-
-    for epoch in range(epochs):  # loop over the dataset multiple times
+    for epoch in range(epochs):
         running_loss = 0.0
         step = 0
-        # reinstantiate loader
-        loader = tqdm(train_loader, total=len(train_loader), leave=True, position=0)
+        loader = tqdm(train_loader, leave=True, position=0) # track step progress and loss - optional
         for i, data in enumerate(loader):
-            step = epoch * len(train_loader) + i
+            step = epoch * len(loader) + i
             inputs, labels = data
             inputs = Variable(inputs).cuda()
             labels = Variable(labels).cuda()
@@ -91,11 +84,14 @@ for h2 in [8, 32, 128]: # compare various hidden layer sizes
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
                                                 running_loss / 2000))
                 running_loss = 0.0
-            stats.add_scalar('batch_loss', running_loss, step)
+                stats.add_scalar('batch_loss', running_loss, step) # optional
+
+            # update the training progress display
             loader.set_description(desc='[%d/%d, %5d] loss: %.3f' % (epoch + 1, epochs, i + 1,
                                                                   loss.data))
             # display layer saturation levels
             stats.saturation()
+
     loader.write('\n')
     loader.close()
     stats.close()
