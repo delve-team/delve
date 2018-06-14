@@ -1,4 +1,4 @@
-# DELVE: Deep Live Visualization and Evaluation
+# DELVE: Deep Layer-wise Visualization and Extraction
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
@@ -6,18 +6,17 @@ Inspect layer saturation and spectral data of your PyTorch models.
 
 Delve is a Python package for visualizing deep learning model training data.
 
-Use Delve if you need a PyTorch extension that:
-- Plots live statistics of network activations to TensorBoard and to console
-- Performs spectral analysis to identify **layer saturation**
+Use Delve if you need a lightweight PyTorch extension that:
+-  Plots live statistics of network activations to TensorBoard
+- Performs spectral analysis to identify layer saturation
 - Is easily extendible and configurable
 
 ------------------
 
 ## Motivation
 
-Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your **layer saturation** during training so you can grow and shrink layers as needed. Here is an example of the output running `example_deep.py`.
 
-![video of training](images/layer-saturation-convnet.gif)
+Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed.  
 
 ## Getting Started
 
@@ -25,17 +24,19 @@ Designing a deep neural network involves optimizing over a wide range of paramet
 pip install delve
 ```
 
-NOTE: Currently only tested on a Python console, iPython notebook not yet supported.
-
 ### Layer Saturation
-Pass a PyTorch model (or layers) to CheckLayerSat:
+Pass a PyTorch model or `Linear` layers to CheckLayerSat:
 
 ```python
 from delve import CheckLayerSat
 
 model = TwoLayerNet() # PyTorch network
-layers = [model.linear1, model.linear2]
-stats = CheckLayerSat('runs', layers) #log_dir and input
+stats = CheckLayerSat('runs', model) #logging directory and input
+
+... # setup data loader
+
+for i, data in enumerate(train_loader):    
+    stats.saturation() # output saturation
 ```
 
 Only fully-connected layers are currently supported.
@@ -81,10 +82,6 @@ View the intrinsic dimensionality of models in realtime:
 ![intrinsic_dimensionality-layer2](images/layer2-intrinsic.png)
 
 This comparison suggests that the 8-unit layer (light blue) is too saturated and that a larger layer is needed.
-
-### How is layer saturation calculated?
-
-*Layer saturation* is the number of layers, dimensions, or directions needed to explain 99% of the variance, given the history of activation for a layer.
 
 ### Why this name, Delve?
 
