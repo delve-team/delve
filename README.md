@@ -1,4 +1,4 @@
-# DELVE: Deep Live Visualization and Evaluation
+# Delve: Deep Live Visualization and Evaluation
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
@@ -17,7 +17,10 @@ Use Delve if you need a lightweight PyTorch extension that:
 
 Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed.  
 
+## Demo
+
 ![live layer saturation demo](images/layer-saturation-convnet.gif)
+
 ## Getting Started
 
 ```bash
