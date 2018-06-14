@@ -1,3 +1,7 @@
+0.1.2 (2018-6-14)
+-----------------
+Add iPython notebook support
+
 0.1.1 (2018-6-13)
 -----------------
 * Add tqdm output
