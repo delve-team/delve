@@ -1,4 +1,4 @@
-# DELVE: Deep Layer-wise Visualization and Extraction
+# DELVE: Deep Live Visualization and Evaluation
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
 
@@ -7,7 +7,7 @@ Inspect layer saturation for optimizing your PyTorch models.
 Delve is a Python package for visualizing deep learning model training.
 
 Use Delve if you need a lightweight PyTorch extension that:
--  Plots live statistics of network activations to TensorBoard
+- Plots live statistics of network activations to TensorBoard
 - Performs spectral analysis to identify layer saturation
 - Is easily extendible and configurable
 
@@ -15,9 +15,9 @@ Use Delve if you need a lightweight PyTorch extension that:
 
 ## Motivation
 
-
 Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed.  
 
+![live layer saturation demo](images/layer-saturation-convnet.gif)
 ## Getting Started
 
 ```bash
