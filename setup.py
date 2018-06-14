@@ -13,7 +13,7 @@ requirements = [
 
 setup(
     name='delve',
-    version='0.1.1',
+    version='0.1.2',
     description='Delve lets you view Pytorch layer saturation statistics',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
