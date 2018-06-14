@@ -37,15 +37,14 @@ stats = CheckLayerSat('runs', layers) #log_dir and input
 To log the saturation to console, call `stats.saturation()`. For example:
 
 ```bash
-INFO:delve:Recording layers {'.linear1': Linear(in_features=1000, out_features=5, bias=True), '.linear2': Linear(in_features=5, out_features=10, bias=True)}
-INFO:delve:Adding summaries to directory: regression/h5
-INFO:delve:{}
-INFO:delve:{'.linear1': 80.0, '.linear2': 50.0}
-INFO:delve:{'.linear1': 80.0, '.linear2': 50.0}
-INFO:delve:{'.linear1': 80.0, '.linear2': 60.0}
-INFO:delve:{'.linear1': 80.0, '.linear2': 60.0}
-INFO:delve:{'.linear1': 80.0, '.linear2': 70.0}
-INFO:delve:{'.linear1': 80.0, '.linear2': 70.0}
+Regression - SixLayerNet - Hidden layer size 10                        │
+loss=0.231825:  68%|████████████████████▎         | 1350/2000 [00:04<00:02, 289.30it/s]│
+linear1:  90%|█████████████████████████████████▎   | 90.0/100 [00:00<00:00, 453.47it/s]│
+linear2:  18%|██████▊                               | 18.0/100 [00:00<00:00, 90.68it/s]│
+linear3:  32%|███████████▊                         | 32.0/100 [00:00<00:00, 161.22it/s]│
+linear4:  32%|███████████▊                         | 32.0/100 [00:00<00:00, 161.24it/s]│
+linear5:  28%|██████████▎                          | 28.0/100 [00:00<00:00, 141.11it/s]│
+linear6:  90%|██████████████████████████████████▏   | 90.0/100 [00:01<00:00, 56.04it/s]
 ```
 
 #### Optimize neural network topology
