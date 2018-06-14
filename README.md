@@ -64,14 +64,15 @@ For example, see how modifying the hidden layer size of this network affects the
 
 ![saturation](images/layer2-saturation.png)
 
-### Spectral analysis
+### Log spectral analysis
 
-Plot the top 5 eigenvalues of each layer:
+Writes the top 5 eigenvalues of each layer to TensorBoard summaries:
 
 ```python
 stats = CheckLayerSat('runs', layers, 'spectrum')
 ```
 
+Other options
 ![spectrum](images/spectrum.png)
 
 ### Intrinsic dimensionality
