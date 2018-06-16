@@ -35,7 +35,7 @@ class CheckLayerSat(object):
         verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=False):
+    def __init__(self, logging_dir, modules, log_interval=100, stats=['lsat'], verbose=False):
         self.verbose = verbose
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
