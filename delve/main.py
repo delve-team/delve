@@ -149,8 +149,10 @@ class CheckLayerSat(object):
                 layer_name = name.split('.')[0]
                 layer = getattr(modules,layer_name)
                 layer_class = layer.__module__.split('.')[-1]
-                if not 'linear' in layer_class: # TODO: Add support for other layers
-                    continue
+                if layer_class == 'conv':
+                    layer.out_features = 100
+                # if not 'linear' in layer_class: # TODO: Add support for other layers
+                #     continue
                 layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
