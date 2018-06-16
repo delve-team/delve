@@ -43,7 +43,8 @@ def latent_pca(latent_history, subsample_rate=50):
     """
     history_array = np.vstack(latent_history)
     history_array = history_array.reshape(history_array.shape[0], -1)
-    assert (len(history_array.shape) is 2)
+    assert (len(history_array.shape) is 2), "Stacked layer history shape is {}, \
+        should be 2".format(history_array.shape)
 
     embeddings = np.vstack(
         history_array)[::subsample_rate]  # subsample every Nth representation

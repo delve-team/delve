@@ -70,8 +70,10 @@ for h2 in [8, 32, 128]: # compare various hidden layer sizes
         for i, data in enumerate(loader):
             step = epoch * len(loader) + i
             inputs, labels = data
-            inputs = Variable(inputs).cuda()
-            labels = Variable(labels).cuda()
+            inputs = Variable(inputs)
+            labels = Variable(labels)
+            if cuda:
+                inputs, labels = inputs.cuda(), labels.cuda()
             optimizer.zero_grad()
 
             outputs = net(inputs)
