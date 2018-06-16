@@ -35,8 +35,14 @@ class CheckLayerSat(object):
         verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, logging_dir, modules, log_interval=100, stats=['lsat'], verbose=False):
+    def __init__(self, logging_dir,
+                 modules,
+                 log_interval=100,
+                 stats=['lsat'],
+                 include_conv = False,
+                 verbose=False):
         self.verbose = verbose
+        self.include_conv = include_conv
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
@@ -149,10 +155,11 @@ class CheckLayerSat(object):
                 layer_name = name.split('.')[0]
                 layer = getattr(modules,layer_name)
                 layer_class = layer.__module__.split('.')[-1]
-                if layer_class == 'conv':
-                    layer.out_features = 100
-                # if not 'linear' in layer_class: # TODO: Add support for other layers
-                #     continue
+                if layer_class == 'conv': # FIXME: VERY slow
+                    if self.include_conv:
+                        layer.out_features = 100
+                    else:
+                        continue
                 layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
