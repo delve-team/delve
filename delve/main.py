@@ -1,12 +1,13 @@
+import sys
+import delve
 import logging
 import numpy as np
 import time
 
-import delve
+from collections import OrderedDict
 from delve import hooks
 from delve.utils import *
 from delve.metrics import *
-
 from tensorboardX import SummaryWriter
 
 logging.basicConfig(
@@ -18,26 +19,44 @@ class CheckLayerSat(object):
     summaries to `logging_dir`.
 
     Args:
-        logging_dir (str)  : Where to write summaries
+        logging_dir (str)  : destination for summaries
         modules (torch modules or list of modules) : layer-containing object
-        log_interval (int) : int
+        log_interval (int) : steps between writing summaries
         stats (list of str): list of stats to collect
+
+            supported stats are:
+                lsat       : layer saturation
+                bcov       : batch covariance
+                eigendist  : eigenvalue distribution
+                neigendist : normalized eigenvalue distribution
+                spectrum   : top-N eigenvalues of covariance matrix
+                spectral   : spectral analysis (eigendist, neigendist, and spectrum)
+
+        verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat']):
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=False):
+        self.verbose = verbose
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
-        self.stats = stats
-
+        self.stats = self._check_stats(stats)
+        self.logs = {'saturation':OrderedDict()}
+        self.global_steps = 0
+        self.global_hooks_registered = False
+        self.is_notebook = None
+        self._init_progress_bar()
         for name, layer in self.layers.items():
             self._register_hooks(
                 layer=layer, layer_name=name, interval=log_interval)
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Called upon closing CheckLayerSat."""
+        for bar in self.bars.values():
+            bar.close()
+
     def __getattr__(self, name):
         if name.startswith('add_'):
-            return getattr(self.writer, name)
-        elif name == 'close':
             return getattr(self.writer, name)
         else:
             # Default behaviour
@@ -46,40 +65,114 @@ class CheckLayerSat(object):
     def __repr__(self):
         return self.layers.keys().__repr__()
 
-    def __check_stats(self, stats):
+    def _init_progress_bar(self):
+        try:
+            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
+                from tqdm import tqdm_notebook as tqdm
+                self.is_notebook = True
+        except:
+            from tqdm import tqdm
+            self.is_notebook = False
+        bars = {}
+        for i, layer in enumerate(self.layers.keys()):
+            # bar_format = "{l_bar}{bar}| {n:.3g}/{total_fmt} [{rate_fmt}{postfix}]" # FIXME: Make it prettier
+            pbar = tqdm(desc=layer, total=100, leave=True, position=i+1)
+            bars[layer] = pbar
+            # bar = ChargingBar('{} Saturation'.format(layer), suffix='%(percent)d%%')
+            # bars[layer] = bar
+        self.bars = bars
+
+    def get_data(self):
+        raise NotImplementedError
+
+    def close(self):
+        """User endpoint to close writer and progress bars."""
+        for bar in self.bars.values():
+            bar.close()
+        return self.writer.close()
+
+    def _format_saturation(self, saturation_status):
+        raise NotImplementedError
+
+    def _write(self, text):
+        from tqdm import tqdm # FIXME: Connect to main writer
+        tqdm.write("{:^80}".format(text))
+
+    def write(self, text):
+        self._write(text)
+
+    def saturation(self):
+        """User endpoint to get or show saturation levels."""
+        return self._show_saturation()
+
+    def _update(self, layer, percent_sat):
+        if self.is_notebook:
+            # logging.info("{} - %{} saturated".format(layer, percent_sat))
+            self.bars[layer].update(percent_sat)
+        else:
+            self.bars[layer].update(percent_sat)
+
+    def _show_saturation(self):
+        saturation_status = self.logs['saturation']
+        # saturation_status = 69
+        for layer, saturation in saturation_status.items():
+            curr = self.bars[layer].n
+            percent_sat = int(max(0, saturation - curr))
+            self._update(layer, percent_sat)
+        # # Global saturations # NOTIMPLEMENTED
+        # saturations = [s for s in saturation_status.values()]
+        # if len(saturations):
+        #     for bar in self.bars:
+        #         stack.index = sum(saturations)/len(saturations)
+        #         stack.update()
+        return saturation_status
+
+    def _check_stats(self, stats):
+        if not isinstance(stats, list):
+            stats = list(stats)
         supported_stats = [
             'lsat', 'bcov', 'eigendist', 'neigendist', 'spectral', 'spectrum'
         ]
         compatible = [stat in supported_stats for stat in stats]
-        incompatible = [i for i, x in compatible if not x][0]
+        incompatible = [i for i, x in enumerate(compatible) if not x]
         assert all(compatible), "Stat {} is not supported".format(
-            stats[incompatible])
+            stats[incompatible[0]])
+        return stats
 
     def _get_layers(self, modules):
         layers = {}
+        # TODO: Add support for non-linear layers
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # is a model with layers
-            for k, v in modules.state_dict().items():
-                layer_name = k.split('.')[0]
-                layers[layer_name] = module.__getattr__(layer_name)
+            for name in modules.state_dict().keys():
+                layer_name = name.split('.')[0]
+                layer = getattr(modules,layer_name)
+                layer_class = layer.__module__.split('.')[-1]
+                if not 'linear' in layer_class: # TODO: Add support for other layers
+                    continue
+                layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
-                layer_class = layer.__module__.split('modules')[-1]
+                layer_class = layer.__module__.split('.')[-1]
+                if layer_class != 'linear': # TODO: Add support for other layers
+                    continue
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
                 layers[layer_name] = layer
-            logging.info("Recording layers {}".format(layers))
+            if self.verbose:
+                logging.info("Recording layers {}".format(layers))
             return layers
 
     def _get_writer(self, writer_dir):
         """Create a writer to log history to `writer_dir`."""
         writer = SummaryWriter(writer_dir)
         writer_name = list(writer.all_writers.keys())[0]  # eg, linear1
-        logging.info("Adding summaries to directory: {}".format(writer_name))
+        if self.verbose:
+            logging.info("Adding summaries to directory: {}".format(writer_name))
         return writer
 
     def _register_hooks(self, layer, layer_name, interval):
@@ -94,7 +187,21 @@ class CheckLayerSat(object):
         if not hasattr(layer, 'name'):
             layer.name = layer_name
         self.register_forward_hooks(layer, self.stats)
+        self.register_backward_hooks(layer, self.stats)
         return self
+
+    def register_backward_hooks(self, layer, stats):
+        """Register hook to show `stats` in `layer`."""
+        # HACK: Update global changes via arbitrary layer on backwards pass
+        def global_saturation_update(layer, input, output):
+            """Hook to register in `layer` module."""
+            if layer.forward_iter % layer.interval == 0:
+                hooks.add_saturation_collection(self, layer, self.logs['saturation'])
+
+        if not self.global_hooks_registered:
+            if 'lsat' in stats:
+                layer.register_backward_hook(global_saturation_update)
+            self.global_hooks_registered = True
 
     def register_forward_hooks(self, layer, stats):
         """Register hook to show `stats` in `layer`."""
@@ -119,11 +226,12 @@ class CheckLayerSat(object):
                     if layer.forward_iter % (
                             layer.interval *
                             10) == 0:  # expensive spectral analysis
-                        eig_vals = hooks.record_spectral_analysis(
+                        eig_vals = hooks.add_spectral_analysis(
                             layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
-                    eig_vals = hooks.add_layer_saturation(
+                    eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals)
+                    self.logs['saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(

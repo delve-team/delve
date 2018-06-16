@@ -35,6 +35,8 @@ def add_neigen_dist(layer, eig_vals=None, n_iter=None):
         bins=10)
     return eig_vals
 
+def add_saturation_collection(base, layer, saturation_logs):
+    base.writer.add_scalars('saturation', saturation_logs, global_step=layer.forward_iter)
 
 def add_layer_saturation(layer, eig_vals=None, n_iter=None):
     if eig_vals is None:
@@ -42,12 +44,12 @@ def add_layer_saturation(layer, eig_vals=None, n_iter=None):
     if n_iter is None:
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
+    saturation = get_layer_saturation(nr_eig_vals, layer.out_features)
     layer.writer.add_scalar('{}-intrinsic_dimensionality'.format(layer.name),
                             nr_eig_vals, n_iter)
     layer.writer.add_scalar('{}-percent_saturation'.format(layer.name),
-                            100 * nr_eig_vals / layer.out_features, n_iter)
-    return eig_vals
-
+                            saturation, n_iter)
+    return eig_vals, saturation
 
 def add_spectrum(layer, eig_vals=None, top_eigvals=5, n_iter=None):
     if eig_vals is None:
@@ -72,7 +74,7 @@ def add_mean(layer, activations_batch, n_iter):
                             batch_mean(activations_batch), layer.forward_iter)
 
 
-def record_spectral_analysis(layer, eig_vals, n_iter, top_eigvals=5):
+def add_spectral_analysis(layer, eig_vals, n_iter, top_eigvals=5):
     """Add spectral analysis `layer` writer and display `top_eigvals`."""
     if eig_vals is None:
         eig_vals = get_layer_prop(layer, 'eig_vals')

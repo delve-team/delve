@@ -8,12 +8,13 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'tensorboardX',
+    'tqdm'
 ]
 
 setup(
     name='delve',
-    version='0.1.0',
-    description='Delve lets you view Pytorch layer saturation statistics',
+    version='0.1.2',
+    description='Delve lets you view PyTorch layer saturation statistics',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',

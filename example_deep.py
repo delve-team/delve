@@ -6,25 +6,26 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 
+from delve import CheckLayerSat
 from torch.autograd import Variable
+from tqdm import tqdm, trange
 
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-trainset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=2)
+batch_size = 128
 
-testset = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(
-    testset, batch_size=128, shuffle=False, num_workers=2)
+train_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(
+    train_set, batch_size=batch_size, shuffle=True, num_workers=2)
 
-classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse',
-           'ship', 'truck')
+test_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=False, download=True, transform=transform)
+test_loader = torch.utils.data.DataLoader(
+    test_set, batch_size=batch_size, shuffle=False, num_workers=2)
 
 class Net(nn.Module):
     def __init__(self, h2):
@@ -48,26 +49,26 @@ class Net(nn.Module):
 
 torch.manual_seed(1)
 cuda = torch.cuda.is_available()
+epochs = 5
 
-for h2 in [8, 32, 128]:
-    net = Net(h2=h2)
+for h2 in [8, 32, 128]: # compare various hidden layer sizes
+    net = Net(h2=h2) # instantiate network with hidden layer size `h2`
 
     if cuda:
         net.cuda()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    stats = CheckLayerSat(
-        'convNet/h2-{}/subsample_rate1'.format(h2),
-        [net.fc1, net.fc2, net.fc3],
-        log_interval=100)
+    logging_dir = 'convNet/h2-{}'.format(h2)
+    stats = CheckLayerSat(logging_dir, net)
+    stats.write("CIFAR10 ConvNet - Changing fc2 - size {}".format(h2)) # optional
 
-    for epoch in range(5):  # loop over the dataset multiple times
-        net.train()
+    for epoch in range(epochs):
         running_loss = 0.0
         step = 0
-        for i, data in enumerate(trainloader, 0):
-            step = epoch * len(trainloader) + i
+        loader = tqdm(train_loader, leave=True, position=0) # track step progress and loss - optional
+        for i, data in enumerate(loader):
+            step = epoch * len(loader) + i
             inputs, labels = data
             inputs = Variable(inputs).cuda()
             labels = Variable(labels).cuda()
@@ -83,21 +84,14 @@ for h2 in [8, 32, 128]:
                 print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
                                                 running_loss / 2000))
                 running_loss = 0.0
-            stats.add_scalar('batch_loss', loss.data, step)
+                stats.add_scalar('batch_loss', running_loss, step) # optional
 
-    if epoch % 10 == 0:
-        correct = 0
-        total = 0
-        net.eval()
-        for data in testloader:
-            images, labels = data
-            images = Variable(images).cuda()
-            labels = labels.cuda()
-            outputs = net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum()
-        stats.add_scalar('epoch_val_accuracy', 100 * correct / total, epoch)
-        print(
-            'Accuracy of the network on the 10000 test images: {:.4f}'.format(
-                100 * correct / total))
+            # update the training progress display
+            loader.set_description(desc='[%d/%d, %5d] loss: %.3f' % (epoch + 1, epochs, i + 1,
+                                                                  loss.data))
+            # display layer saturation levels
+            stats.saturation()
+
+    loader.write('\n')
+    loader.close()
+    stats.close()
