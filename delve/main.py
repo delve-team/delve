@@ -16,7 +16,7 @@ logging.basicConfig(
 
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
-    summaries to `logging_dir`.
+    summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
 
     Args:
         logging_dir (str)  : destination for summaries
