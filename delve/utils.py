@@ -26,8 +26,8 @@ def get_layer_prop(layer, prop, forward_iter=None, save_in_layer=False):
 def get_prop(layer, prop):
     """Low-level function for getting `prop` from `layer`."""
     if prop == 'eig_vals':
-        latent_history = get_layer_prop(layer, 'latent_history')
-        eig_vals, _ = latent_pca(latent_history)
+        layer_history = get_layer_prop(layer, 'layer_history')
+        eig_vals, _ = latent_pca(layer_history)
         return eig_vals
 
 

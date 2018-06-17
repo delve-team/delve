@@ -194,8 +194,8 @@ class CheckLayerSat(object):
         return writer
 
     def _register_hooks(self, layer, layer_name, interval):
-        if not hasattr(layer, 'latent_history'):
-            layer.latent_history = []
+        if not hasattr(layer, 'layer_history'):
+            layer.layer_history = []
         if not hasattr(layer, 'forward_iter'):
             layer.forward_iter = 0
         if not hasattr(layer, 'interval'):
@@ -231,7 +231,7 @@ class CheckLayerSat(object):
             layer.forward_iter += 1
             if layer.forward_iter % layer.interval == 0:
                 activations_batch = output.data.cpu().numpy()
-                layer.latent_history.append(activations_batch)
+                layer.layer_history.append(activations_batch)
                 activations_vec = get_first_representation(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
