@@ -27,23 +27,20 @@ def get_layer_saturation(nr_eig_vals, layer_width):
     saturation = round(100 * nr_eig_vals / layer_width, 2)
     return saturation
 
-def latent_pca(latent_history, subsample_rate=50):
+def latent_pca(latent_history, subsample_rate=50, window_size=100):
     """Get NxN matrix of sorted (largest to smallest) principal components from `latent_history`
     Args:
         latent_history : list, z-dim bottleneck outputs during autoencoder training
         subsample_rate : int, subsample rate before calculating PCs
-        eig_val_only   : bool, return list of eigenvalues
+        window_size    : int, how many activations to use for calculating principal components
     Returns:
         P              : numpy.ndarray, NxN square matrix of eigenvectors calculated over training
-        eig_vals       : numpy.ndarray of eigenvalues
+        eig_vals       : numpy.ndarray of absolute value of eigenvalues, sorted in descending order
 
-            or
-
-        eig_vals       : numpy.ndarray of eigenvalues, sorted by absolute value in descending order
     """
-    history_array = np.vstack(latent_history) # list to array
+    history_array = np.vstack(latent_history[-window_size:]) # list to array
     if len(history_array.shape) == 4: # conv
-        history_array = np.mean(history_array, axis=(2,3))
+        history_array = np.median(history_array, axis=(2,3))
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is 2), "Stacked layer history shape is {}, \
         should be 2".format(history_array.shape)
