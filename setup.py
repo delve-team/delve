@@ -14,7 +14,7 @@ requirements = [
 setup(
     name='delve',
     version='0.1.3',
-    description='Delve lets you view PyTorch layer saturation statistics',
+    description='Delve lets you monitor PyTorch model layer saturation during training',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',
@@ -40,5 +40,5 @@ setup(
     python_requires='>= 2.7, != 3.0.*, != 3.1.*',
     packages=find_packages(),
     include_package_data=True,
-    keywords='deep learning layer saturation topology spectral tensorboard',
+    keywords='deep learning layer saturation pruning spectral tensorboard',
     zip_safe=False)
