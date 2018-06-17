@@ -41,7 +41,9 @@ def latent_pca(latent_history, subsample_rate=50):
 
         eig_vals       : numpy.ndarray of eigenvalues, sorted by absolute value in descending order
     """
-    history_array = np.vstack(latent_history)
+    history_array = np.vstack(latent_history) # list to array
+    if len(history_array.shape) == 4: # conv
+        history_array = np.mean(history_array, axis=(2,3))
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is 2), "Stacked layer history shape is {}, \
         should be 2".format(history_array.shape)

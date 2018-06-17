@@ -37,9 +37,9 @@ class CheckLayerSat(object):
 
     def __init__(self, logging_dir,
                  modules,
-                 log_interval=100,
+                 log_interval=50,
                  stats=['lsat'],
-                 include_conv = False,
+                 include_conv = True,
                  verbose=False):
         self.verbose = verbose
         self.include_conv = include_conv
@@ -157,7 +157,7 @@ class CheckLayerSat(object):
                 layer_class = layer.__module__.split('.')[-1]
                 if layer_class == 'conv': # FIXME: VERY slow
                     if self.include_conv:
-                        layer.out_features = 100
+                        layer.out_features = layer.out_channels
                     else:
                         continue
                 layers[layer_name] = layer
@@ -165,9 +165,15 @@ class CheckLayerSat(object):
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
-                layer_class = layer.__module__.split('.')[-1]
-                if layer_class != 'linear': # TODO: Add support for other layers
-                    continue
+                try:
+                    layer_class = layer.__module__.split('.')[-1]
+                except:
+                    raise "Layer {} is not supported".format(layer)
+                if layer_class == 'conv': # TODO: Add support for other layers
+                    if self.include_conv:
+                        layer.out_features = layer.out_channels
+                    else:
+                        continue
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
