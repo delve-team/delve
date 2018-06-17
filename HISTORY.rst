@@ -1,3 +1,7 @@
+0.1.3 (2018-6-17)
+-----------------
+Add support for convolutional layers
+
 0.1.2 (2018-6-14)
 -----------------
 Add iPython notebook support
