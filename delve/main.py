@@ -145,6 +145,9 @@ class CheckLayerSat(object):
             stats[incompatible[0]])
         return stats
 
+    def _add_conv_layer(self, layer):
+        layer.out_features = layer.out_channels
+
     def _get_layers(self, modules):
         layers = {}
         # TODO: Add support for non-linear layers
@@ -155,9 +158,9 @@ class CheckLayerSat(object):
                 layer_name = name.split('.')[0]
                 layer = getattr(modules,layer_name)
                 layer_class = layer.__module__.split('.')[-1]
-                if layer_class == 'conv': # FIXME: VERY slow
+                if layer_class == 'conv':
                     if self.include_conv:
-                        layer.out_features = layer.out_channels
+                        self._add_conv_layer(layer)
                     else:
                         continue
                 layers[layer_name] = layer
@@ -169,9 +172,9 @@ class CheckLayerSat(object):
                     layer_class = layer.__module__.split('.')[-1]
                 except:
                     raise "Layer {} is not supported".format(layer)
-                if layer_class == 'conv': # TODO: Add support for other layers
+                if layer_class == 'conv':
                     if self.include_conv:
-                        layer.out_features = layer.out_channels
+                        self._add_conv_layer(layer)
                     else:
                         continue
                 layer_names.append(layer_class)
