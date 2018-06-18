@@ -42,7 +42,7 @@ for i, data in enumerate(train_loader):
     stats.saturation() # output saturation
 ```
 
-Only fully-connected layers are currently supported.
+Only fully-connected and convolutional layers are currently supported.
 
 To log the saturation to console, call `stats.saturation()`. For example:
 
