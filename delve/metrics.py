@@ -24,8 +24,13 @@ def get_explained_variance(eig_vals, threshold=0.99, return_cum=False):
     return nr_eig_vals
 
 def get_layer_saturation(nr_eig_vals, layer_width):
+<<<<<<< HEAD
     saturation = round(100 * nr_eig_vals / layer_width, 2)
     return saturation
+=======
+    saturation = "{:.2f}".format(100 * nr_eig_vals / layer_width)
+    return float(saturation)
+>>>>>>> origin/master
 
 def _get_cov(layer_history, subsample_rate=50, window_size=100):
     """Get covariance matrix of layer activation history.
@@ -33,12 +38,18 @@ def _get_cov(layer_history, subsample_rate=50, window_size=100):
         subsample_rate : int, subsample rate before calculating PCs
         window_size    : int, how many activations to use for calculating principal components
     """
+<<<<<<< HEAD
     history_array = np.vstack(layer_history[-window_size:]) # list to array
     if len(history_array.shape) == 4: # conv
         history_array = np.median(history_array, axis=(2,3))
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is 2), "Stacked layer history shape is {}, \
         should be 2".format(history_array.shape)
+=======
+    history_array = np.vstack(latent_history)
+    history_array = history_array.reshape(history_array.shape[0], -1)
+    assert (len(history_array.shape) is 2)
+>>>>>>> origin/master
 
     embeddings = np.vstack(
         history_array)[::subsample_rate]  # subsample every Nth representation

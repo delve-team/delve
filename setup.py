@@ -13,8 +13,13 @@ requirements = [
 
 setup(
     name='delve',
+<<<<<<< HEAD
     version='0.1.3',
     description='Delve lets you monitor PyTorch model layer saturation during training',
+=======
+    version='0.1.2',
+    description='Delve lets you view PyTorch layer saturation statistics',
+>>>>>>> origin/master
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',

@@ -16,6 +16,7 @@ transform = transforms.Compose([
 ])
 
 batch_size = 128
+<<<<<<< HEAD
 
 train_set = torchvision.datasets.CIFAR10(
     root='./data', train=True, download=True, transform=transform)
@@ -24,6 +25,16 @@ train_loader = torch.utils.data.DataLoader(
 
 test_set = torchvision.datasets.CIFAR10(
     root='./data', train=False, download=True, transform=transform)
+=======
+
+train_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(
+    train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+test_set = torchvision.datasets.CIFAR10(
+    root='/home/share/data', train=False, download=True, transform=transform)
+>>>>>>> origin/master
 test_loader = torch.utils.data.DataLoader(
     test_set, batch_size=batch_size, shuffle=False, num_workers=2)
 

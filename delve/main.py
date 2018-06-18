@@ -35,6 +35,7 @@ class CheckLayerSat(object):
         verbose (bool)     : print saturation for every layer during training
     """
 
+<<<<<<< HEAD
     def __init__(self, logging_dir,
                  modules,
                  log_interval=50,
@@ -43,6 +44,10 @@ class CheckLayerSat(object):
                  verbose=False):
         self.verbose = verbose
         self.include_conv = include_conv
+=======
+    def __init__(self, logging_dir, modules, log_interval=10, stats=['lsat'], verbose=False):
+        self.verbose = verbose
+>>>>>>> origin/master
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
@@ -144,9 +149,12 @@ class CheckLayerSat(object):
         assert all(compatible), "Stat {} is not supported".format(
             stats[incompatible[0]])
         return stats
+<<<<<<< HEAD
 
     def _add_conv_layer(self, layer):
         layer.out_features = layer.out_channels
+=======
+>>>>>>> origin/master
 
     def _get_layers(self, modules):
         layers = {}
@@ -158,16 +166,22 @@ class CheckLayerSat(object):
                 layer_name = name.split('.')[0]
                 layer = getattr(modules,layer_name)
                 layer_class = layer.__module__.split('.')[-1]
+<<<<<<< HEAD
                 if layer_class == 'conv':
                     if self.include_conv:
                         self._add_conv_layer(layer)
                     else:
                         continue
+=======
+                if not 'linear' in layer_class: # TODO: Add support for other layers
+                    continue
+>>>>>>> origin/master
                 layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
             layer_names = []
             for layer in modules:
+<<<<<<< HEAD
                 try:
                     layer_class = layer.__module__.split('.')[-1]
                 except:
@@ -177,6 +191,11 @@ class CheckLayerSat(object):
                         self._add_conv_layer(layer)
                     else:
                         continue
+=======
+                layer_class = layer.__module__.split('.')[-1]
+                if layer_class != 'linear': # TODO: Add support for other layers
+                    continue
+>>>>>>> origin/master
                 layer_names.append(layer_class)
                 layer_cnt = layer_names.count(layer_class)
                 layer_name = layer_class + str(layer_cnt)
