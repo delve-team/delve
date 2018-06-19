@@ -158,7 +158,6 @@ class CheckLayerSat(object):
 
     def _get_layers(self, modules):
         layers = {}
-        # TODO: Add support for non-linear layers
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # is a model with layers
@@ -178,7 +177,7 @@ class CheckLayerSat(object):
 >>>>>>> origin/master
                 layers[layer_name] = layer
             return layers
-        elif isinstance(modules, list):  # FIXME: Optimize dictionary creation
+        elif isinstance(modules, list):
             layer_names = []
             for layer in modules:
 <<<<<<< HEAD
