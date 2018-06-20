@@ -32,7 +32,9 @@ class CheckLayerSat(object):
                 spectrum   : top-N eigenvalues of covariance matrix
                 spectral   : spectral analysis (eigendist, neigendist, and spectrum)
 
+        include_conv       : bool, setting to False includes only linear layers
         verbose (bool)     : print saturation for every layer during training
+        
     """
 
     def __init__(self, logging_dir,
