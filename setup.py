@@ -3,6 +3,9 @@
 
 from setuptools import setup, find_packages
 
+# Get package version
+exec(open('delve/version.py','r').read())
+
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
@@ -13,7 +16,7 @@ requirements = [
 
 setup(
     name='delve',
-    version='0.1.4',
+    version=__version__,
     description='Delve lets you monitor PyTorch model layer saturation during training',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
