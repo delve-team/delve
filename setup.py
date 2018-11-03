@@ -19,6 +19,7 @@ setup(
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',
     long_description=open("README.md").read(),
+    long_description_content_type='text/markdown',
     license='MIT license',
     install_requires=requirements,
     classifiers=[
