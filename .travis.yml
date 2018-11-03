@@ -32,7 +32,7 @@ script:
 - python example_fc.py
 deploy:
   provider: pypi
-  user: justinshenk
+  user: jshenk
   skip_cleanup: true
   on:
     tags: true
