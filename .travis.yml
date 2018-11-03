@@ -2,41 +2,35 @@ sudo: true
 dist: xenial
 language: python
 python:
-  - "2.7"
-  - "3.6"
-  - "3.7"
+- '2.7'
+- '3.6'
+- '3.7'
 git:
   depth: false
 env:
-  - MPLBACKEND=Agg
+- MPLBACKEND=Agg
 cache: pip
 install:
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION chainer pytorch -c pytorch
-  - source activate test-environment
-  - pip install torchvision
-  - pip install moviepy==0.2.3.2
-  - pip install matplotlib
-  - python -c "import imageio; imageio.plugins.ffmpeg.download()"
-  - pip install --upgrade pytest flake8
-  - python setup.py install
-
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION chainer pytorch
+  -c pytorch
+- source activate test-environment
+- pip install torchvision
+- pip install moviepy==0.2.3.2
+- pip install matplotlib
+- python -c "import imageio; imageio.plugins.ffmpeg.download()"
+- pip install --upgrade pytest flake8
+- python setup.py install
 script:
-  - pip uninstall -y delve
-  - pip install delve
-
+- pip uninstall -y delve
+- pip install delve
 deploy:
   provider: pypi
   user: justinshenk
@@ -44,3 +38,5 @@ deploy:
   on:
     tags: true
     branch: master
+  password:
+    secure: liFEP70zWg+dkNMminFPEx4oTN04fogpZv3A6sodRmD+3OEBM4NPP1htSaJmJIFfA20FrsZI9PRoFciJbDrTmWNgLI56cnn7Jp6f6m/ow+RMD1JKJMuPRx5KHFrDQHcZ2uG1I0mak2taNl4C6oGurT7h0V+Z12OGSyDU0sEzUOihivP4BQMzGLfk33l0oVdqsMkue0BtSVmSfhHjnEja4FDOpyVCm5mCr1tsONTxsKNkFW8PPi3HAlqQULFPknabzhjcDl/w24Xp7NNXt1ET1XrwGyPMWli//IQuKMXgdsjFPu9w11qSkvzzPh25JNKqyu3GK7k8wFAETCZgzDwKxuPXqb/ejNNVp0HdB79tvTktuNGQOYBERH83Wnp6tS5bS4J1yVjxnUVsgxWZ6NXMsIbhj5478iC8cXYcat79L9AgtXGhxtBrmZi6FnxMkM7+bTQGR3F7KOYxc9fZN5/YyO8QPYe2qZTGF/ed07s05cw1Lj8CQo4Ko5vXK/WPO0TykHbNyepC15DcTbdSC1KsQwJtmBxsFTXbEN64xW+4PDA4lxdy0eIvaZ2cLIPlcgqtGxmld7xqQr/r6mbc+sHyr/VGnP8VnCjybOMCXQGxYATgQ5vg2IvOGAhnOetGdFbyqnyGcDvWjMpALwi1T1uq3XTnV4bK9bzyQwGhY+Lpzo8=
