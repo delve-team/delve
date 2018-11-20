@@ -36,6 +36,7 @@ class LayerCake(torch.nn.Module):
         y_pred = self.linear6(x)
         return y_pred
 
+
 # N is batch size; D_in is input dimension;
 # H is hidden dimension; D_out is output dimension.
 N, D_in, D_out = 64, 100, 10
@@ -64,7 +65,9 @@ for h in [10, 100, 300]:
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
-    steps_iter.write("{:^80}".format("Regression - SixLayerNet - Hidden layer size {}".format(h)))
+    steps_iter.write(
+        "{:^80}".format("Regression - SixLayerNet - Hidden layer size {}".format(h))
+    )
     for i in steps_iter:
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
@@ -77,4 +80,3 @@ for h in [10, 100, 300]:
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
-

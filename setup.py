@@ -4,15 +4,12 @@
 from setuptools import setup, find_packages
 
 # Get package version
-exec(open('delve/version.py','r').read())
+exec(open('delve/version.py', 'r').read())
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'tensorboardX',
-    'tqdm'
-]
+requirements = ['tensorboardX', 'tqdm']
 
 setup(
     name='delve',
@@ -45,4 +42,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     keywords='deep learning layer saturation pruning spectral tensorboard',
-    zip_safe=False)
+    zip_safe=False,
+)

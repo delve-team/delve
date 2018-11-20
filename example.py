@@ -9,6 +9,7 @@ from delve import CheckLayerSat
 from torch.autograd import Variable
 from tqdm import tqdm, trange
 
+
 class TwoLayerNet(torch.nn.Module):
     def __init__(self, D_in, H, D_out):
         super(TwoLayerNet, self).__init__()
@@ -44,7 +45,9 @@ for h in [3, 32, 128]:
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
-    steps_iter.write("{:^80}".format("Regression - TwoLayerNet - Hidden layer size {}".format(h)))
+    steps_iter.write(
+        "{:^80}".format("Regression - TwoLayerNet - Hidden layer size {}".format(h))
+    )
     for i in steps_iter:
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
@@ -57,4 +60,3 @@ for h in [3, 32, 128]:
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
-
