@@ -24,7 +24,7 @@ class TwoLayerNet(torch.nn.Module):
 cuda = torch.cuda.is_available()
 torch.manual_seed(1)
 
-for h in [3, 1000, 10000]:
+for h in [3, 32, 128]:
     # N is batch size; D_in is input dimension;
     # H is hidden dimension; D_out is output dimension.
     N, D_in, H, D_out = 64, 1000, h, 10
