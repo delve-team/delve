@@ -21,6 +21,8 @@ Designing a deep neural network involves optimizing over a wide range of paramet
 
 ![live layer saturation demo](images/layer-saturation-convnet.gif)
 
+![example_fc.gif](images/example_fc.gif)
+
 ## Getting Started
 
 ```bash
