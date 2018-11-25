@@ -36,8 +36,8 @@ def _get_cov(layer_history, subsample_rate=50, window_size=100):
         window_size    : int, how many activations to use for calculating principal components
     """
     history_array = np.vstack(layer_history[-window_size:])  # list to array
-    if len(history_array.shape) == 4:  # conv
-        history_array = np.median(history_array, axis=(2, 3))
+    if len(history_array.shape) == 4:  # conv layer (B x C x H x W)
+        history_array = np.median(history_array, axis=(2, 3)) # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (
         len(history_array.shape) is 2
