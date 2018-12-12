@@ -3,6 +3,9 @@
 
 from setuptools import setup, find_packages
 
+import os
+from os import path
+
 # Get package version
 exec(open('delve/version.py', 'r').read())
 
@@ -11,6 +14,10 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['tensorboardX', 'tqdm']
 
+this_dir = path.abspath(path.dirname(__file__))
+with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='delve',
     version=__version__,
@@ -18,7 +25,7 @@ setup(
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type='text/markdown',
     license='MIT license',
     install_requires=requirements,
