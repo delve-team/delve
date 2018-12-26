@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 
 from delve import CheckLayerSat
-from torch.autograd import Variable
 from tqdm import tqdm, trange
 
 
@@ -22,7 +21,9 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-cuda = torch.cuda.is_available()
+is_cuda = torch.cuda.is_available()
+if is_cuda:
+    cuda = torch.device('cuda')
 torch.manual_seed(1)
 
 for h in [3, 32, 128]:
@@ -31,13 +32,13 @@ for h in [3, 32, 128]:
     N, D_in, H, D_out = 64, 1000, h, 10
 
     # Create random Tensors to hold inputs and outputs
-    x = Variable(torch.randn(N, D_in))
-    y = Variable(torch.randn(N, D_out))
+    x = torch.randn(N, D_in)
+    y = torch.randn(N, D_out)
 
     model = TwoLayerNet(D_in, H, D_out)
 
-    if cuda:
-        x, y, model = x.cuda(), y.cuda(), model.cuda()
+    if is_cuda:
+        x, y, model = x.to(cuda), y.to(cuda), model.to(cuda)
 
     layers = [model.linear1, model.linear2]
     stats = CheckLayerSat('regression/h{}'.format(h), layers)
