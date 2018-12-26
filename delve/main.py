@@ -33,7 +33,7 @@ class CheckLayerSat(object):
 
         include_conv       : bool, setting to False includes only linear layers
         verbose (bool)     : print saturation for every layer during training
-        
+
     """
 
     def __init__(
@@ -164,18 +164,34 @@ class CheckLayerSat(object):
         layers = {}
         if not isinstance(modules, list) and not hasattr(modules, 'out_features'):
             # is a model with layers
-            for name in modules.state_dict().keys():
-                layer_name = name.split('.')[0]
-                layer = getattr(modules, layer_name)
-                layer_class = layer.__module__.split('.')[-1]
-                if layer_class == 'conv':
-                    if self.include_conv:
-                        self._add_conv_layer(layer)
-                    else:
+            # check if submodule
+            submodules = modules._modules # OrderedDict
+            for idx, (name, submodule) in enumerate(submodules.items()):
+                if submodule._get_name() is 'Sequential':
+                    for submodule_idx, layer in submodule._modules.items():
+                        layer_class = layer.__module__.split('.')[-1]
+                        if layer_class == 'conv':
+                            if self.include_conv:
+                                self._add_conv_layer(layer)
+                            else:
+                                continue
+                        layers[name+submodule_idx] = layer
+                else:
+                    layer_name = name.split('.')[0]
+                    layer_type = submodule._get_name().lower()
+                    if not layer_type in ['conv','linear']:
                         continue
-                layers[layer_name] = layer
+                    layer = getattr(modules, layer_name)
+                    layer_class = layer.__module__.split('.')[-1]
+                    if layer_class == 'conv':
+                        if self.include_conv:
+                            self._add_conv_layer(layer)
+                        else:
+                            continue
+                    layers[layer_name] = layer
             return layers
         elif isinstance(modules, list):
+            # is a list of layers
             layer_names = []
             for layer in modules:
                 try:
@@ -193,6 +209,9 @@ class CheckLayerSat(object):
                 layers[layer_name] = layer
             if self.verbose:
                 logging.info("Recording layers {}".format(layers))
+        # elif layer._get_name() is 'Sequential':
+        #                 for idx, l in enumerate(layer):
+        #                     self._register_hooks(layer=l, layer_name=name+str(idx), interval=log_interval)
             return layers
 
     def _get_writer(self, writer_dir):
