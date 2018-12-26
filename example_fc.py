@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 from delve import CheckLayerSat
-from torch.autograd import Variable
 from tqdm import tqdm, trange
 
 
@@ -42,23 +41,22 @@ class LayerCake(torch.nn.Module):
 N, D_in, D_out = 64, 100, 10
 
 H1, H2, H3, H4, H5 = 50, 50, 50, 50, 50
-# Create random Tensors to hold inputs and outputs
-x = Variable(torch.randn(N, D_in))
-y = Variable(torch.randn(N, D_out))
 
-cuda = torch.cuda.is_available()
+is_cuda = torch.cuda.is_available()
+if is_cuda:
+    cuda = torch.device('cuda')
 torch.manual_seed(1)
 
 for h in [10, 100, 300]:
 
     # Create random Tensors to hold inputs and outputs
-    x = Variable(torch.randn(N, D_in))
-    y = Variable(torch.randn(N, D_out))
+    x = torch.randn(N, D_in)
+    y = torch.randn(N, D_out)
 
     model = LayerCake(D_in, h, H2, H3, H4, H5, D_out)
 
-    if cuda:
-        x, y, model = x.cuda(), y.cuda(), model.cuda()
+    if is_cuda:
+        x, y, model = x.to(cuda), y.to(cuda), model.to(cuda)
 
     stats = CheckLayerSat('regression/h{}'.format(h), model)
 

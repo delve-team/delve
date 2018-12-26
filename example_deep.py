@@ -7,7 +7,6 @@ import torchvision
 import torchvision.transforms as transforms
 
 from delve import CheckLayerSat
-from torch.autograd import Variable
 from tqdm import tqdm, trange
 
 transform = transforms.Compose(
@@ -51,15 +50,19 @@ class Net(nn.Module):
         return x
 
 
+
+is_cuda = torch.cuda.is_available()
+if is_cuda:
+    cuda = torch.device('cuda')
 torch.manual_seed(1)
-cuda = torch.cuda.is_available()
+
 epochs = 5
 
 for h2 in [8, 32, 128]:  # compare various hidden layer sizes
     net = Net(h2=h2)  # instantiate network with hidden layer size `h2`
 
-    if cuda:
-        net.cuda()
+    if is_cuda:
+        net.to(cuda)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -76,10 +79,8 @@ for h2 in [8, 32, 128]:  # compare various hidden layer sizes
         for i, data in enumerate(loader):
             step = epoch * len(loader) + i
             inputs, labels = data
-            inputs = Variable(inputs)
-            labels = Variable(labels)
             if cuda:
-                inputs, labels = inputs.cuda(), labels.cuda()
+                inputs, labels = inputs.to(cuda), labels.to(cuda)
             optimizer.zero_grad()
 
             outputs = net(inputs)
