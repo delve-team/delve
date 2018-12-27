@@ -51,9 +51,8 @@ class Net(nn.Module):
 
 
 
-is_cuda = torch.cuda.is_available()
-if is_cuda:
-    cuda = torch.device('cuda')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 torch.manual_seed(1)
 
 epochs = 5
@@ -61,8 +60,7 @@ epochs = 5
 for h2 in [8, 32, 128]:  # compare various hidden layer sizes
     net = Net(h2=h2)  # instantiate network with hidden layer size `h2`
 
-    if is_cuda:
-        net.to(cuda)
+    net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -79,8 +77,7 @@ for h2 in [8, 32, 128]:  # compare various hidden layer sizes
         for i, data in enumerate(loader):
             step = epoch * len(loader) + i
             inputs, labels = data
-            if cuda:
-                inputs, labels = inputs.to(cuda), labels.to(cuda)
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
 
             outputs = net(inputs)

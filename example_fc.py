@@ -42,9 +42,7 @@ N, D_in, D_out = 64, 100, 10
 
 H1, H2, H3, H4, H5 = 50, 50, 50, 50, 50
 
-is_cuda = torch.cuda.is_available()
-if is_cuda:
-    cuda = torch.device('cuda')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
 for h in [10, 100, 300]:
@@ -55,8 +53,7 @@ for h in [10, 100, 300]:
 
     model = LayerCake(D_in, h, H2, H3, H4, H5, D_out)
 
-    if is_cuda:
-        x, y, model = x.to(cuda), y.to(cuda), model.to(cuda)
+    x, y, model = x.to(device), y.to(device), model.to(device)
 
     stats = CheckLayerSat('regression/h{}'.format(h), model)
 

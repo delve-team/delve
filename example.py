@@ -21,9 +21,7 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-is_cuda = torch.cuda.is_available()
-if is_cuda:
-    cuda = torch.device('cuda')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
 for h in [3, 32, 128]:
@@ -37,8 +35,7 @@ for h in [3, 32, 128]:
 
     model = TwoLayerNet(D_in, H, D_out)
 
-    if is_cuda:
-        x, y, model = x.to(cuda), y.to(cuda), model.to(cuda)
+    x, y, model = x.to(device), y.to(device), model.to(device)
 
     layers = [model.linear1, model.linear2]
     stats = CheckLayerSat('regression/h{}'.format(h), layers)
