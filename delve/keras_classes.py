@@ -1,6 +1,7 @@
 import keras
 import keras.backend as K
 from keras.models import Sequential, Model
+import numpy as np
 from sklearn.decomposition import PCA
 
 
