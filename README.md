@@ -1,6 +1,6 @@
 # Delve: Deep Live Visualization and Evaluation
 
-[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve)
+[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/justinshenk/delve.svg?branch=master)](https://travis-ci.org/justinshenk/delve)
 
 Inspect layer saturation for optimizing your PyTorch models.
 
@@ -20,6 +20,8 @@ Designing a deep neural network involves optimizing over a wide range of paramet
 ## Demo
 
 ![live layer saturation demo](images/layer-saturation-convnet.gif)
+
+![example_fc.gif](images/example_fc.gif)
 
 ## Getting Started
 
