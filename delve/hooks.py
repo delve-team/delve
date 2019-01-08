@@ -38,9 +38,9 @@ def add_neigen_dist(layer, eig_vals=None, n_iter=None):
 def add_saturation_collection(base, layer, saturation_logs):
     base.writer.add_scalars('saturation', saturation_logs, global_step=layer.forward_iter)
 
-def add_layer_saturation(layer, eig_vals=None, n_iter=None):
+def add_layer_saturation(layer, eig_vals=None, n_iter=None, **kwargs):
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, 'eig_vals', **kwargs)
     if n_iter is None:
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
