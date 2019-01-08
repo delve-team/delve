@@ -22,8 +22,9 @@ class LayerSaturation(keras.callbacks.Callback):
         verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, input_data, print_freq=1):
+    def __init__(self, input_data, sample_rate=10, print_freq=1):
         self.input_data = input_data
+        self.sample_rate = sample_rate
         self.print_freq = print_freq
 
     def get_layer_outputs(self):
@@ -45,7 +46,7 @@ class LayerSaturation(keras.callbacks.Callback):
             self.preactivation_states[layer_name] = []
 
     def on_batch_end(self, batch, logs={}):
-        if batch % 10 == 0:
+        if batch % self.sample_rate == 0:
             dense_outputs = self.get_layer_outputs()
             for tensor in dense_outputs:
                 layer_name = tensor.name.split('/')[0]
