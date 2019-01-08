@@ -3,22 +3,30 @@
 
 from setuptools import setup, find_packages
 
+import os
+from os import path
+
+# Get package version
+exec(open('delve/version.py', 'r').read())
+
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'tensorboardX',
-    'tqdm'
-]
+requirements = ['tensorboardX', 'tqdm']
+
+this_dir = path.abspath(path.dirname(__file__))
+with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name='delve',
-    version='0.1.4',
+    version=__version__,
     description='Delve lets you monitor PyTorch model layer saturation during training',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',
-    long_description=open("README.md").read(),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     license='MIT license',
     install_requires=requirements,
     classifiers=[
@@ -27,8 +35,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -37,8 +43,9 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Libraries',
     ],
-    python_requires='>= 2.7, != 3.0.*, != 3.1.*',
+    python_requires='!= 3.0.*, != 3.1.*',
     packages=find_packages(),
     include_package_data=True,
     keywords='deep learning layer saturation pruning spectral tensorboard',
-    zip_safe=False)
+    zip_safe=False,
+)
