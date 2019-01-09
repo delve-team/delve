@@ -73,6 +73,7 @@ class LayerSaturation(keras.callbacks.Callback):
                     if epoch % self.print_freq == 0:
                         print(layer, weighted_sum.round(2))
                 elif self.saturation_metric == 'cumulative_99':
+                    eig_vals = np.array(eig_vals)
                     cumsum = eig_vals.cumsum()
                     total_variance_explained = cumsum / eig_vals.sum()
                     K = np.argmax(total_variance_explained > 0.99) + 1
