@@ -10,20 +10,11 @@ class LayerSaturation(keras.callbacks.Callback):
     Args:
         input_data (array) : input data (batch_size x feature_size)
         print_freq (int)   : Frequency in number of epochs to print out saturation
-
-            supported stats are:
-                lsat       : layer saturation
-                bcov       : batch covariance
-                eigendist  : eigenvalue distribution
-                neigendist : normalized eigenvalue distribution
-                spectrum   : top-N eigenvalues of covariance matrix
-                spectral   : spectral analysis (eigendist, neigendist, and spectrum)
-
-        verbose (bool)     : print saturation for every layer during training
     """
 
-    def __init__(self, input_data, sample_rate=10, print_freq=1):
+    def __init__(self, input_data, saturation_metric = 'simpson_di', sample_rate=10, print_freq=1):
         self.input_data = input_data
+        self.saturation_metric = saturation_metric
         self.sample_rate = sample_rate
         self.print_freq = print_freq
 
@@ -76,7 +67,28 @@ class LayerSaturation(keras.callbacks.Callback):
                 eig_vals, eig_vecs = zip(*eig_pairs)
                 tot = sum(eig_vals)
                 var_exp = [(i / tot) for i in eig_vals]
-                weighted_sum = sum([x ** 2 for x in var_exp])
-                logs[layer] = weighted_sum
-                if epoch % self.print_freq == 0:
-                    print(layer, weighted_sum.round(2))
+                if self.saturation_metric == 'simpson_di':
+                    weighted_sum = sum([x ** 2 for x in var_exp])
+                    logs[layer] = weighted_sum
+                    if epoch % self.print_freq == 0:
+                        print(layer, weighted_sum.round(2))
+                elif self.saturation_metric == 'cumulative_99':
+                    cumsum = eig_vals.cumsum()
+                    total_variance_explained = cumsum / eig_vals.sum()
+                    K = np.argmax(total_variance_explained > 0.99) + 1
+                    saturation = K / len(eig_vals)
+                    logs[layer] = saturation
+                    if epoch % self.print_freq == 0:
+                        print(layer, saturation.round(2))
+                else:
+                    raise NotImplementedError("{} not yet implemented".format(self.saturation_metric))
+
+class TensorBoardSat(keras.callbacks.TensorBoard):
+    def __init__(self, **kwargs):
+        super(TensorBoardSat, self).__init__(**kwargs)
+        self.dtw_image_summary = None
+
+    def on_epoch_end(self, epoch, logs={}):
+        super(TensorBoardSat).on_train_begin(self, logs=logs)
+        if epoch % 1 == 0:
+            self.writer.add_summary("Saturation", 1)
