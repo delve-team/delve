@@ -43,7 +43,7 @@ model.compile(loss='categorical_crossentropy',
 model.fit(x_train, y_train,
           epochs=100,
           batch_size=128,
-          callbacks=[saturation_logger, csv_logger])
+          callbacks=[saturation_logger])
 
 score = model.evaluate(x_test, y_test, batch_size=128)
 
