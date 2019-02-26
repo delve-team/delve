@@ -1,0 +1,43 @@
+import keras
+from keras.models import Sequential, Model
+from keras.layers import Dense, Dropout, Activation, Input, Lambda
+from keras.optimizers import SGD
+import numpy as np
+
+from delve import LayerSaturation, CustomTensorBoard
+
+# Generate dummy data
+x_train = np.random.random((1000, 20))
+y_train = keras.utils.to_categorical(np.random.randint(10, size=(1000, 1)), num_classes=10)
+x_test = np.random.random((100, 20))
+y_test = keras.utils.to_categorical(np.random.randint(10, size=(100, 1)), num_classes=10)
+
+# Build model
+model = Sequential()
+model.add(Dense(64, input_dim=20, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(128))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(10))
+model.add(Activation('softmax'))
+
+print_layer_saturation = LayerSaturation(model, x_train[:2], print_freq = 1)
+
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+
+tbCallBack = CustomTensorBoard(log_dir='./runs', histogram_freq=0, write_graph=True, write_images=True)
+
+model = Model(model.get_input_at(0), outputs = model.output)
+model.compile(loss='categorical_crossentropy',
+              optimizer=sgd,
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train,
+          epochs=20,
+          batch_size=128,
+         callbacks=[print_layer_saturation, tbCallBack])
+
+score = model.evaluate(x_test, y_test, batch_size=128)
+
+# call `tensorboard --logdir=runs` to see layer saturation
