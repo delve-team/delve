@@ -7,79 +7,106 @@ import numpy as np
 from numpy.linalg import LinAlgError
 
 
-class LayerSaturation(keras.callbacks.Callback):
-    """Keras callback for computing and logging layer saturation.
+def get_preactivation_tensors(layers):
+    """Get all valid layers for computing saturation."""
+    dense_outputs = []
+    for layer in layers:
+        if 'dense' in layer.name:
+            if '_input' in layer.name:
+                # HACK
+                continue
+            # Get pre-activation
+            if hasattr(layer, 'activation') and layer.activation.__name__ is not 'linear':
+                preactivation_tensor = layer.output.op.inputs[0]
+            else:
+                preactivation_tensor = layer.output
+            dense_outputs.append(preactivation_tensor)
+    return dense_outputs
 
-    Args:
-        model: Keras model
-        input_data: sample input to calculate layer saturation with, eg train
-        print_freq
-    """
-    def __init__(self, model, input_data, print_freq=1):
-        self.model = model
-        self.input_data = input_data
-        self.print_freq = print_freq
+def initialize_preactivation_states(dense_outputs, obj):
+    for tensor in dense_outputs:
+        layer_name = tensor.name.split('/')[0]
+        obj.preactivation_states[layer_name] = []
 
-    def get_layer_outputs(self):
-        dense_outputs = []
-        for layer in self.model.layers[1:]:
-            if 'dense' in layer.name:
-                if layer.activation.__name__ is not 'linear':
-                    preactivation_tensor = layer.output.op.inputs[0]
-                else:
-                    preactivation_tensor = layer.output
-                dense_outputs.append(preactivation_tensor)
-        return dense_outputs
+def record_saturation(layers, obj, epoch, logs):
+    for layer in layers:
+        layer_history = obj.preactivation_states[layer]
+        if len(layer_history) < 2:  # ?
+            continue
+        history = np.stack(layer_history)[:, 0, :]  # get first representation of each batch
+        history_T = history.T
+        try:
+            cov = np.cov(history_T)
+        except LinAlgError:
+            continue
+        eig_vals, eig_vecs = np.linalg.eigh(cov)
 
-    def on_train_begin(self, logs={}):
-        self.preactivation_states = {}
-        dense_outputs = self.get_layer_outputs()
-        for tensor in dense_outputs:
-            layer_name = tensor.name.split('/')[0]
-            self.preactivation_states[layer_name] = []
+        # Make a list of (eigenvalue, eigenvector) tuples
+        eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i]) for i in range(len(eig_vals))]
+        # Sort the (eigenvalue, eigenvector) tuples from high to low
+        eig_pairs = sorted(eig_pairs, key=lambda x: x[0], reverse=True)
+        eig_vals, eig_vecs = zip(*eig_pairs)
+        tot = sum(eig_vals)
+        var_exp = [(i / tot) for i in eig_vals]
+        weighted_sum = sum([x ** 2 for x in var_exp]) # aka Simpson diverstiy index saturation
+        logs[layer] = weighted_sum
+        tf.summary.scalar(layer, weighted_sum, collections=['preactivation_state'])
+    return logs
+        # if epoch % obj.print_freq == 0:
+        #     print(layer, weighted_sum.round(2))
 
-    def on_batch_end(self, batch, logs={}):
-        if batch % 10 == 0:
-            # TODO Check if has activation
-            dense_outputs = self.get_layer_outputs()
-            for tensor in dense_outputs:
-                #                 intermediate_layer_model = Model(model.input, layer.output)
-                #                 intermediate_output = intermediate_layer_model.predict(self.input_data)
-                layer_name = tensor.name.split('/')[0]
-                func = K.function([self.model.input] + [K.learning_phase()], [tensor])
-                #                 import ipdb;ipdb.set_trace()
-                intermediate_output = func([self.input_data, 0.])[0]
+def get_layer_outputs(obj):
+    """Get intermediate outputs aka. preactivation states."""
+    layers = obj.model.layers[1:]
+    dense_outputs = get_preactivation_tensors(layers)
+    return dense_outputs
 
-                tf.summary.scalar(layer_name, intermediate_output)
-                self.preactivation_states[layer_name].append(intermediate_output)
+def save_intermediate_outputs(dense_outputs, obj):
+    """Save outputs to obj."""
+    for tensor in dense_outputs:
+        layer_name = tensor.name.split('/')[0]
 
-    def on_epoch_end(self, epoch, logs={}):
-        if epoch % 1 == 0:
-            layers = self.preactivation_states.keys()
-            for layer in layers:
-                layer_history = self.preactivation_states[layer]
-                if len(layer_history) < 2: # ?
-                    continue
-                history = np.stack(layer_history)[:, 0, :]  # get first representation of each batch
-                history_T = history.T
-                #                 import ipdb;ipdb.set_trace()
-                try:
-                    cov = np.cov(history_T)
-                except LinAlgError:
-                    continue
-                eig_vals, eig_vecs = np.linalg.eigh(cov)
+        # Route intermediate output, aka. preactivation state
+        func = K.function([obj.model.input] + [K.learning_phase()], [tensor])
+        intermediate_output = func([obj.input_data, 0.])[0]  # batch_nr x width
 
-                # Make a list of (eigenvalue, eigenvector) tuples
-                eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i]) for i in range(len(eig_vals))]
-                # Sort the (eigenvalue, eigenvector) tuples from high to low
-                eig_pairs = sorted(eig_pairs, key=lambda x: x[0], reverse=True)
-                eig_vals, eig_vecs = zip(*eig_pairs)
-                tot = sum(eig_vals)
-                var_exp = [(i / tot) for i in eig_vals]
-                weighted_sum = sum([x ** 2 for x in var_exp])
-                logs[layer] = weighted_sum
-                if epoch % self.print_freq == 0:
-                    print(layer, weighted_sum.round(2))
+        obj.preactivation_states[layer_name].append(intermediate_output)
+
+# class LayerSaturation(keras.callbacks.Callback):
+#     """Keras callback for computing and logging layer saturation.
+#
+#     Args:
+#         model: Keras model
+#         input_data: sample input to calculate layer saturation with, eg train
+#         print_freq
+#     """
+#     def __init__(self, model, input_data, print_freq=1):
+#         self.model = model
+#         self.input_data = input_data
+#         self.print_freq = print_freq
+#         self.summaries = {} # Tensorboard summaries
+#
+#     def on_train_begin(self, logs={}):
+#         self.preactivation_states = {}
+#         dense_outputs = get_layer_outputs(self)
+#         initialize_preactivation_states(dense_outputs, self)
+#
+#     def on_batch_end(self, batch, logs={}):
+#         if batch % 10 == 0:
+#             # TODO Check if has activation
+#             dense_outputs = get_layer_outputs(self)
+#             save_intermediate_outputs(dense_outputs, self)
+#
+#     def on_epoch_end(self, epoch, logs={}):
+#         if epoch % 1 == 0:
+#             layers = self.preactivation_states.keys()
+#             logs = record_saturation(layers, self, epoch, logs)
+#             # if epoch > 2:
+#             #     for layer in layers:
+#             #         print("epoch = %4d  layer = %r  sat = %0.2f%%" \
+#             #           % (epoch, layer, logs[layer]))
+#             # Merge into single figure # FIXME: Implement for keras
+#             # merged_op = tf.summary.merge_all(key='preactivation_state')
 
 
 class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
@@ -128,3 +155,81 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             # pylint: enable=protected-access
 
         super(CustomTensorBoard, self).on_epoch_end(epoch, logs=logs)
+
+
+class SaturationMetric(keras.callbacks.Callback):
+    """Keras callback for computing and logging layer saturation.
+
+        Args:
+            model: Keras model
+            input_data: sample input to calculate layer saturation with, eg train
+            print_freq
+    """
+    def __init__(self, model, input_data, print_freq=1):
+        self.model = model
+        self.input_data = input_data
+        self.print_freq = print_freq
+
+    def on_train_begin(self, logs=None):
+        self.preactivation_states = {}
+        layers = self.model.layers
+        dense_outputs = get_preactivation_tensors(layers)
+        initialize_preactivation_states(dense_outputs, self)
+
+    def on_batch_end(self, batch, logs):
+        if batch % 10 == 0:
+            # TODO Check if has activation
+            dense_outputs = get_layer_outputs(self)
+            save_intermediate_outputs(dense_outputs, self)
+
+    def on_epoch_end(self, epoch, logs):
+        layers = self.preactivation_states.keys()
+        logs = record_saturation(layers, self, epoch, logs)
+        if epoch > 2:
+            for layer in layers:
+                try:
+                    print("epoch = %4d  layer = %r  sat = %0.2f%%" \
+                          % (epoch, layer, logs[layer]))
+                    logs[layer] = self.preactivation_states[layer]
+                except:
+                    pass
+
+
+class SaturationLogger(keras.callbacks.Callback):
+    """Keras callback for computing and logging layer saturation.
+
+        Args:
+            model: Keras model
+            input_data: sample input to calculate layer saturation with, eg train
+            print_freq
+    """
+    def __init__(self, model, input_data, print_freq=1):
+        self.model = model
+        self.input_data = input_data
+        self.print_freq = print_freq
+
+    def on_train_begin(self, logs=None):
+        self.preactivation_states = {}
+        layers = self.model.layers
+        dense_outputs = get_preactivation_tensors(layers)
+        initialize_preactivation_states(dense_outputs, self)
+
+    def on_batch_end(self, batch, logs):
+        if batch % 10 == 0:
+            # TODO Check if has activation
+            dense_outputs = get_layer_outputs(self)
+            save_intermediate_outputs(dense_outputs, self)
+
+    def on_epoch_end(self, epoch, logs):
+        layers = self.preactivation_states.keys()
+        logs = record_saturation(layers, self, epoch, logs)
+        if epoch > 2:
+            for layer in layers:
+                try:
+                    print("epoch = %4d  layer = %r  sat = %0.2f%%" \
+                          % (epoch, layer, logs[layer]))
+                    logs[layer] = self.preactivation_states[layer]
+                except:
+                    import ipdb;ipdb.set_trace()
+
+

@@ -1,10 +1,13 @@
 import keras
 from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation, Input, Lambda
+from keras.layers import Dense, Dropout, Activation
 from keras.optimizers import SGD
 import numpy as np
 
-from delve import LayerSaturation, CustomTensorBoard
+from delve.kerascallback import CustomTensorBoard, SaturationLogger, SaturationMetric
+
+import tensorflow as tf
+
 
 # Generate dummy data
 x_train = np.random.random((1000, 20))
@@ -22,22 +25,26 @@ model.add(Dropout(0.5))
 model.add(Dense(10))
 model.add(Activation('softmax'))
 
-print_layer_saturation = LayerSaturation(model, x_train[:2], print_freq = 1)
+# Delve-specific
+tbCallBack = CustomTensorBoard(log_dir='./runs', histogram_freq=0, write_graph=True, write_images=False)
+saturation_logger = SaturationLogger(model, x_train[:2], print_freq=1)
 
+# Train and evaluate model
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 
-tbCallBack = CustomTensorBoard(log_dir='./runs', histogram_freq=0, write_graph=True, write_images=True)
-
-model = Model(model.get_input_at(0), outputs = model.output)
+model = Model(model.get_input_at(0), outputs=model.output)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
 
+
+# # Optional - save to csv
+# csv_logger = keras.callbacks.CSVLogger('1.log')
 model.fit(x_train, y_train,
-          epochs=20,
+          epochs=100,
           batch_size=128,
-         callbacks=[print_layer_saturation, tbCallBack])
+          callbacks=[saturation_logger, csv_logger])
 
 score = model.evaluate(x_test, y_test, batch_size=128)
 
-# call `tensorboard --logdir=runs` to see layer saturation
+# Call `tensorboard --logdir=runs` to see layer saturation

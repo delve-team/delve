@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/justinshenk/delve.svg?branch=master)](https://travis-ci.org/justinshenk/delve)
 
-Inspect layer saturation for optimizing your PyTorch models.
+Inspect layer saturation for optimizing your PyTorch or Keras models.
 
 Delve is a Python package for visualizing deep learning model training.
 
