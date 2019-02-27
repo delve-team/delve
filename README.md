@@ -71,7 +71,7 @@ Two classes are provided: `CustomTensorBoard`,`SaturationLogger`.
 | Argument | Description |
 | --- | --- |
 | `log_dir` | location for writing summaries |
-| `user_defined_freq` |  frequency for printing |
+| `user_defined_freq` |  frequency for writing summaries |
 | `kwargs` | passed to `tf.keras.callbacks.TensorBoard` |
 
 `SaturationLogger` contains two parameters:
@@ -80,7 +80,7 @@ Two classes are provided: `CustomTensorBoard`,`SaturationLogger`.
 | --- | --- |
 | `model` | Keras model |
 | `input_data` |  data for passing through the model |
-| `print_freq` |  frequency  |
+| `print_freq` |  frequency for printing |
  
  Example usage:
 
