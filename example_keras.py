@@ -26,7 +26,7 @@ model.add(Dense(10))
 model.add(Activation('softmax'))
 
 # Delve-specific
-tbCallBack = CustomTensorBoard(log_dir='./runs', histogram_freq=0, write_graph=True, write_images=False)
+tbCallBack = CustomTensorBoard(log_dir='./runs', user_defined_freq=1)
 saturation_logger = SaturationLogger(model, x_train[:2], print_freq=1)
 
 # Train and evaluate model
@@ -36,7 +36,6 @@ model = Model(model.get_input_at(0), outputs=model.output)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
-
 
 # # Optional - save to csv
 # csv_logger = keras.callbacks.CSVLogger('1.log')

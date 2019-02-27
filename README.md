@@ -30,7 +30,10 @@ pip install delve
 ```
 
 ### Layer Saturation
-Pass a PyTorch model or `Linear` layers to CheckLayerSat:
+
+#### PyTorch
+
+Pass either a PyTorch model or `torch.nn.Linear` layers to CheckLayerSat:
 
 ```python
 from delve import CheckLayerSat
@@ -59,6 +62,32 @@ linear5:  28%|██████████▎                          | 28.0/
 linear6:  90%|██████████████████████████████████▏   | 90.0/100 [00:01<00:00, 56.04it/s]
 ```
 
+#### Keras
+
+``` python
+from delve.kerascallback import CustomTensorBoard, SaturationLogger, SaturationMetric
+
+...
+
+# Tensorboard logging
+tbCallBack = CustomTensorBoard(log_dir='./runs', user_defined_freq=1)
+
+# Console logging
+saturation_logger = SaturationLogger(model, x_train[:2], print_freq=1)
+
+...
+
+# Add callback to Keras `fit` method
+model.fit(x_train, y_train,
+          epochs=100,
+          batch_size=128,
+          callbacks=[saturation_logger]) # can also pass tbCallBack
+```
+
+Output:
+
+![keras](images/keras.png )
+
 #### Optimize neural network topology
 
 Ever wonder how big your fully-connected layers should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
@@ -74,6 +103,7 @@ For example, see how modifying the hidden layer size of this network affects the
 Writes the top 5 eigenvalues of each layer to TensorBoard summaries:
 
 ```python
+# PyTorch-only
 stats = CheckLayerSat('runs', layers, 'spectrum')
 ```
 
