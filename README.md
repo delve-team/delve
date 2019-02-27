@@ -106,7 +106,7 @@ model.fit(x_train, y_train,
 
 Output:
 
-```
+```bash
 Epoch 29/100
  128/1000 [==>...........................] - ETA: 0s - loss: 2.2783 - acc: 0.1406
 dense_1  : %0.83 | dense_2  : %0.79 | dense_3  : %0.67 |
