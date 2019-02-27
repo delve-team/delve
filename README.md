@@ -6,7 +6,7 @@ Inspect layer saturation for optimizing your PyTorch or Keras models.
 
 Delve is a Python package for visualizing deep learning model training.
 
-Use Delve if you need a lightweight PyTorch extension that:
+Use Delve if you need a lightweight PyTorch or Keras extension that:
 - Plots live statistics of network activations to TensorBoard
 - Performs spectral analysis to identify layer saturation for network pruning
 - Is easily extendible and configurable
