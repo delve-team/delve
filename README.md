@@ -33,7 +33,26 @@ pip install delve
 
 #### PyTorch
 
-Pass either a PyTorch model or `torch.nn.Linear` layers to CheckLayerSat:
+`delve.CheckLayerSat` can be configured as follows:
+
+```
+logging_dir (str)  : destination for summaries
+modules (torch modules or list of modules) : layer-containing object
+log_interval (int) : steps between writing summaries
+stats (list of str): list of stats to collect
+
+    supported stats are:
+        lsat       : layer saturation
+        bcov       : batch covariance
+        eigendist  : eigenvalue distribution
+        neigendist : normalized eigenvalue distribution
+        spectrum   : top-N eigenvalues of covariance matrix
+        spectral   : spectral analysis (eigendist, neigendist, and spectrum)
+
+include_conv       : bool, setting to False includes only linear layers
+verbose (bool)     : print saturation for every layer during training
+```        
+Pass either a PyTorch model or `torch.nn.Linear` layers to `CheckLayerSat`:
 
 ```python
 from delve import CheckLayerSat
@@ -64,7 +83,7 @@ linear6:  90%|██████████████████████
 
 #### Keras
 
-Two classes are provided: `CustomTensorBoard`,`SaturationLogger`.
+Two classes are provided in `delve.kerascallback`: `CustomTensorBoard`,`SaturationLogger`.
 
 `CustomTensorBoard` takes two parameters:
 
