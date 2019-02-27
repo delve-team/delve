@@ -4,7 +4,7 @@ from keras.layers import Dense, Dropout, Activation
 from keras.optimizers import SGD
 import numpy as np
 
-from delve.kerascallback import CustomTensorBoard, SaturationLogger, SaturationMetric
+from delve.kerascallback import CustomTensorBoard, SaturationLogger
 
 import tensorflow as tf
 

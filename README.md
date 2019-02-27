@@ -65,7 +65,7 @@ linear6:  90%|██████████████████████
 #### Keras
 
 ``` python
-from delve.kerascallback import CustomTensorBoard, SaturationLogger, SaturationMetric
+from delve.kerascallback import CustomTensorBoard, SaturationLogger
 
 ...
 
