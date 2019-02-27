@@ -64,6 +64,26 @@ linear6:  90%|██████████████████████
 
 #### Keras
 
+Two classes are provided: `CustomTensorBoard`,`SaturationLogger`.
+
+`CustomTensorBoard` takes two parameters:
+
+| Argument | Description |
+| --- | --- |
+| `log_dir` | location for writing summaries |
+| `user_defined_freq` |  frequency for printing |
+| `kwargs` | passed to `tf.keras.callbacks.TensorBoard` |
+
+`SaturationLogger` contains two parameters:
+
+| Argument | Description |
+| --- | --- |
+| `model` | Keras model |
+| `input_data` |  data for passing through the model |
+| `print_freq` |  frequency  |
+ 
+ Example usage:
+
 ``` python
 from delve.kerascallback import CustomTensorBoard, SaturationLogger
 
@@ -73,7 +93,7 @@ from delve.kerascallback import CustomTensorBoard, SaturationLogger
 tbCallBack = CustomTensorBoard(log_dir='./runs', user_defined_freq=1)
 
 # Console logging
-saturation_logger = SaturationLogger(model, x_train[:2], print_freq=1)
+saturation_logger = SaturationLogger(model, input_data=input_x_train[:2], print_freq=1)
 
 ...
 
@@ -86,7 +106,11 @@ model.fit(x_train, y_train,
 
 Output:
 
-![keras](images/keras.png )
+```
+Epoch 29/100
+ 128/1000 [==>...........................] - ETA: 0s - loss: 2.2783 - acc: 0.1406
+dense_1  : %0.83 | dense_2  : %0.79 | dense_3  : %0.67 |
+```
 
 #### Optimize neural network topology
 

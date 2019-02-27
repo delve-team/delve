@@ -27,7 +27,7 @@ model.add(Activation('softmax'))
 
 # Delve-specific
 tbCallBack = CustomTensorBoard(log_dir='./runs', user_defined_freq=1)
-saturation_logger = SaturationLogger(model, x_train[:2], print_freq=1)
+saturation_logger = SaturationLogger(model, input_data=x_train[:2], print_freq=1)
 
 # Train and evaluate model
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
