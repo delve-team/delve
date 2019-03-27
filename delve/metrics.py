@@ -1,7 +1,23 @@
+from typing import Union
+
 import numpy as np
 
 
-def get_explained_variance(eig_vals, threshold=0.99, return_cum=False):
+def get_eigenval_diversity_index(eig_vals: np.ndarray):
+    """Return Simpson diversity index of eigvalue explained variance ratios.
+    Args:
+        eig_vals   : eigenvalues in descending order
+
+    """
+    tot = sum(eig_vals)
+    var_exp = [(i / tot) for i in eig_vals]
+    simpson_di = sum(x**2 for x in var_exp) * 100
+    return simpson_di
+
+
+def get_explained_variance(eig_vals: np.ndarray,
+                           threshold: float = 0.99,
+                           return_cum: bool = False):
     """Return number of `eig_vals` needed to explain `threshold`*100 percent of variance
     Args:
         eig_vals   : numpy.ndarray of eigenvalues in descending order
@@ -24,12 +40,14 @@ def get_explained_variance(eig_vals, threshold=0.99, return_cum=False):
     return nr_eig_vals
 
 
-def get_layer_saturation(nr_eig_vals, layer_width):
+def get_layer_saturation(nr_eig_vals: np.ndarray, layer_width: int) -> int:
     saturation = round(100 * nr_eig_vals / layer_width, 2)
     return saturation
 
 
-def _get_cov(layer_history, subsample_rate=50, window_size=100):
+def _get_cov(layer_history: Union[list, np.ndarray],
+             subsample_rate: int = 50,
+             window_size: int = 100):
     """Get covariance matrix of layer activation history.
     Args:
         subsample_rate : int, subsample rate before calculating PCs
@@ -37,22 +55,18 @@ def _get_cov(layer_history, subsample_rate=50, window_size=100):
     """
     history_array = np.vstack(layer_history[-window_size:])  # list to array
     if len(history_array.shape) == 4:  # conv layer (B x C x H x W)
-        history_array = np.median(history_array, axis=(2, 3)) # channel median
+        history_array = np.median(history_array, axis=(2, 3))  # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
-    assert (
-        len(history_array.shape) is 2
-    ), "Stacked layer history shape is {}, \
-        should be 2".format(
-        history_array.shape
-    )
-    embeddings = np.vstack(history_array)[
-        ::subsample_rate
-    ]  # subsample every Nth representation
+    assert (len(history_array.shape) is
+            2), "Stacked layer history shape is {}, \
+        should be 2".format(history_array.shape)
+    embeddings = np.vstack(
+        history_array)[::subsample_rate]  # subsample every Nth representation
     cov = np.cov(embeddings.T)
     return cov
 
 
-def latent_pca(layer_history):
+def latent_pca(layer_history: list):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
     Args:
         layer_history : list, layer outputs during training
@@ -65,7 +79,8 @@ def latent_pca(layer_history):
     eig_vals, eig_vecs = np.linalg.eigh(cov)
 
     # Make a list of (eigenvalue, eigenvector) tuples
-    eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i]) for i in range(len(eig_vals))]
+    eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i])
+                 for i in range(len(eig_vals))]
     # Sort the (eigenvalue, eigenvector) tuples from high to low
     eig_pairs = sorted(eig_pairs, key=lambda x: x[0], reverse=True)
     eig_vals, eig_vecs = zip(*eig_pairs)
@@ -74,7 +89,7 @@ def latent_pca(layer_history):
     return np.array(eig_vals), P
 
 
-def latent_svd(layer_history):
+def latent_svd(layer_history: list):
     """Get NxN matrix of sorted (largest to smallest) singular values from `layer_history`
     Args:
         layer_history : list, layer outputs during training
@@ -86,15 +101,15 @@ def latent_svd(layer_history):
     """
     cov = _get_cov(layer_history)
     u, s, eig_vecs = np.linalg.svd(cov)
-    eig_vals = s ** 2
+    eig_vals = s**2
     return eig_vals, eig_vecs
 
 
-def batch_mean(batch):
+def batch_mean(batch: np.ndarray):
     """Get mean of first vector in `batch`."""  # TODO: Add support for non-dense layers.
     return np.mean(batch[0])
 
 
-def batch_cov(batch):
+def batch_cov(batch: np.ndarray):
     """Get covariance of first instance in `batch`."""  # TODO: Add support for non-dense layers.
     return np.cov(batch[0])

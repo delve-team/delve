@@ -1,2 +1,2 @@
-tensorboardX
+tensorboardX >= 1.6
 tqdm

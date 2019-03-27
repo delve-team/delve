@@ -1,3 +1,5 @@
+from typing import Any
+
 from .metrics import *
 
 
@@ -13,7 +15,10 @@ def gen_plot(data, style):
     raise NotImplementedError
 
 
-def get_layer_prop(layer, prop, forward_iter=None, save_in_layer=False):
+def get_layer_prop(layer,
+                   prop: Any,
+                   forward_iter: int = None,
+                   save_in_layer: bool = False):
     try:
         return getattr(layer, prop)
     except:
@@ -23,14 +28,17 @@ def get_layer_prop(layer, prop, forward_iter=None, save_in_layer=False):
         return prop
 
 
-def get_prop(layer, prop):
+def get_prop(layer, prop: Any):
     """Low-level function for getting `prop` from `layer`."""
     if prop == 'eig_vals':
         layer_history = get_layer_prop(layer, 'layer_history')
         eig_vals, _ = latent_pca(layer_history)
         return eig_vals
+    elif prop == 'param_eig_vals':
+        layer_svd = get_layer_prop(layer, 'layer_svd')
+        return layer_svd
 
 
-def get_first_representation(batch):
+def get_first_representation(batch: np.ndarray):
     """Return first instance from minibatch."""
     return batch[0]

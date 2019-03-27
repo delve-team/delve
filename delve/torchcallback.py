@@ -6,7 +6,8 @@ from delve.utils import *
 from delve.metrics import *
 from tensorboardX import SummaryWriter
 
-logging.basicConfig(format='%(levelname)s:delve:%(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(levelname)s:delve:%(message)s', level=logging.INFO)
 
 
 class CheckLayerSat(object):
@@ -26,6 +27,16 @@ class CheckLayerSat(object):
                 neigendist : normalized eigenvalue distribution
                 spectrum   : top-N eigenvalues of covariance matrix
                 spectral   : spectral analysis (eigendist, neigendist, and spectrum)
+                param_eigvals: eigenvalues of layer parameters
+
+        sat_method         : How to calculate saturation
+
+            Choice of:
+
+                cumvar99   : Proportion of eigenvalues needed to explain 99% of variance
+                simpson_di : Simpson diversity index (weighted sum) of explained variance
+                             ratios of eigenvalues
+                all        : All available methods are logged
 
         include_conv       : bool, setting to False includes only linear layers
         verbose (bool)     : print saturation for every layer during training
@@ -33,16 +44,18 @@ class CheckLayerSat(object):
     """
 
     def __init__(
-        self,
-        logging_dir,
-        modules,
-        log_interval=50,
-        stats=['lsat'],
-        include_conv=True,
-        verbose=False,
+            self,
+            logging_dir,
+            modules,
+            log_interval=50,
+            stats: list = ['lsat'],
+            include_conv: bool = True,
+            sat_method: str = 'cumvar99',
+            verbose=False,
     ):
         self.verbose = verbose
         self.include_conv = include_conv
+        self.sat_method = sat_method
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
@@ -53,7 +66,8 @@ class CheckLayerSat(object):
         self.is_notebook = None
         self._init_progress_bar()
         for name, layer in self.layers.items():
-            self._register_hooks(layer=layer, layer_name=name, interval=log_interval)
+            self._register_hooks(
+                layer=layer, layer_name=name, interval=log_interval)
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Called upon closing CheckLayerSat."""
@@ -64,15 +78,20 @@ class CheckLayerSat(object):
         if name.startswith('add_'):
             return getattr(self.writer, name)
         else:
-            # Default behaviour
-            return self.__getattribute__(name)
+            try:
+                # Redirect to writer object
+                return self.writer.__getattribute__(name)
+            except:
+                # Default behaviour
+                return self.__getattribute__(name)
 
     def __repr__(self):
         return self.layers.keys().__repr__()
 
     def _init_progress_bar(self):
         try:
-            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(type(get_ipython())):
+            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(
+                    type(get_ipython())):
                 from tqdm import tqdm_notebook as tqdm
 
                 self.is_notebook = True
@@ -144,13 +163,13 @@ class CheckLayerSat(object):
             'eigendist',
             'neigendist',
             'spectral',
+            'param_eigenvals',
             'spectrum',
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
         assert all(compatible), "Stat {} is not supported".format(
-            stats[incompatible[0]]
-        )
+            stats[incompatible[0]])
         return stats
 
     def _add_conv_layer(self, layer):
@@ -158,10 +177,11 @@ class CheckLayerSat(object):
 
     def _get_layers(self, modules):
         layers = {}
-        if not isinstance(modules, list) and not hasattr(modules, 'out_features'):
+        if not isinstance(modules, list) and not hasattr(
+                modules, 'out_features'):
             # is a model with layers
             # check if submodule
-            submodules = modules._modules # OrderedDict
+            submodules = modules._modules  # OrderedDict
             for idx, (name, submodule) in enumerate(submodules.items()):
                 if submodule._get_name() is 'Sequential':
                     for submodule_idx, layer in submodule._modules.items():
@@ -171,11 +191,11 @@ class CheckLayerSat(object):
                                 self._add_conv_layer(layer)
                             else:
                                 continue
-                        layers[name+submodule_idx] = layer
+                        layers[name + submodule_idx] = layer
                 else:
                     layer_name = name.split('.')[0]
                     layer_type = submodule._get_name().lower()
-                    if not layer_type in ['conv','linear']:
+                    if not layer_type in ['conv', 'linear']:
                         continue
                     layer = getattr(modules, layer_name)
                     layer_class = layer.__module__.split('.')[-1]
@@ -215,12 +235,15 @@ class CheckLayerSat(object):
         writer = SummaryWriter(writer_dir)
         writer_name = list(writer.all_writers.keys())[0]  # eg, linear1
         if self.verbose:
-            logging.info("Adding summaries to directory: {}".format(writer_name))
+            logging.info(
+                "Adding summaries to directory: {}".format(writer_name))
         return writer
 
     def _register_hooks(self, layer, layer_name, interval):
         if not hasattr(layer, 'layer_history'):
             layer.layer_history = []
+        if not hasattr(layer, 'layer_svd'):
+            layer.layer_svd = None
         if not hasattr(layer, 'forward_iter'):
             layer.forward_iter = 0
         if not hasattr(layer, 'interval'):
@@ -235,11 +258,13 @@ class CheckLayerSat(object):
 
     def register_backward_hooks(self, layer, stats):
         """Register hook to show `stats` in `layer`."""
+
         # HACK: Update global changes via arbitrary layer on backwards pass
         def global_saturation_update(layer, input, output):
             """Hook to register in `layer` module."""
             if layer.forward_iter % layer.interval == 0:
-                hooks.add_saturation_collection(self, layer, self.logs['saturation'])
+                hooks.add_saturation_collection(self, layer,
+                                                self.logs['saturation'])
 
         if not self.global_hooks_registered:
             if 'lsat' in stats:
@@ -260,35 +285,37 @@ class CheckLayerSat(object):
                 activations_vec = get_first_representation(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
-                    hooks.add_covariance(layer, activations_batch, layer.forward_iter)
+                    hooks.add_covariance(layer, activations_batch,
+                                         layer.forward_iter)
                 if 'mean' in stats:
-                    hooks.add_mean(layer, activations_batch, layer.forward_iter)
+                    hooks.add_mean(layer, activations_batch,
+                                   layer.forward_iter)
                 if 'spectral' in stats:
-                    if (
-                        layer.forward_iter % (layer.interval * 10) == 0
-                    ):  # expensive spectral analysis
+                    if (layer.forward_iter % (layer.interval * 10) == 0
+                        ):  # expensive spectral analysis
                         eig_vals = hooks.add_spectral_analysis(
-                            layer, eig_vals, layer.forward_iter
-                        )
+                            layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
                     eig_vals, saturation = hooks.add_layer_saturation(
-                        layer, eig_vals=eig_vals
-                    )
+                        layer, eig_vals=eig_vals, method=self.sat_method)
                     self.logs['saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(
-                            layer, eig_vals, layer.forward_iter
-                        )
+                            layer, eig_vals, layer.forward_iter)
                     if 'neigendist' in stats:
                         eig_vals = hooks.add_neigen_dist(
-                            layer, eig_vals, layer.forward_iter
-                        )
+                            layer, eig_vals, layer.forward_iter)
                     if 'spectrum' in stats:
                         eig_vals = hooks.add_spectrum(
-                            layer, eig_vals, top_eigvals=5, n_iter=layer.forward_iter
-                        )
+                            layer,
+                            eig_vals,
+                            top_eigvals=5,
+                            n_iter=layer.forward_iter)
+                if 'param_eigenvals' not in stats:
+                    layer_param_weight = layer.state_dict()['weight']
+                    u, s, v = layer_param_weight.svd()
+                    param_eigenvals = hooks.add_param_eigenvals(
+                        layer, s, top_eigvals=5, n_iter=layer.forward_iter)
 
         layer.register_forward_hook(record_layer_saturation)
-
-

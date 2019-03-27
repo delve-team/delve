@@ -21,7 +21,8 @@ with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
 setup(
     name='delve',
     version=__version__,
-    description='Delve lets you monitor PyTorch model layer saturation during training',
+    description=
+    'Delve lets you monitor PyTorch model layer saturation during training',
     url='https://github.com/justinshenk/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',

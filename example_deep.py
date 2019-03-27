@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,25 +11,22 @@ import torchvision.transforms as transforms
 from delve import CheckLayerSat
 from tqdm import tqdm, trange
 
-transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-)
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
 
 batch_size = 128
 
 train_set = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=transform
-)
+    root='./data', train=True, download=True, transform=transform)
 train_loader = torch.utils.data.DataLoader(
-    train_set, batch_size=batch_size, shuffle=True, num_workers=2
-)
+    train_set, batch_size=batch_size, shuffle=True, num_workers=2)
 
 test_set = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=True, transform=transform
-)
+    root='./data', train=False, download=True, transform=transform)
 test_loader = torch.utils.data.DataLoader(
-    test_set, batch_size=batch_size, shuffle=False, num_workers=2
-)
+    test_set, batch_size=batch_size, shuffle=False, num_workers=2)
 
 
 class Net(nn.Module):
@@ -50,7 +49,6 @@ class Net(nn.Module):
         return x
 
 
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 torch.manual_seed(1)
@@ -64,40 +62,42 @@ for h2 in [8, 32, 128]:  # compare various hidden layer sizes
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    logging_dir = 'convNet/h2-{}'.format(h2)
-    stats = CheckLayerSat(logging_dir, net)
-    stats.write("CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
+    logging_dir = 'convNet/simpson_h2-{}'.format(h2)
+    stats = CheckLayerSat(logging_dir, net, sat_method='all')
+    stats.write(
+        "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
     for epoch in range(epochs):
         running_loss = 0.0
         step = 0
         loader = tqdm(
-            train_loader, leave=True, position=0
-        )  # track step progress and loss - optional
+            train_loader, leave=True,
+            position=0)  # track step progress and loss - optional
         for i, data in enumerate(loader):
             step = epoch * len(loader) + i
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
-
             outputs = net(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
+
             optimizer.step()
 
             running_loss += loss.data
             if i % 2000 == 1999:  # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
-                running_loss = 0.0
+                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
+                                                running_loss / 2000))
                 stats.add_scalar('batch_loss', running_loss, step)  # optional
+                running_loss = 0.0
 
             # update the training progress display
-            loader.set_description(
-                desc='[%d/%d, %5d] loss: %.3f' % (epoch + 1, epochs, i + 1, loss.data)
-            )
+            loader.set_description(desc='[%d/%d, %5d] loss: %.3f' %
+                                   (epoch + 1, epochs, i + 1, loss.data))
             # display layer saturation levels
             stats.saturation()
 
     loader.write('\n')
     loader.close()
+    stats.export_scalars_to_json(f"./all_scalars{h2}.json")
     stats.close()
