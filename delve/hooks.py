@@ -61,10 +61,10 @@ def add_layer_saturation(layer, eig_vals=None, n_iter=None, method='cumvar99'):
         layer.writer.add_scalar(f'{layer.name}-percent_saturation-{method}',
                                 saturation, n_iter)
     elif method == 'all':
-        cumsum99_saturation = get_layer_saturation(nr_eig_vals,
+        cumvar99_saturation = get_layer_saturation(nr_eig_vals,
                                                    layer.out_features)
-        layer.writer.add_scalar(f'{layer.name}-percent_saturation-cumsum99',
-                                cumsum99_saturation, n_iter)
+        layer.writer.add_scalar(f'{layer.name}-percent_saturation-cumvar99',
+                                cumvar99_saturation, n_iter)
         simpson_di_saturation = get_eigenval_diversity_index(eig_vals)
         saturation = simpson_di_saturation
         layer.writer.add_scalar(f'{layer.name}-percent_saturation-simpson_di',
@@ -85,6 +85,7 @@ def add_param_eigenvals(layer,
     if n_iter is None:
         n_iter = layer.forward_iter
     param_eig_vals = eig_vals.detach().numpy()
+    top_eigvals = min(top_eigvals, len(param_eig_vals))
     layer.writer.add_scalars('{}-parameter_spectrum'.format(layer.name), {
         "param_eig_val{}".format(i): param_eig_vals[i]
         for i in range(top_eigvals)

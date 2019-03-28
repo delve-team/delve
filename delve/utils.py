@@ -32,7 +32,8 @@ def get_prop(layer, prop: Any):
     """Low-level function for getting `prop` from `layer`."""
     if prop == 'eig_vals':
         layer_history = get_layer_prop(layer, 'layer_history')
-        eig_vals, _ = latent_pca(layer_history)
+        # calculate eigenvalues
+        eig_vals = latent_pca(layer_history)
         return eig_vals
     elif prop == 'param_eig_vals':
         layer_svd = get_layer_prop(layer, 'layer_svd')

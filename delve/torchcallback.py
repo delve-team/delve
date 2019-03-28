@@ -95,7 +95,9 @@ class CheckLayerSat(object):
                 from tqdm import tqdm_notebook as tqdm
 
                 self.is_notebook = True
-        except:
+            else:
+                from tqdm import tqdm
+        except NameError: # not ipython
             from tqdm import tqdm
 
             self.is_notebook = False

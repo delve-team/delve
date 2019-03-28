@@ -1,15 +1,12 @@
-import time
-
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+from tqdm import tqdm, trange
 
 from delve import CheckLayerSat
-from tqdm import tqdm, trange
 
 transform = transforms.Compose([
     transforms.ToTensor(),

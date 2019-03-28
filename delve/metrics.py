@@ -76,17 +76,11 @@ def latent_pca(layer_history: list):
 
     """
     cov = _get_cov(layer_history)
-    eig_vals, eig_vecs = np.linalg.eigh(cov)
+    eig_vals = np.linalg.eigvalsh(cov)
 
-    # Make a list of (eigenvalue, eigenvector) tuples
-    eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i])
-                 for i in range(len(eig_vals))]
-    # Sort the (eigenvalue, eigenvector) tuples from high to low
-    eig_pairs = sorted(eig_pairs, key=lambda x: x[0], reverse=True)
-    eig_vals, eig_vecs = zip(*eig_pairs)
-
-    P = np.vstack(eig_vecs)
-    return np.array(eig_vals), P
+    # Sort the eigenvalues from high to low
+    eig_vals = sorted(eig_vals, reverse=True)
+    return eig_vals
 
 
 def latent_svd(layer_history: list):
