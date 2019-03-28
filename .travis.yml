@@ -18,10 +18,9 @@ install:
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
-- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION chainer pytorch
-  -c pytorch
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION chainer pytorch-cpu
+  torchvision-cpu -c pytorch
 - source activate test-environment
-- pip install torchvision
 - pip install moviepy==0.2.3.2
 - pip install matplotlib
 - python -c "import imageio; imageio.plugins.ffmpeg.download()"
