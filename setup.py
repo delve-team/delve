@@ -23,7 +23,7 @@ setup(
     version=__version__,
     description=
     'Delve lets you monitor PyTorch model layer saturation during training',
-    url='https://github.com/justinshenk/delve',
+    url='https://github.com/delve-team/delve',
     author='Justin Shenk',
     author_email='shenk.justin@gmail.com',
     long_description=long_description,
