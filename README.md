@@ -1,13 +1,13 @@
-# Delve: Deep Live Visualization and Evaluation
+# Delve: Deep Live Visualization and Evaluation ![logo](https://github.com/delve-team/delve/blob/master/images/delve_logo.png)
 
-[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/justinshenk/delve.svg?branch=master)](https://travis-ci.org/justinshenk/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
-Inspect layer saturation for optimizing your PyTorch or Keras models.
+[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/delve-team/delve.svg?branch=master)](https://travis-ci.org/delve-team/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 Delve is a Python package for visualizing deep learning model training.
 
+[![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)(https://github.com/justinshenk/playground)
+
 Use Delve if you need a lightweight PyTorch or Keras extension that:
-- Plots live statistics of network activations to TensorBoard
+- Plots live statistics of network layer inputs to TensorBoard or terminal
 - Performs spectral analysis to identify layer saturation for network pruning
 - Is easily extendible and configurable
 
@@ -49,6 +49,8 @@ stats (list of str): list of stats to collect
         spectrum   : top-N eigenvalues of covariance matrix
         spectral   : spectral analysis (eigendist, neigendist, and spectrum)
 
+sat_method         : Method for calculating saturation. Use `cumvar99`, `simpson_di`, or `all`.
+                        See https://github.com/justinshenk/playground for a comparison of how they work.
 include_conv       : bool, setting to False includes only linear layers
 verbose (bool)     : print saturation for every layer during training
 ```        
