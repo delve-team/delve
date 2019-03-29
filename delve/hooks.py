@@ -84,7 +84,7 @@ def add_param_eigenvals(layer,
         raise NotImplementedError("Not yet implemented.")
     if n_iter is None:
         n_iter = layer.forward_iter
-    param_eig_vals = eig_vals.detach().numpy()
+    param_eig_vals = eig_vals.cpu().detach().numpy()
     top_eigvals = min(top_eigvals, len(param_eig_vals))
     layer.writer.add_scalars('{}-parameter_spectrum'.format(layer.name), {
         "param_eig_val{}".format(i): param_eig_vals[i]
