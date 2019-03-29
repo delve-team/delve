@@ -49,6 +49,8 @@ stats (list of str): list of stats to collect
         spectrum   : top-N eigenvalues of covariance matrix
         spectral   : spectral analysis (eigendist, neigendist, and spectrum)
 
+sat_method         : Method for calculating saturation. Use `cumvar99`, `simpson_di`, or `all`.
+                        See https://github.com/justinshenk/playground for a comparison of how they work.
 include_conv       : bool, setting to False includes only linear layers
 verbose (bool)     : print saturation for every layer during training
 ```        
