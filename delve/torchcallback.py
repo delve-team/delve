@@ -51,6 +51,7 @@ class CheckLayerSat(object):
             stats: list = ['lsat'],
             include_conv: bool = True,
             sat_method: str = 'cumvar99',
+            log_var_name = 'saturation',
             verbose=False,
     ):
         self.verbose = verbose
@@ -60,7 +61,7 @@ class CheckLayerSat(object):
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
-        self.logs = {'saturation': OrderedDict()}
+        self.logs = {log_var_name: OrderedDict()}
         self.global_steps = 0
         self.global_hooks_registered = False
         self.is_notebook = None
