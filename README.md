@@ -2,12 +2,12 @@
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/justinshenk/delve.svg?branch=master)](https://travis-ci.org/justinshenk/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Inspect layer saturation for optimizing your PyTorch or Keras models.
-
 Delve is a Python package for visualizing deep learning model training.
 
+[![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)(https://github.com/justinshenk/playground)
+
 Use Delve if you need a lightweight PyTorch or Keras extension that:
-- Plots live statistics of network activations to TensorBoard
+- Plots live statistics of network layer inputs to TensorBoard or terminal
 - Performs spectral analysis to identify layer saturation for network pruning
 - Is easily extendible and configurable
 
