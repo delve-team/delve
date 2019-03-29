@@ -62,6 +62,7 @@ class CheckLayerSat(object):
         self.interval = log_interval
         self.stats = self._check_stats(stats)
         self.logs = {log_var_name: OrderedDict()}
+        self.log_var_name = log_var_name
         self.global_steps = 0
         self.global_hooks_registered = False
         self.is_notebook = None
@@ -143,7 +144,7 @@ class CheckLayerSat(object):
             self.bars[layer].update(percent_sat)
 
     def _show_saturation(self):
-        saturation_status = self.logs['saturation']
+        saturation_status = self.logs[self.log_var_name]
         # saturation_status = 69
         for layer, saturation in saturation_status.items():
             curr = self.bars[layer].n
@@ -267,7 +268,7 @@ class CheckLayerSat(object):
             """Hook to register in `layer` module."""
             if layer.forward_iter % layer.interval == 0:
                 hooks.add_saturation_collection(self, layer,
-                                                self.logs['saturation'])
+                                                self.logs[self.log_var_name])
 
         if not self.global_hooks_registered:
             if 'lsat' in stats:
@@ -301,7 +302,7 @@ class CheckLayerSat(object):
                 if 'lsat' in stats:
                     eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals, method=self.sat_method)
-                    self.logs['saturation'][layer.name] = saturation
+                    self.logs[self.log_var_name][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(
