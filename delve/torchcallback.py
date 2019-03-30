@@ -188,7 +188,7 @@ class CheckLayerSat(object):
             for idx, (name, submodule) in enumerate(submodules.items()):
                 if submodule._get_name() is 'Sequential':
                     for submodule_idx, layer in submodule._modules.items():
-                        # layer_class = layer.__module__.split('.')[-1]
+                        layer_type = layer._get_name().lower()
                         if layer_type == 'conv2d':
                             if self.include_conv:
                                 self._add_conv_layer(layer)
@@ -202,7 +202,6 @@ class CheckLayerSat(object):
                         print(f"Skipping {layer_type}")
                         continue
                     layer = getattr(modules, layer_name)
-                    # layer_class = layer.__module__.split('.')[-1]
                     if layer_type == 'conv2d':
                         if self.include_conv:
                             self._add_conv_layer(layer)
@@ -218,7 +217,7 @@ class CheckLayerSat(object):
                     layer_class = layer.__module__.split('.')[-1]
                 except:
                     raise "Layer {} is not supported".format(layer)
-                if layer_class == 'conv2d':
+                if layer_type == 'conv2d':
                     if self.include_conv:
                         self._add_conv_layer(layer)
                     else:
