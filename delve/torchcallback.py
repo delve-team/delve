@@ -103,7 +103,6 @@ class CheckLayerSat(object):
                 from tqdm import tqdm
         except NameError: # not ipython
             from tqdm import tqdm
-
             self.is_notebook = False
         bars = {}
         for i, layer in enumerate(self.layers.keys()):
@@ -113,9 +112,6 @@ class CheckLayerSat(object):
             # bar = ChargingBar('{} Saturation'.format(layer), suffix='%(percent)d%%')
             # bars[layer] = bar
         self.bars = bars
-
-    def get_data(self):
-        raise NotImplementedError
 
     def close(self):
         """User endpoint to close writer and progress bars."""
@@ -233,9 +229,6 @@ class CheckLayerSat(object):
                 layers[layer_name] = layer
             if self.verbose:
                 logging.info("Recording layers {}".format(layers))
-        # elif layer._get_name() is 'Sequential':
-        #                 for idx, l in enumerate(layer):
-        #                     self._register_hooks(layer=l, layer_name=name+str(idx), interval=log_interval)
             return layers
 
     def _get_writer(self, writer_dir):
@@ -311,6 +304,7 @@ class CheckLayerSat(object):
                     eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals, method=self.sat_method)
                     training_state = 'train' if layer.training else 'eval'
+
                     self.logs[f'{training_state}-saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
