@@ -38,7 +38,8 @@ class CheckLayerSat(object):
                              ratios of eigenvalues
                 all        : All available methods are logged
 
-        include_conv       : bool, setting to False includes only linear layers
+        include_conv       : setting to False includes only linear layers
+        conv_method        : how to subsample convolutional layers
         verbose (bool)     : print saturation for every layer during training
 
     """
@@ -50,11 +51,13 @@ class CheckLayerSat(object):
             log_interval=50,
             stats: list = ['lsat'],
             include_conv: bool = True,
+            conv_method: str = 'median',
             sat_method: str = 'cumvar99',
             verbose=False,
     ):
         self.verbose = verbose
         self.include_conv = include_conv
+        self.conv_method = conv_method
         self.sat_method = sat_method
         self.layers = self._get_layers(modules)
         self.writer = self._get_writer(logging_dir)
@@ -145,7 +148,6 @@ class CheckLayerSat(object):
     def _show_saturation(self, is_train:bool):
         training_state = 'train' if is_train else 'eval'
         saturation_status = self.logs[f'{training_state}-saturation']
-        # saturation_status = 69
         for layer, saturation in saturation_status.items():
             curr = self.bars[layer].n
             percent_sat = int(max(0, saturation - curr))
@@ -178,6 +180,7 @@ class CheckLayerSat(object):
 
     def _add_conv_layer(self, layer:torch.nn.Module):
         layer.out_features = layer.out_channels
+        layer.conv_method = self.conv_method
 
     def _get_layers(self, modules:Union[list, torch.nn.Module]):
         layers = {}
@@ -189,8 +192,8 @@ class CheckLayerSat(object):
             for idx, (name, submodule) in enumerate(submodules.items()):
                 if submodule._get_name() is 'Sequential':
                     for submodule_idx, layer in submodule._modules.items():
-                        layer_class = layer.__module__.split('.')[-1]
-                        if layer_class == 'conv':
+                        # layer_class = layer.__module__.split('.')[-1]
+                        if layer_type == 'conv2d':
                             if self.include_conv:
                                 self._add_conv_layer(layer)
                             else:
@@ -199,11 +202,12 @@ class CheckLayerSat(object):
                 else:
                     layer_name = name.split('.')[0]
                     layer_type = submodule._get_name().lower()
-                    if not layer_type in ['conv', 'linear']:
+                    if not layer_type in ['conv2d', 'linear']:
+                        print(f"Skipping {layer_type}")
                         continue
                     layer = getattr(modules, layer_name)
-                    layer_class = layer.__module__.split('.')[-1]
-                    if layer_class == 'conv':
+                    # layer_class = layer.__module__.split('.')[-1]
+                    if layer_type == 'conv2d':
                         if self.include_conv:
                             self._add_conv_layer(layer)
                         else:
@@ -218,7 +222,7 @@ class CheckLayerSat(object):
                     layer_class = layer.__module__.split('.')[-1]
                 except:
                     raise "Layer {} is not supported".format(layer)
-                if layer_class == 'conv':
+                if layer_class == 'conv2d':
                     if self.include_conv:
                         self._add_conv_layer(layer)
                     else:

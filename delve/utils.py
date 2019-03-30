@@ -29,7 +29,10 @@ def get_prop(layer:torch.nn.Module, prop: Any):
     if prop in ('train_eig_vals', 'eval_eig_vals'):
         layer_history = get_layer_prop(layer, f'{training_state}_layer_history')
         # calculate eigenvalues
-        eig_vals = latent_pca(layer_history)
+        if hasattr(layer, 'conv_method'):
+            eig_vals = latent_pca(layer_history, conv_method=layer.conv_method)
+        else:
+            eig_vals = latent_pca(layer_history)
         return eig_vals
     elif prop == 'param_eig_vals':
         layer_svd = get_layer_prop(layer, 'layer_svd')

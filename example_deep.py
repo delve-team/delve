@@ -60,7 +60,7 @@ for h2 in [8, 32, 128]:  # compare various hidden layer sizes
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
     logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-    stats = CheckLayerSat(logging_dir, net, sat_method='all')
+    stats = CheckLayerSat(logging_dir, net, include_conv=True, sat_method='all')
     stats.write(
         "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 

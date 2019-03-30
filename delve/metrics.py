@@ -47,15 +47,19 @@ def get_layer_saturation(nr_eig_vals: np.ndarray, layer_width: int) -> int:
 
 def _get_cov(layer_history: Union[list, np.ndarray],
              subsample_rate: int = 50,
-             window_size: int = 100):
+             window_size: int = 100,
+             conv_method: str='median'):
     """Get covariance matrix of layer activation history.
     Args:
         subsample_rate : int, subsample rate before calculating PCs
         window_size    : int, how many activations to use for calculating principal components
+        conv_method    : str, method for sampling convolutional layer, eg, median
     """
     history_array = np.vstack(layer_history[-window_size:])  # list to array
+
     if len(history_array.shape) == 4:  # conv layer (B x C x H x W)
-        history_array = np.median(history_array, axis=(2, 3))  # channel median
+        if conv_method == 'median':
+            history_array = np.median(history_array, axis=(2, 3))  # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is
             2), "Stacked layer history shape is {}, \
@@ -66,16 +70,17 @@ def _get_cov(layer_history: Union[list, np.ndarray],
     return cov
 
 
-def latent_pca(layer_history: list):
+def latent_pca(layer_history: list, conv_method:str='median'):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
     Args:
         layer_history : list, layer outputs during training
+        conv_method   : method for sampling convolutional layer input if layer is conv2D
     Returns:
         eig_vals       : numpy.ndarray of absolute value of eigenvalues, sorted in descending order
         P              : numpy.ndarray, NxN square matrix of principal components calculated over training
 
     """
-    cov = _get_cov(layer_history)
+    cov = _get_cov(layer_history, conv_method=conv_method)
     eig_vals = np.linalg.eigvalsh(cov)
 
     # Sort the eigenvalues from high to low
