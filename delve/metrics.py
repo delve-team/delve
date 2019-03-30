@@ -62,7 +62,7 @@ def _get_cov(layer_history: Union[list, np.ndarray],
             history_array = np.median(history_array, axis=(2, 3))  # channel median
         elif conv_method == 'max':
             history_array = np.max(history_array, axis=(2, 3))  # channel median
-        elif conv_method = 'mean':
+        elif conv_method == 'mean':
             history_array = np.mean(history_array, axis=(2, 3))  # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is
