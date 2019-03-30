@@ -1,18 +1,13 @@
-import time
-import torch
 from typing import Union, Optional
 
-import numpy as np
-from tensorboardX import SummaryWriter
+import torch
 
-import delve
-from delve.metrics import *
 from delve.utils import *
 
 
-def add_eigen_dist(layer, eig_vals=None, n_iter=None):
+def add_eigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None):
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
         n_iter = layer.forward_iter
     layer.writer.add_histogram(
@@ -24,9 +19,9 @@ def add_eigen_dist(layer, eig_vals=None, n_iter=None):
     return eig_vals
 
 
-def add_neigen_dist(layer, eig_vals=None, n_iter=None):
+def add_neigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None):
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
         n_iter = layer.forward_iter
     eigval_total = sum(eig_vals)
@@ -41,35 +36,36 @@ def add_neigen_dist(layer, eig_vals=None, n_iter=None):
     return eig_vals
 
 
-def add_saturation_collection(base, layer, saturation_logs):
+def add_saturation_collection(base, layer:torch.nn.Module, saturation_logs:dict):
     base.writer.add_scalars(
         'saturation', saturation_logs, global_step=layer.forward_iter)
 
 
-def add_layer_saturation(layer, eig_vals=None, n_iter=None, method='cumvar99'):
+def add_layer_saturation(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None, method='cumvar99'):
+    training_state = get_training_state(layer)
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
     if method == 'cumvar99':
         saturation = get_layer_saturation(nr_eig_vals, layer.out_features)
-        layer.writer.add_scalar(f'{layer.name}-percent_saturation-{method}',
+        layer.writer.add_scalar(f'{training_state}-{layer.name}-percent_saturation-{method}',
                                 saturation, n_iter)
     elif method == 'simpson_di':
         saturation = get_eigenval_diversity_index(eig_vals)
-        layer.writer.add_scalar(f'{layer.name}-percent_saturation-{method}',
+        layer.writer.add_scalar(f'{training_state}-{layer.name}-percent_saturation-{method}',
                                 saturation, n_iter)
     elif method == 'all':
         cumvar99_saturation = get_layer_saturation(nr_eig_vals,
                                                    layer.out_features)
-        layer.writer.add_scalar(f'{layer.name}-percent_saturation-cumvar99',
+        layer.writer.add_scalar(f'{training_state}-{layer.name}-percent_saturation-cumvar99',
                                 cumvar99_saturation, n_iter)
         simpson_di_saturation = get_eigenval_diversity_index(eig_vals)
         saturation = simpson_di_saturation
-        layer.writer.add_scalar(f'{layer.name}-percent_saturation-simpson_di',
+        layer.writer.add_scalar(f'{training_state}-{layer.name}-percent_saturation-simpson_di',
                                 simpson_di_saturation, n_iter)
-    layer.writer.add_scalar(f'{layer.name}-intrinsic_dimensionality',
+    layer.writer.add_scalar(f'{training_state}-{layer.name}-intrinsic_dimensionality',
                             nr_eig_vals, n_iter)
     return eig_vals, saturation
 
@@ -92,13 +88,14 @@ def add_param_eigenvals(layer,
     }, n_iter)
 
 
-def add_spectrum(layer,
+def add_spectrum(layer:torch.nn.Module,
                  eig_vals: Optional[list] = None,
                  top_eigvals: int = 5,
                  n_iter: int = None):
     """Add layer input eigenvalues to writer."""
+    training_state = get_training_state(layer)
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
         n_iter = layer.forward_iter
     layer.writer.add_scalars(
@@ -110,7 +107,7 @@ def add_spectrum(layer,
     return eig_vals
 
 
-def add_covariance(layer, activation_batch, n_iter: int):
+def add_covariance(layer:torch.nn.Module, activation_batch:np.ndarray, n_iter: int):
     layer.writer.add_scalar(
         '{}-latent_representation_covariance'.format(layer.name),
         batch_cov(activation_batch),
@@ -118,7 +115,7 @@ def add_covariance(layer, activation_batch, n_iter: int):
     )
 
 
-def add_mean(layer, activations_batch, n_iter):
+def add_mean(layer:torch.nn.Module, activations_batch:np.ndarray, n_iter: int):
     layer.writer.add_scalar(
         '{}-latent_representation_mean'.format(layer.name),
         batch_mean(activations_batch),
@@ -126,10 +123,11 @@ def add_mean(layer, activations_batch, n_iter):
     )
 
 
-def add_spectral_analysis(layer, eig_vals, n_iter, top_eigvals=5):
+def add_spectral_analysis(layer:torch.nn.Module, eig_vals:np.ndarray, n_iter:int, top_eigvals:int=5):
     """Add spectral analysis `layer` writer and display `top_eigvals`."""
+    training_state = get_training_state(layer)
     if eig_vals is None:
-        eig_vals = get_layer_prop(layer, 'eig_vals')
+        eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
         n_iter = layer.forward_iter
     add_eigen_dist(layer, eig_vals, n_iter)

@@ -60,7 +60,8 @@ class CheckLayerSat(object):
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
-        self.logs = {'saturation': OrderedDict()}
+        self.logs = {'eval-saturation': OrderedDict(),
+                     'train-saturation': OrderedDict()}
         self.global_steps = 0
         self.global_hooks_registered = False
         self.is_notebook = None
@@ -122,27 +123,28 @@ class CheckLayerSat(object):
     def _format_saturation(self, saturation_status):
         raise NotImplementedError
 
-    def _write(self, text):
+    def _write(self, text:str):
         from tqdm import tqdm  # FIXME: Connect to main writer
 
         tqdm.write("{:^80}".format(text))
 
-    def write(self, text):
+    def write(self, text:str):
         self._write(text)
 
-    def saturation(self):
+    def saturation(self, is_train=True):
         """User endpoint to get or show saturation levels."""
-        return self._show_saturation()
+        return self._show_saturation(is_train)
 
-    def _update(self, layer, percent_sat):
+    def _update(self, layer:torch.nn.Module, percent_sat):
         if self.is_notebook:
             # logging.info("{} - %{} saturated".format(layer, percent_sat))
             self.bars[layer].update(percent_sat)
         else:
             self.bars[layer].update(percent_sat)
 
-    def _show_saturation(self):
-        saturation_status = self.logs['saturation']
+    def _show_saturation(self, is_train:bool):
+        training_state = 'train' if is_train else 'eval'
+        saturation_status = self.logs[f'{training_state}-saturation']
         # saturation_status = 69
         for layer, saturation in saturation_status.items():
             curr = self.bars[layer].n
@@ -156,7 +158,7 @@ class CheckLayerSat(object):
         #         stack.update()
         return saturation_status
 
-    def _check_stats(self, stats):
+    def _check_stats(self, stats:list):
         if not isinstance(stats, list):
             stats = list(stats)
         supported_stats = [
@@ -174,10 +176,10 @@ class CheckLayerSat(object):
             stats[incompatible[0]])
         return stats
 
-    def _add_conv_layer(self, layer):
+    def _add_conv_layer(self, layer:torch.nn.Module):
         layer.out_features = layer.out_channels
 
-    def _get_layers(self, modules):
+    def _get_layers(self, modules:Union[list, torch.nn.Module]):
         layers = {}
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
@@ -241,9 +243,11 @@ class CheckLayerSat(object):
                 "Adding summaries to directory: {}".format(writer_name))
         return writer
 
-    def _register_hooks(self, layer, layer_name, interval):
-        if not hasattr(layer, 'layer_history'):
-            layer.layer_history = []
+    def _register_hooks(self, layer:torch.nn.Module, layer_name:str, interval):
+        if not hasattr(layer, 'eval_layer_history'):
+            layer.eval_layer_history = []
+        if not hasattr(layer, 'train_layer_history'):
+            layer.train_layer_history = []
         if not hasattr(layer, 'layer_svd'):
             layer.layer_svd = None
         if not hasattr(layer, 'forward_iter'):
@@ -258,33 +262,35 @@ class CheckLayerSat(object):
         self.register_backward_hooks(layer, self.stats)
         return self
 
-    def register_backward_hooks(self, layer, stats):
+    def register_backward_hooks(self, layer:torch.nn.Module, stats):
         """Register hook to show `stats` in `layer`."""
 
         # HACK: Update global changes via arbitrary layer on backwards pass
         def global_saturation_update(layer, input, output):
             """Hook to register in `layer` module."""
             if layer.forward_iter % layer.interval == 0:
+                training_state = get_training_state(layer)
                 hooks.add_saturation_collection(self, layer,
-                                                self.logs['saturation'])
+                                                self.logs[f'{training_state}-saturation'])
 
         if not self.global_hooks_registered:
             if 'lsat' in stats:
                 layer.register_backward_hook(global_saturation_update)
             self.global_hooks_registered = True
 
-    def register_forward_hooks(self, layer, stats):
+    def register_forward_hooks(self, layer:torch.nn.Module, stats: list):
         """Register hook to show `stats` in `layer`."""
 
-        def record_layer_saturation(layer, input, output):
+        def record_layer_saturation(layer:torch.nn.Module, input, output):
             """Hook to register in `layer` module."""
 
             # Increment step counter
             layer.forward_iter += 1
             if layer.forward_iter % layer.interval == 0:
                 activations_batch = output.data.cpu().numpy()
-                layer.layer_history.append(activations_batch)
-                activations_vec = get_first_representation(activations_batch)
+                training_state = 'train' if layer.training else 'eval'
+                layer_history = getattr(layer, f'{training_state}_layer_history')
+                layer_history.append(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
                     hooks.add_covariance(layer, activations_batch,
@@ -300,7 +306,8 @@ class CheckLayerSat(object):
                 if 'lsat' in stats:
                     eig_vals, saturation = hooks.add_layer_saturation(
                         layer, eig_vals=eig_vals, method=self.sat_method)
-                    self.logs['saturation'][layer.name] = saturation
+                    training_state = 'train' if layer.training else 'eval'
+                    self.logs[f'{training_state}-saturation'][layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(
@@ -314,7 +321,7 @@ class CheckLayerSat(object):
                             eig_vals,
                             top_eigvals=5,
                             n_iter=layer.forward_iter)
-                if 'param_eigenvals' not in stats:
+                if 'param_eigenvals' in stats:
                     layer_param_weight = layer.state_dict()['weight']
                     u, s, v = layer_param_weight.svd()
                     param_eigenvals = hooks.add_param_eigenvals(

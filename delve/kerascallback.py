@@ -32,8 +32,8 @@ def initialize_preactivation_states(dense_outputs, obj):
         obj.preactivation_states[layer_name] = []
 
 
-def record_saturation(layers, obj, epoch, logs, write_summary=True):
-    """Records saturation for layers into logs and writes ."""
+def record_saturation(layers:str, obj, epoch:int, logs:dict, write_summary:bool=True):
+    """Records saturation for layers into logs and writes summaries."""
     for layer in layers:
         layer_history = obj.preactivation_states[layer]
         if len(layer_history) < 2:  # ?
@@ -167,8 +167,8 @@ class SaturationMetric(keras.callbacks.Callback):
                     print("epoch = %4d  layer = %r  sat = %0.2f%%" \
                           % (epoch, layer, logs[layer]))
                     logs[layer] = self.preactivation_states[layer]
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
 
 
 class SaturationLogger(keras.callbacks.Callback):
