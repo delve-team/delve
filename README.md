@@ -4,7 +4,7 @@
 
 Delve is a Python package for visualizing deep learning model training.
 
-[![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)(https://github.com/justinshenk/playground)
+![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)
 
 Use Delve if you need a lightweight PyTorch or Keras extension that:
 - Plots live statistics of network layer inputs to TensorBoard or terminal
