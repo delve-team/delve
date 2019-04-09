@@ -2,9 +2,10 @@ from typing import Optional
 
 import numpy as np
 import torch
+from delve.metrics import get_explained_variance, get_layer_saturation, get_eigenval_diversity_index, batch_cov, \
+    batch_mean
 
-from delve.metrics import *
-from delve.utils import *
+from delve.utils import get_layer_prop, get_training_state
 
 
 def add_eigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None):

@@ -1,13 +1,16 @@
+from collections import OrderedDict
 import logging
 from typing import Union
 
 import torch
-
-from collections import OrderedDict
+try:
+    from IPython import get_ipython
+except:
+    pass
 from delve import hooks
-from delve.utils import *
-from delve.metrics import *
 from tensorboardX import SummaryWriter
+
+from delve.utils import get_training_state
 
 logging.basicConfig(
     format='%(levelname)s:delve:%(message)s', level=logging.INFO)
