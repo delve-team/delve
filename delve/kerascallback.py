@@ -16,7 +16,7 @@ def get_preactivation_tensors(layers):
                 # HACK
                 continue
             # Get pre-activation
-            if hasattr(layer, 'activation') and layer.activation.__name__ is not \
+            if hasattr(layer, 'activation') and layer.activation.__name__ != \
                     'linear':
                 preactivation_tensor = layer.output.op.inputs[0]
             else:

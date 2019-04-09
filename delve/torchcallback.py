@@ -215,7 +215,7 @@ class CheckLayerSat(object):
             for layer in modules:
                 try:
                     layer_class = layer.__module__.split('.')[-1]
-                except:
+                except Exception:
                     raise "Layer {} is not supported".format(layer)
                 if layer_type == 'conv2d':
                     if self.include_conv:

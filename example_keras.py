@@ -6,8 +6,6 @@ import numpy as np
 
 from delve.kerascallback import CustomTensorBoard, SaturationLogger
 
-import tensorflow as tf
-
 # Generate dummy data
 x_train = np.random.random((1000, 20))
 y_train = keras.utils.to_categorical(

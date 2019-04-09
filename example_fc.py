@@ -1,10 +1,8 @@
-import delve
-import logging
 import torch
 import torch.nn as nn
 
 from delve import CheckLayerSat
-from tqdm import tqdm, trange
+from tqdm import trange
 
 
 class LayerCake(torch.nn.Module):

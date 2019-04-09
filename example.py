@@ -1,12 +1,8 @@
 #!/usr/bin/env python
-
-import delve
-import logging
 import torch
-import torch.nn as nn
+from tqdm import trange
 
 from delve import CheckLayerSat
-from tqdm import tqdm, trange
 
 
 class TwoLayerNet(torch.nn.Module):
@@ -45,7 +41,7 @@ for h in [3, 32, 128]:
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
     steps_iter.write("{:^80}".format(
         "Regression - TwoLayerNet - Hidden layer size {}".format(h)))
-    for i in steps_iter:
+    for _ in steps_iter:
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
         steps_iter.set_description('loss=%g' % loss.data)
