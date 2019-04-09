@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 
 from delve import CheckLayerSat
 from tqdm import trange

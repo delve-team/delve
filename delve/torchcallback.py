@@ -1,4 +1,7 @@
 import logging
+from typing import Union
+
+import torch
 
 from collections import OrderedDict
 from delve import hooks
@@ -215,6 +218,7 @@ class CheckLayerSat(object):
             for layer in modules:
                 try:
                     layer_class = layer.__module__.split('.')[-1]
+                    layer_type = layer._get_name().lower()
                 except Exception:
                     raise "Layer {} is not supported".format(layer)
                 if layer_type == 'conv2d':

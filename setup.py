@@ -47,6 +47,6 @@ setup(
     python_requires='!= 3.0.*, != 3.1.*',
     packages=find_packages(),
     include_package_data=True,
-    keywords='deep learning layer saturation pruning spectral tensorboard',
+    keywords='deep learning layer saturation pruning spectral tensorboard network',
     zip_safe=False,
 )
