@@ -2,6 +2,8 @@ from typing import Any
 
 from .metrics import *
 
+from typing import Dict
+COVARIANCE_MATRICES = Dict[object, CovarianceMatrix]
 
 def gen_plot(data, style):
     """Create a pyplot plot and save to buffer."""
@@ -33,7 +35,7 @@ def get_prop(layer, prop: Any):
     if prop == 'eig_vals':
         layer_history = get_layer_prop(layer, 'layer_history')
         # calculate eigenvalues
-        eig_vals = latent_pca(layer_history)
+        eig_vals = latent_iterative_pca(layer, layer_history)
         return eig_vals
     elif prop == 'param_eig_vals':
         layer_svd = get_layer_prop(layer, 'layer_svd')

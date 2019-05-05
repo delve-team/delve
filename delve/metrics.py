@@ -2,6 +2,9 @@ from typing import Union
 
 import numpy as np
 
+from mdp.utils import CovarianceMatrix
+from delve.utils import COVARIANCE_MATRICES
+
 
 def get_eigenval_diversity_index(eig_vals: np.ndarray):
     """Return Simpson diversity index of eigvalue explained variance ratios.
@@ -65,6 +68,13 @@ def _get_cov(layer_history: Union[list, np.ndarray],
     cov = np.cov(embeddings.T)
     return cov
 
+def _get_iterative_cov(layer, batch):
+    if not layer in COVARIANCE_MATRICES:
+        COVARIANCE_MATRICES[layer] = CovarianceMatrix()
+        COVARIANCE_MATRICES[layer]._init_internals(batch)
+    COVARIANCE_MATRICES[layer].update(batch)
+    return COVARIANCE_MATRICES[layer]._cov_mtx
+
 
 def latent_pca(layer_history: list):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
@@ -76,6 +86,22 @@ def latent_pca(layer_history: list):
 
     """
     cov = _get_cov(layer_history)
+    eig_vals = np.linalg.eigvalsh(cov)
+
+    # Sort the eigenvalues from high to low
+    eig_vals = sorted(eig_vals, reverse=True)
+    return eig_vals
+
+def latent_iterative_pca(layer, batch):
+    """Get NxN matrix of principal components sorted in descending order from `layer_history`
+    Args:
+        layer_history : list, layer outputs during training
+    Returns:
+        eig_vals       : numpy.ndarray of absolute value of eigenvalues, sorted in descending order
+        P              : numpy.ndarray, NxN square matrix of principal components calculated over training
+
+    """
+    cov = _get_iterative_cov(layer, batch)
     eig_vals = np.linalg.eigvalsh(cov)
 
     # Sort the eigenvalues from high to low

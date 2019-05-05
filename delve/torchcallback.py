@@ -285,7 +285,8 @@ class CheckLayerSat(object):
             layer.forward_iter += 1
             if layer.forward_iter % layer.interval == 0:
                 activations_batch = output.data.cpu().numpy()
-                layer.layer_history.append(activations_batch)
+                #layer.layer_history.append(activations_batch)
+                layer.layer_history = activations_batch
                 activations_vec = get_first_representation(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
