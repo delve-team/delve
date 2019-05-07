@@ -1,10 +1,10 @@
 from typing import Union
 
 import numpy as np
-
 from mdp.utils import CovarianceMatrix
-from delve.utils import COVARIANCE_MATRICES
-
+from typing import Dict
+from mdp.utils import CovarianceMatrix
+COVARIANCE_MATRICES = dict()
 
 def get_eigenval_diversity_index(eig_vals: np.ndarray):
     """Return Simpson diversity index of eigvalue explained variance ratios.
@@ -50,15 +50,23 @@ def get_layer_saturation(nr_eig_vals: np.ndarray, layer_width: int) -> int:
 
 def _get_cov(layer_history: Union[list, np.ndarray],
              subsample_rate: int = 50,
-             window_size: int = 100):
+             window_size: int = 100,
+             conv_method: str='median'):
     """Get covariance matrix of layer activation history.
     Args:
         subsample_rate : int, subsample rate before calculating PCs
         window_size    : int, how many activations to use for calculating principal components
+        conv_method    : str, method for sampling convolutional layer, eg, median
     """
     history_array = np.vstack(layer_history[-window_size:])  # list to array
+
     if len(history_array.shape) == 4:  # conv layer (B x C x H x W)
-        history_array = np.median(history_array, axis=(2, 3))  # channel median
+        if conv_method == 'median':
+            history_array = np.median(history_array, axis=(2, 3))  # channel median
+        elif conv_method == 'max':
+            history_array = np.max(history_array, axis=(2, 3))  # channel median
+        elif conv_method == 'mean':
+            history_array = np.mean(history_array, axis=(2, 3))  # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is
             2), "Stacked layer history shape is {}, \
@@ -68,31 +76,44 @@ def _get_cov(layer_history: Union[list, np.ndarray],
     cov = np.cov(embeddings.T)
     return cov
 
-def _get_iterative_cov(layer, batch):
+def _get_iterative_cov(layer, batch, conv_method: str='median'):
+
+    #batch = batch[-1]
+
+    if len(batch.shape) == 4:  # conv layer (B x C x H x W)
+        if conv_method == 'median':
+            batch = np.median(batch, axis=(2, 3))  # channel median
+        elif conv_method == 'max':
+            batch = np.max(batch, axis=(2, 3))  # channel median
+        elif conv_method == 'mean':
+            batch = np.mean(batch, axis=(2, 3))
+
     if not layer in COVARIANCE_MATRICES:
         COVARIANCE_MATRICES[layer] = CovarianceMatrix()
         COVARIANCE_MATRICES[layer]._init_internals(batch)
-    COVARIANCE_MATRICES[layer].update(batch)
+    else:
+        COVARIANCE_MATRICES[layer].update(batch)
     return COVARIANCE_MATRICES[layer]._cov_mtx
 
 
-def latent_pca(layer_history: list):
+def latent_pca(layer_history: list, conv_method:str='median'):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
     Args:
         layer_history : list, layer outputs during training
+        conv_method   : method for sampling convolutional layer input if layer is conv2D
     Returns:
         eig_vals       : numpy.ndarray of absolute value of eigenvalues, sorted in descending order
         P              : numpy.ndarray, NxN square matrix of principal components calculated over training
 
     """
-    cov = _get_cov(layer_history)
+    cov = _get_cov(layer_history, conv_method=conv_method)
     eig_vals = np.linalg.eigvalsh(cov)
 
     # Sort the eigenvalues from high to low
     eig_vals = sorted(eig_vals, reverse=True)
     return eig_vals
 
-def latent_iterative_pca(layer, batch):
+def latent_iterative_pca(layer, batch, conv_method: str = 'median'):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
     Args:
         layer_history : list, layer outputs during training
@@ -101,7 +122,7 @@ def latent_iterative_pca(layer, batch):
         P              : numpy.ndarray, NxN square matrix of principal components calculated over training
 
     """
-    cov = _get_iterative_cov(layer, batch)
+    cov = _get_iterative_cov(layer, batch, conv_method=conv_method)
     eig_vals = np.linalg.eigvalsh(cov)
 
     # Sort the eigenvalues from high to low

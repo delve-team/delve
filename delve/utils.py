@@ -1,41 +1,39 @@
 from typing import Any
 
-from .metrics import *
-
-from typing import Dict
-COVARIANCE_MATRICES = Dict[object, CovarianceMatrix]
-
-def gen_plot(data, style):
-    """Create a pyplot plot and save to buffer."""
-    # plt.figure()
-    # plt.plot(data)
-    # plt.title("test")
-    # buf = io.BytesIO()
-    # plt.savefig(buf, format='jpeg')
-    # buf.seek(0)
-    # return buf
-    raise NotImplementedError
+import numpy as np
+import torch
+from delve.metrics import latent_pca, latent_iterative_pca
 
 
-def get_layer_prop(layer,
+
+def get_training_state(layer:torch.nn.Module):
+    training_state = 'train' if layer.training else 'eval'
+    return training_state
+
+def get_layer_prop(layer:torch.nn.Module,
                    prop: Any,
                    forward_iter: int = None,
                    save_in_layer: bool = False):
     try:
         return getattr(layer, prop)
-    except:
+    except AttributeError:
         prop = get_prop(layer, prop)
         if save_in_layer:
             layer.prop = prop
         return prop
 
 
-def get_prop(layer, prop: Any):
+def get_prop(layer:torch.nn.Module, prop: Any):
     """Low-level function for getting `prop` from `layer`."""
-    if prop == 'eig_vals':
-        layer_history = get_layer_prop(layer, 'layer_history')
+    training_state = get_training_state(layer)
+    if prop in ('train_eig_vals', 'eval_eig_vals'):
+        layer_history = get_layer_prop(layer, f'{training_state}_layer_history')
         # calculate eigenvalues
-        eig_vals = latent_iterative_pca(layer, layer_history)
+
+        if hasattr(layer, 'conv_method'):
+            eig_vals = latent_iterative_pca(layer, layer_history, conv_method=layer.conv_method)
+        else:
+            eig_vals = latent_iterative_pca(layer, layer_history)
         return eig_vals
     elif prop == 'param_eig_vals':
         layer_svd = get_layer_prop(layer, 'layer_svd')
