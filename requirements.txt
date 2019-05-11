@@ -1,2 +1,3 @@
 tensorboardX >= 1.6
 tqdm
+MDP==3.5

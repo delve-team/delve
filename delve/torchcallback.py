@@ -1,16 +1,16 @@
-from collections import OrderedDict
 import logging
-from typing import Union
 
-import torch
-try:
-    from IPython import get_ipython
-except:
-    pass
+from collections import OrderedDict
 from delve import hooks
-from tensorboardX import SummaryWriter
+from delve.utils import *
+from delve.metrics import *
+from torch.nn.modules.activation import ReLU
+from torch.nn.modules.pooling import MaxPool2d
+from torch.nn.modules.conv import Conv2d
+from torch.nn.modules.linear import Linear
 
-from delve.utils import get_training_state
+
+from tensorboardX import SummaryWriter
 
 logging.basicConfig(
     format='%(levelname)s:delve:%(message)s', level=logging.INFO)
@@ -55,6 +55,7 @@ class CheckLayerSat(object):
             logging_dir,
             modules,
             log_interval=50,
+            min_subsample=128,
             stats: list = ['lsat'],
             include_conv: bool = True,
             conv_method: str = 'median',
@@ -66,6 +67,7 @@ class CheckLayerSat(object):
         self.conv_method = conv_method
         self.sat_method = sat_method
         self.layers = self._get_layers(modules)
+        self.min_subsample = min_subsample
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
@@ -76,8 +78,9 @@ class CheckLayerSat(object):
         self.is_notebook = None
         self._init_progress_bar()
         for name, layer in self.layers.items():
-            self._register_hooks(
-                layer=layer, layer_name=name, interval=log_interval)
+            if isinstance(layer, Conv2d) or isinstance(layer, Linear):
+                self._register_hooks(
+                    layer=layer, layer_name=name, interval=log_interval)
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Called upon closing CheckLayerSat."""
@@ -221,8 +224,7 @@ class CheckLayerSat(object):
             for layer in modules:
                 try:
                     layer_class = layer.__module__.split('.')[-1]
-                    layer_type = layer._get_name().lower()
-                except Exception:
+                except:
                     raise "Layer {} is not supported".format(layer)
                 if layer_type == 'conv2d':
                     if self.include_conv:
@@ -292,8 +294,8 @@ class CheckLayerSat(object):
             if layer.forward_iter % layer.interval == 0:
                 activations_batch = output.data.cpu().numpy()
                 training_state = 'train' if layer.training else 'eval'
-                layer_history = getattr(layer, f'{training_state}_layer_history')
-                layer_history.append(activations_batch)
+                layer_history = setattr(layer, f'{training_state}_layer_history', activations_batch)
+                #layer_history.append(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
                     hooks.add_covariance(layer, activations_batch,

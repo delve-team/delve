@@ -1,6 +1,6 @@
 import torch
 
-from delve import CheckLayerSat
+from delve.torchcallback import CheckLayerSat
 from tqdm import trange
 
 
