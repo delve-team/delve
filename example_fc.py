@@ -57,9 +57,8 @@ for h in [10, 100, 300]:
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
-    steps_iter.write(
-        "{:^80}".format("Regression - SixLayerNet - Hidden layer size {}".format(h))
-    )
+    steps_iter.write("{:^80}".format(
+        "Regression - SixLayerNet - Hidden layer size {}".format(h)))
     for i in steps_iter:
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
