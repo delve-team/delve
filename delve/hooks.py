@@ -8,7 +8,9 @@ from delve.metrics import get_explained_variance, get_layer_saturation, get_eige
 from delve.utils import get_layer_prop, get_training_state
 
 
-def add_eigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None):
+def add_eigen_dist(layer: torch.nn.Module,
+                   eig_vals: Optional[np.ndarray] = None,
+                   n_iter: Optional[int] = None):
     if eig_vals is None:
         eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
@@ -22,7 +24,9 @@ def add_eigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_
     return eig_vals
 
 
-def add_neigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None):
+def add_neigen_dist(layer: torch.nn.Module,
+                    eig_vals: Optional[np.ndarray] = None,
+                    n_iter: Optional[int] = None):
     if eig_vals is None:
         eig_vals = get_layer_prop(layer, f'{training_state}_eig_vals')
     if n_iter is None:
@@ -39,12 +43,17 @@ def add_neigen_dist(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n
     return eig_vals
 
 
-def add_saturation_collection(base, layer:torch.nn.Module, saturation_logs:dict):
-    base.writer.add_scalars(
-        'saturation', saturation_logs, global_step=layer.forward_iter)
+def add_saturation_collection(base, layer: torch.nn.Module,
+                              saturation_logs: dict):
+    base.writer.add_scalars('saturation',
+                            saturation_logs,
+                            global_step=layer.forward_iter)
 
 
-def add_layer_saturation(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=None, n_iter:Optional[int]=None, method='cumvar99'):
+def add_layer_saturation(layer: torch.nn.Module,
+                         eig_vals: Optional[np.ndarray] = None,
+                         n_iter: Optional[int] = None,
+                         method='cumvar99'):
     training_state = get_training_state(layer)
     layer_type = layer._get_name().lower()
 
@@ -54,26 +63,32 @@ def add_layer_saturation(layer:torch.nn.Module, eig_vals:Optional[np.ndarray]=No
         n_iter = layer.forward_iter
     nr_eig_vals = get_explained_variance(eig_vals)
 
-    layer_name = layer.name + (f'_{layer.conv_method}' if layer_type == 'conv2d' else '')
+    layer_name = layer.name + (f'_{layer.conv_method}'
+                               if layer_type == 'conv2d' else '')
     if method == 'cumvar99':
         saturation = get_layer_saturation(nr_eig_vals, layer.out_features)
-        layer.writer.add_scalar(f'{training_state}-{layer_name}-percent_saturation-{method}',
-                                saturation, n_iter)
+        layer.writer.add_scalar(
+            f'{training_state}-{layer_name}-percent_saturation-{method}',
+            saturation, n_iter)
     elif method == 'simpson_di':
         saturation = get_eigenval_diversity_index(eig_vals)
-        layer.writer.add_scalar(f'{training_state}-{layer_name}-percent_saturation-{method}',
-                                saturation, n_iter)
+        layer.writer.add_scalar(
+            f'{training_state}-{layer_name}-percent_saturation-{method}',
+            saturation, n_iter)
     elif method == 'all':
         cumvar99_saturation = get_layer_saturation(nr_eig_vals,
                                                    layer.out_features)
-        layer.writer.add_scalar(f'{training_state}-{layer_name}-percent_saturation-cumvar99',
-                                cumvar99_saturation, n_iter)
+        layer.writer.add_scalar(
+            f'{training_state}-{layer_name}-percent_saturation-cumvar99',
+            cumvar99_saturation, n_iter)
         simpson_di_saturation = get_eigenval_diversity_index(eig_vals)
         saturation = simpson_di_saturation
-        layer.writer.add_scalar(f'{training_state}-{layer_name}-percent_saturation-simpson_di',
-                                simpson_di_saturation, n_iter)
-    layer.writer.add_scalar(f'{training_state}-{layer_name}-intrinsic_dimensionality',
-                            nr_eig_vals, n_iter)
+        layer.writer.add_scalar(
+            f'{training_state}-{layer_name}-percent_saturation-simpson_di',
+            simpson_di_saturation, n_iter)
+    layer.writer.add_scalar(
+        f'{training_state}-{layer_name}-intrinsic_dimensionality', nr_eig_vals,
+        n_iter)
     return eig_vals, saturation
 
 
@@ -95,7 +110,7 @@ def add_param_eigenvals(layer,
     }, n_iter)
 
 
-def add_spectrum(layer:torch.nn.Module,
+def add_spectrum(layer: torch.nn.Module,
                  eig_vals: Optional[list] = None,
                  top_eigvals: int = 5,
                  n_iter: int = None):
@@ -114,7 +129,8 @@ def add_spectrum(layer:torch.nn.Module,
     return eig_vals
 
 
-def add_covariance(layer:torch.nn.Module, activation_batch:np.ndarray, n_iter: int):
+def add_covariance(layer: torch.nn.Module, activation_batch: np.ndarray,
+                   n_iter: int):
     layer.writer.add_scalar(
         '{}-latent_representation_covariance'.format(layer.name),
         batch_cov(activation_batch),
@@ -122,7 +138,8 @@ def add_covariance(layer:torch.nn.Module, activation_batch:np.ndarray, n_iter: i
     )
 
 
-def add_mean(layer:torch.nn.Module, activations_batch:np.ndarray, n_iter: int):
+def add_mean(layer: torch.nn.Module, activations_batch: np.ndarray,
+             n_iter: int):
     layer.writer.add_scalar(
         '{}-latent_representation_mean'.format(layer.name),
         batch_mean(activations_batch),
@@ -130,7 +147,10 @@ def add_mean(layer:torch.nn.Module, activations_batch:np.ndarray, n_iter: int):
     )
 
 
-def add_spectral_analysis(layer:torch.nn.Module, eig_vals:np.ndarray, n_iter:int, top_eigvals:int=5):
+def add_spectral_analysis(layer: torch.nn.Module,
+                          eig_vals: np.ndarray,
+                          n_iter: int,
+                          top_eigvals: int = 5):
     """Add spectral analysis `layer` writer and display `top_eigvals`."""
     training_state = get_training_state(layer)
     if eig_vals is None:

@@ -32,7 +32,11 @@ def initialize_preactivation_states(dense_outputs, obj):
         obj.preactivation_states[layer_name] = []
 
 
-def record_saturation(layers:str, obj, epoch:int, logs:dict, write_summary:bool=True):
+def record_saturation(layers: str,
+                      obj,
+                      epoch: int,
+                      logs: dict,
+                      write_summary: bool = True):
     """Records saturation for layers into logs and writes summaries."""
     for layer in layers:
         layer_history = obj.preactivation_states[layer]
@@ -60,8 +64,9 @@ def record_saturation(layers:str, obj, epoch:int, logs:dict, write_summary:bool=
         weighted_sum = sum([x**2 for x in var_exp])  #
         logs[layer] = weighted_sum
         if write_summary:
-            tf.summary.scalar(
-                layer, weighted_sum, collections=['preactivation_state'])
+            tf.summary.scalar(layer,
+                              weighted_sum,
+                              collections=['preactivation_state'])
     return logs
 
 
@@ -199,8 +204,11 @@ class SaturationLogger(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs):
         layers = self.preactivation_states.keys()
-        logs = record_saturation(
-            layers, self, epoch, logs, write_summary=False)
+        logs = record_saturation(layers,
+                                 self,
+                                 epoch,
+                                 logs,
+                                 write_summary=False)
         if epoch > 2:
             # TODO: Integrate with Keras logging
             print_str = ""

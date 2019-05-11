@@ -9,11 +9,10 @@ from torch.nn.modules.pooling import MaxPool2d
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
-
 from tensorboardX import SummaryWriter
 
-logging.basicConfig(
-    format='%(levelname)s:delve:%(message)s', level=logging.INFO)
+logging.basicConfig(format='%(levelname)s:delve:%(message)s',
+                    level=logging.INFO)
 
 
 class CheckLayerSat(object):
@@ -71,16 +70,19 @@ class CheckLayerSat(object):
         self.writer = self._get_writer(logging_dir)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
-        self.logs = {'eval-saturation': OrderedDict(),
-                     'train-saturation': OrderedDict()}
+        self.logs = {
+            'eval-saturation': OrderedDict(),
+            'train-saturation': OrderedDict()
+        }
         self.global_steps = 0
         self.global_hooks_registered = False
         self.is_notebook = None
         self._init_progress_bar()
         for name, layer in self.layers.items():
             if isinstance(layer, Conv2d) or isinstance(layer, Linear):
-                self._register_hooks(
-                    layer=layer, layer_name=name, interval=log_interval)
+                self._register_hooks(layer=layer,
+                                     layer_name=name,
+                                     interval=log_interval)
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Called upon closing CheckLayerSat."""
@@ -110,7 +112,7 @@ class CheckLayerSat(object):
                 self.is_notebook = True
             else:
                 from tqdm import tqdm
-        except NameError: # not ipython
+        except NameError:  # not ipython
             from tqdm import tqdm
             self.is_notebook = False
         bars = {}
@@ -131,26 +133,26 @@ class CheckLayerSat(object):
     def _format_saturation(self, saturation_status):
         raise NotImplementedError
 
-    def _write(self, text:str):
+    def _write(self, text: str):
         from tqdm import tqdm  # FIXME: Connect to main writer
 
         tqdm.write("{:^80}".format(text))
 
-    def write(self, text:str):
+    def write(self, text: str):
         self._write(text)
 
     def saturation(self, is_train=True):
         """User endpoint to get or show saturation levels."""
         return self._show_saturation(is_train)
 
-    def _update(self, layer:torch.nn.Module, percent_sat):
+    def _update(self, layer: torch.nn.Module, percent_sat):
         if self.is_notebook:
             # logging.info("{} - %{} saturated".format(layer, percent_sat))
             self.bars[layer].update(percent_sat)
         else:
             self.bars[layer].update(percent_sat)
 
-    def _show_saturation(self, is_train:bool):
+    def _show_saturation(self, is_train: bool):
         training_state = 'train' if is_train else 'eval'
         saturation_status = self.logs[f'{training_state}-saturation']
         for layer, saturation in saturation_status.items():
@@ -165,7 +167,7 @@ class CheckLayerSat(object):
         #         stack.update()
         return saturation_status
 
-    def _check_stats(self, stats:list):
+    def _check_stats(self, stats: list):
         if not isinstance(stats, list):
             stats = list(stats)
         supported_stats = [
@@ -183,11 +185,11 @@ class CheckLayerSat(object):
             stats[incompatible[0]])
         return stats
 
-    def _add_conv_layer(self, layer:torch.nn.Module):
+    def _add_conv_layer(self, layer: torch.nn.Module):
         layer.out_features = layer.out_channels
         layer.conv_method = self.conv_method
 
-    def _get_layers(self, modules:Union[list, torch.nn.Module]):
+    def _get_layers(self, modules: Union[list, torch.nn.Module]):
         layers = {}
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
@@ -248,7 +250,8 @@ class CheckLayerSat(object):
                 "Adding summaries to directory: {}".format(writer_name))
         return writer
 
-    def _register_hooks(self, layer:torch.nn.Module, layer_name:str, interval):
+    def _register_hooks(self, layer: torch.nn.Module, layer_name: str,
+                        interval):
         if not hasattr(layer, 'eval_layer_history'):
             layer.eval_layer_history = []
         if not hasattr(layer, 'train_layer_history'):
@@ -267,7 +270,7 @@ class CheckLayerSat(object):
         self.register_backward_hooks(layer, self.stats)
         return self
 
-    def register_backward_hooks(self, layer:torch.nn.Module, stats):
+    def register_backward_hooks(self, layer: torch.nn.Module, stats):
         """Register hook to show `stats` in `layer`."""
 
         # HACK: Update global changes via arbitrary layer on backwards pass
@@ -275,18 +278,18 @@ class CheckLayerSat(object):
             """Hook to register in `layer` module."""
             if layer.forward_iter % layer.interval == 0:
                 training_state = get_training_state(layer)
-                hooks.add_saturation_collection(self, layer,
-                                                self.logs[f'{training_state}-saturation'])
+                hooks.add_saturation_collection(
+                    self, layer, self.logs[f'{training_state}-saturation'])
 
         if not self.global_hooks_registered:
             if 'lsat' in stats:
                 layer.register_backward_hook(global_saturation_update)
             self.global_hooks_registered = True
 
-    def register_forward_hooks(self, layer:torch.nn.Module, stats: list):
+    def register_forward_hooks(self, layer: torch.nn.Module, stats: list):
         """Register hook to show `stats` in `layer`."""
 
-        def record_layer_saturation(layer:torch.nn.Module, input, output):
+        def record_layer_saturation(layer: torch.nn.Module, input, output):
             """Hook to register in `layer` module."""
 
             # Increment step counter
@@ -294,7 +297,9 @@ class CheckLayerSat(object):
             if layer.forward_iter % layer.interval == 0:
                 activations_batch = output.data.cpu().numpy()
                 training_state = 'train' if layer.training else 'eval'
-                layer_history = setattr(layer, f'{training_state}_layer_history', activations_batch)
+                layer_history = setattr(layer,
+                                        f'{training_state}_layer_history',
+                                        activations_batch)
                 #layer_history.append(activations_batch)
                 eig_vals = None
                 if 'bcov' in stats:
@@ -304,8 +309,9 @@ class CheckLayerSat(object):
                     hooks.add_mean(layer, activations_batch,
                                    layer.forward_iter)
                 if 'spectral' in stats:
-                    if (layer.forward_iter % (layer.interval * 10) == 0
-                        ):  # expensive spectral analysis
+                    if (layer.forward_iter %
+                        (layer.interval *
+                         10) == 0):  # expensive spectral analysis
                         eig_vals = hooks.add_spectral_analysis(
                             layer, eig_vals, layer.forward_iter)
                 if 'lsat' in stats:
@@ -313,7 +319,8 @@ class CheckLayerSat(object):
                         layer, eig_vals=eig_vals, method=self.sat_method)
                     training_state = 'train' if layer.training else 'eval'
 
-                    self.logs[f'{training_state}-saturation'][layer.name] = saturation
+                    self.logs[f'{training_state}-saturation'][
+                        layer.name] = saturation
                 if 'spectral' not in stats:
                     if 'eigendist' in stats:
                         eig_vals = hooks.add_eigen_dist(

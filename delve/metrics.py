@@ -6,6 +6,7 @@ from typing import Dict
 from mdp.utils import CovarianceMatrix
 COVARIANCE_MATRICES = dict()
 
+
 def get_eigenval_diversity_index(eig_vals: np.ndarray):
     """Return Simpson diversity index of eigvalue explained variance ratios.
     Args:
@@ -51,7 +52,7 @@ def get_layer_saturation(nr_eig_vals: np.ndarray, layer_width: int) -> int:
 def _get_cov(layer_history: Union[list, np.ndarray],
              subsample_rate: int = 50,
              window_size: int = 100,
-             conv_method: str='median'):
+             conv_method: str = 'median'):
     """Get covariance matrix of layer activation history.
     Args:
         subsample_rate : int, subsample rate before calculating PCs
@@ -62,11 +63,14 @@ def _get_cov(layer_history: Union[list, np.ndarray],
 
     if len(history_array.shape) == 4:  # conv layer (B x C x H x W)
         if conv_method == 'median':
-            history_array = np.median(history_array, axis=(2, 3))  # channel median
+            history_array = np.median(history_array,
+                                      axis=(2, 3))  # channel median
         elif conv_method == 'max':
-            history_array = np.max(history_array, axis=(2, 3))  # channel median
+            history_array = np.max(history_array,
+                                   axis=(2, 3))  # channel median
         elif conv_method == 'mean':
-            history_array = np.mean(history_array, axis=(2, 3))  # channel median
+            history_array = np.mean(history_array,
+                                    axis=(2, 3))  # channel median
     history_array = history_array.reshape(history_array.shape[0], -1)
     assert (len(history_array.shape) is
             2), "Stacked layer history shape is {}, \
@@ -76,7 +80,8 @@ def _get_cov(layer_history: Union[list, np.ndarray],
     cov = np.cov(embeddings.T)
     return cov
 
-def _get_iterative_cov(layer, batch, conv_method: str='median'):
+
+def _get_iterative_cov(layer, batch, conv_method: str = 'median'):
 
     #batch = batch[-1]
 
@@ -96,7 +101,7 @@ def _get_iterative_cov(layer, batch, conv_method: str='median'):
     return COVARIANCE_MATRICES[layer]._cov_mtx
 
 
-def latent_pca(layer_history: list, conv_method:str='median'):
+def latent_pca(layer_history: list, conv_method: str = 'median'):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
     Args:
         layer_history : list, layer outputs during training
@@ -112,6 +117,7 @@ def latent_pca(layer_history: list, conv_method:str='median'):
     # Sort the eigenvalues from high to low
     eig_vals = sorted(eig_vals, reverse=True)
     return eig_vals
+
 
 def latent_iterative_pca(layer, batch, conv_method: str = 'median'):
     """Get NxN matrix of principal components sorted in descending order from `layer_history`
