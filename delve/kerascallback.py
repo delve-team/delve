@@ -1,3 +1,5 @@
+import datetime
+
 import keras
 import tensorflow as tf
 
@@ -58,8 +60,10 @@ def record_saturation(layers: str,
         eig_pairs = sorted(eig_pairs, key=lambda x: x[0], reverse=True)
         eig_vals, eig_vecs = zip(*eig_pairs)
         tot = sum(eig_vals)
+
         # Get explained variance
         var_exp = [(i / tot) for i in eig_vals]
+
         # Get Simpson-diversity-index-based saturation
         weighted_sum = sum([x**2 for x in var_exp])  #
         logs[layer] = weighted_sum
@@ -121,6 +125,7 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             # pylint: enable=protected-access
 
         super(CustomTensorBoard, self).on_epoch_begin(epoch, logs=None)
+
 
     def on_epoch_end(self, epoch, logs=None):
         """Checks if summary ops should run next epoch, logs scalar summaries."""
