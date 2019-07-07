@@ -83,8 +83,6 @@ def _get_cov(layer_history: Union[list, np.ndarray],
 
 def _get_iterative_cov(layer, batch, conv_method: str = 'median'):
 
-    #batch = batch[-1]
-
     if len(batch.shape) == 4:  # conv layer (B x C x H x W)
         if conv_method == 'median':
             batch = np.median(batch, axis=(2, 3))  # channel median
@@ -160,3 +158,19 @@ def batch_mean(batch: np.ndarray):
 def batch_cov(batch: np.ndarray):
     """Get covariance of first instance in `batch`."""  # TODO: Add support for non-dense layers.
     return np.cov(batch[0])
+
+def compute_saturation(cov: np.ndarray, thresh: float = .99) -> float:
+    """
+    Provides layer saturation
+    :param covariance_matrix:
+    :param thresh:
+    :param conv_method:
+    :return:
+    """
+    eig_vals = np.linalg.eigvalsh(cov)
+
+    # Sort the eigenvalues from high to low
+    eig_vals = sorted(eig_vals, reverse=True)
+    total_dim = len(cov)
+    nr_eigs = get_explained_variance(eig_vals=eig_vals, threshold=thresh, return_cum=False)
+    return get_layer_saturation(nr_eig_vals=nr_eigs, layer_width=total_dim)
