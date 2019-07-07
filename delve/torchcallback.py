@@ -1,15 +1,12 @@
 import logging
 
+import torch
 from collections import OrderedDict
-from delve import hooks
-from delve.utils import *
 from delve.metrics import *
 from torch.nn.modules.activation import ReLU
-from torch.nn.modules.pooling import MaxPool2d
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 from mdp.utils import CovarianceMatrix
-from tensorboardX import SummaryWriter
 from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
@@ -168,7 +165,6 @@ class CheckLayerSat(object):
             stats = list(stats)
         supported_stats = [
             'lsat',
-            'cov'
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -211,59 +207,6 @@ class CheckLayerSat(object):
                 layers = self.get_layer_from_submodule(module, layers, '')
         return layers
 
-
-    def _get_layers(self, modules: Union[list, torch.nn.Module]):
-        layers = {}
-        if not isinstance(modules, list) and not hasattr(
-                modules, 'out_features'):
-            # is a model with layers
-            # check if submodule
-            submodules = modules._modules  # OrderedDict
-            for idx, (name, submodule) in enumerate(submodules.items()):
-                if submodule._get_name() is 'Sequential':
-                    for submodule_idx, layer in submodule._modules.items():
-                        layer_type = layer._get_name().lower()
-                        if layer_type == 'conv2d':
-                            if self.include_conv:
-                                self._add_conv_layer(layer)
-                            else:
-                                continue
-                        layers[name + submodule_idx] = layer
-                else:
-                    layer_name = name.split('.')[0]
-                    layer_type = submodule._get_name().lower()
-                    if not layer_type in ['conv2d', 'linear']:
-                        print(f"Skipping {layer_type}")
-                        continue
-                    layer = getattr(modules, layer_name)
-                    if layer_type == 'conv2d':
-                        if self.include_conv:
-                            self._add_conv_layer(layer)
-                        else:
-                            continue
-                    layers[layer_name] = layer
-            return layers
-        elif isinstance(modules, list):
-            # is a list of layers
-            layer_names = []
-            for layer in modules:
-                try:
-                    layer_class = layer.__module__.split('.')[-1]
-                except:
-                    raise "Layer {} is not supported".format(layer)
-                if layer_class == 'conv2d':
-                    if self.include_conv:
-                        self._add_conv_layer(layer)
-                    else:
-                        continue
-                layer_names.append(layer_class)
-                layer_cnt = layer_names.count(layer_class)
-                layer_name = layer_class + str(layer_cnt)
-                layers[layer_name] = layer
-            if self.verbose:
-                logging.info("Recording layers {}".format(layers))
-            return layers
-
     def _get_writer(self, save_to, savepath):
         """Create a writer to log history to `writer_dir`."""
         if save_to == 'csv':
@@ -293,7 +236,6 @@ class CheckLayerSat(object):
         if not hasattr(layer, 'name'):
             layer.name = layer_name
         self.register_forward_hooks(layer, self.stats)
-        #self.register_backward_hooks(layer, self.stats)
         return self
 
     def register_forward_hooks(self, layer: torch.nn.Module, stats: list):
@@ -310,12 +252,6 @@ class CheckLayerSat(object):
                 layer_history = setattr(layer, f'{training_state}_layer_history', activations_batch)
                 eig_vals = None
                 if 'lsat' in stats:
-                    eig_vals, saturation = hooks.add_layer_saturation(
-                        layer, eig_vals=eig_vals, method=self.sat_method)
-                    training_state = 'train' if layer.training else 'eval'
-
-                    self.logs[f'{training_state}-saturation'][layer.name] = saturation
-                elif 'cov' in stats:
                     training_state = 'train' if layer.training else 'eval'
 
                     if len(activations_batch.shape) == 4:  # conv layer (B x C x H x W)
