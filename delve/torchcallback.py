@@ -64,7 +64,7 @@ class CheckLayerSat(object):
         self.include_conv = include_conv
         self.conv_method = conv_method
         self.sat_method = sat_method
-        self.layers = self._get_layers(modules)
+        self.layers = self.get_layers_recursive(modules)
         self.min_subsample = min_subsample
         self.writer = self._get_writer(save_to, savefile)
         self.interval = log_interval
@@ -182,19 +182,21 @@ class CheckLayerSat(object):
 
     def get_layer_from_submodule(self, submodule: torch.nn.Module, layers: dict, name_prefix: str = ''):
             if len(submodule._modules) > 0:
-                for idx, (name, subsubmodule) in enumerate(submodule.items()):
+                for idx, (name, subsubmodule) in enumerate(submodule._modules.items()):
                     new_prefix = name if name_prefix == '' else name_prefix+'-'+name
                     self.get_layer_from_submodule(subsubmodule, layers, new_prefix)
+                return layers
             else:
-                layer_name = submodule.name.split('.')[0]
-                layer_type = submodule._get_name().lower()
-                if not layer_type in ['conv2d', 'linear']:
+                layer_name = name_prefix
+                layer_type = layer_name
+                if not isinstance(submodule, Conv2d) and not isinstance(submodule, Linear):
                     print(f"Skipping {layer_type}")
-                layer = getattr(submodule, layer_name)
-                if layer_type == 'conv2d':
-                    if self.include_conv:
-                        self._add_conv_layer(layer)
-                layers[layer_name] = layer
+                    return layers
+                if isinstance(submodule, Conv2d) and self.include_conv:
+                    self._add_conv_layer(submodule)
+                layers[layer_name] = submodule
+                print('added layer {}'.format(layer_name))
+                return layers
 
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
         layers = {}
@@ -203,6 +205,11 @@ class CheckLayerSat(object):
             # is a model with layers
             # check if submodule
             submodules = modules._modules  # OrderedDict
+            layers = self.get_layer_from_submodule(modules, layers, '')
+        else:
+            for module in modules:
+                layers = self.get_layer_from_submodule(module, layers, '')
+        return layers
 
 
     def _get_layers(self, modules: Union[list, torch.nn.Module]):
@@ -344,7 +351,7 @@ class CheckLayerSat(object):
                     sat = compute_saturation(self.logs[key][layer_name]._cov_mtx, thresh=.99)
                     if self.layerwise_sat:
                         name = key+'_'+layer_name
-                        self.writer.add_scalar(name, sat, 0)
+                        self.writer.add_scalar(name, sat)
                     if 'eval' in key:
                         val_sats.append(sat)
                     elif 'train' in key:

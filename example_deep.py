@@ -54,9 +54,10 @@ if __name__ == '__main__':
     epochs = 5
 
     for h2 in [8, 32, 128]:  # compare various hidden layer sizes
-        net = resnet18(pretrained=False, num_classes=2)#Net(h2=h2)  # instantiate network with hidden layer size `h2`
+        net = resnet18(pretrained=False, num_classes=10)#Net(h2=h2)  # instantiate network with hidden layer size `h2`
 
         net.to(device)
+        print(net)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -94,7 +95,7 @@ if __name__ == '__main__':
                 # display layer saturation levels
 
             stats.add_scalar('epoch', epoch)  # optional
-            stats.add_scalar('loss', running_loss.numpy())  # optional
+            stats.add_scalar('loss', running_loss.cpu().numpy())  # optional
             stats.add_saturations()
             stats.save()
 
