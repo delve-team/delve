@@ -23,6 +23,7 @@ install:
 - source activate test-environment
 - pip install moviepy==0.2.3.2
 - pip install matplotlib
+- pip install pandas
 - python -c "import imageio; imageio.plugins.ffmpeg.download()"
 - pip install --upgrade pytest flake8
 - pip install .
