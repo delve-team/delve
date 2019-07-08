@@ -140,25 +140,12 @@ class CheckLayerSat(object):
     def write(self, text: str):
         self._write(text)
 
-    def saturation(self, is_train=True):
-        """User endpoint to get or show saturation levels."""
-        return self._show_saturation(is_train)
-
     def _update(self, layer: torch.nn.Module, percent_sat):
         if self.is_notebook:
             # logging.info("{} - %{} saturated".format(layer, percent_sat))
             self.bars[layer].update(percent_sat)
         else:
             self.bars[layer].update(percent_sat)
-
-    def _show_saturation(self, is_train: bool):
-        training_state = 'train' if is_train else 'eval'
-        saturation_status = self.logs[f'{training_state}-saturation']
-        for layer, saturation in saturation_status.items():
-            curr = self.bars[layer].n
-            percent_sat = int(max(0, saturation - curr))
-            self._update(layer, percent_sat)
-        return saturation_status
 
     def _check_stats(self, stats: list):
         if not isinstance(stats, list):

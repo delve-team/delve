@@ -52,7 +52,7 @@ for h in [10, 100, 300]:
 
     x, y, model = x.to(device), y.to(device), model.to(device)
 
-    stats = CheckLayerSat('regression/h{}'.format(h), model)
+    stats = CheckLayerSat('regression/h{}'.format(h), 'csv', model)
 
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
@@ -66,8 +66,8 @@ for h in [10, 100, 300]:
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-        stats.saturation()
+        stats.add_saturations()
+        #stats.saturation()
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
