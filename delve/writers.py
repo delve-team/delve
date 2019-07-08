@@ -76,11 +76,11 @@ class TensorBoardWriter(AbstractWriter):
         self.savepath = savepath
         self.writer = SummaryWriter(savepath)
 
-    def add_scalar(self, name, value, n_iter, **kwargs):
-        self.writer.add_scalar(name, value, n_iter)
+    def add_scalar(self, name, value, **kwargs):
+        self.writer.add_scalar(name, value)
 
-    def add_scalars(self, prefix, value_dict, global_step, **kwargs):
-        self.writer.add_scalars(prefix, value_dict, global_step)
+    def add_scalars(self, prefix, value_dict, **kwargs):
+        self.writer.add_scalars(prefix, value_dict)
 
     def save(self):
         pass
