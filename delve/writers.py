@@ -26,7 +26,6 @@ class AbstractWriter(ABC):
         pass
 
 
-
 class CSVWriter(AbstractWriter):
 
     def __init__(self, savepath: str):

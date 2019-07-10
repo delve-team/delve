@@ -64,6 +64,7 @@ def compute_saturation(cov: np.ndarray, thresh: float = .99) -> float:
     :param conv_method:
     :return:
     """
+    
     eig_vals = np.linalg.eigvalsh(cov)
 
     # Sort the eigenvalues from high to low

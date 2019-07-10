@@ -1,13 +1,13 @@
 import logging
-
+from typing import List
 import torch
 from collections import OrderedDict
-from delve.metrics import *
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 from mdp.utils import CovarianceMatrix
 from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
+from delve.metrics import *
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
@@ -51,16 +51,16 @@ class CheckLayerSat(object):
             stats: list = ['lsat'],
             layerwise_sat: bool = True,
             average_sat: bool = False,
-            ignore_layer_names: str = None,
+            ignore_layer_names: List[str] = [],
             include_conv: bool = True,
             conv_method: str = 'median',
-            sat_method: str = 'cumvar99',
+            sat_threshold: str = .99,
             verbose=False,
     ):
         self.verbose = verbose
         self.include_conv = include_conv
         self.conv_method = conv_method
-        self.sat_method = sat_method
+        self.threshold = sat_threshold
         self.layers = self.get_layers_recursive(modules)
         self.min_subsample = min_subsample
         self.writer = self._get_writer(save_to, savefile)
@@ -264,14 +264,14 @@ class CheckLayerSat(object):
         Computes saturation and saves all stats
         :return:
         """
-        for key in self.logs.keys():
+        for key in self.logs:
             train_sats = []
             val_sats = []
             if '-saturation' in key:
-                for layer_name in self.logs[key].keys():
-                    if not self.ignore_layer_names is None and self.ignore_layer_names == layer_name:
+                for layer_name in self.logs[key]:
+                    if layer_name in self.ignore_layer_names:
                         continue
-                    sat = compute_saturation(self.logs[key][layer_name]._cov_mtx, thresh=.99)
+                    sat = compute_saturation(self.logs[key][layer_name]._cov_mtx, thresh=self.threshold)
                     if self.layerwise_sat:
                         name = key+'_'+layer_name
                         self.writer.add_scalar(name, sat)
