@@ -36,20 +36,33 @@ pip install delve
 `delve.CheckLayerSat` can be configured as follows:
 
 ```
-logging_dir (str)  : destination for summaries
-modules (torch modules or list of modules) : layer-containing object
+savefile (str)  : destination for summaries, depending on the saving strategy, this may be a directory or file
+save_to (str)   : specifies the saving strategy
+    supported writers are:
+        console     : print the stats to console everytime save() is called
+        tensorboard : logs everything in tensorboard format, in this case the savefile must be a directory
+        csv         : creates a csv file with each column corresponding to a logged variable. Everytime save() is called a new 
+                      line in the file is created
+
+        
+        
+layerwise_sat (bool)    : toggles if layerwise sautration should be saved by the writer
+average_sat (bool)      : toggles if average saturation should be saved by the writer
+ignore_layer_names (list) : a list of layer names, as specified in the modules. The layers specified will be excluded in the 
+                          computation. Usefull for excluding layers which are force into a speciic saturation like softmaxes                                 or other output layers.
+include_conv (bool)     : toggle if convolutional layers should be included
+conv_method (str)       : the method used to pool the latent space of convolutional layers. Default is 'median", valid inputs
+                          'median', 'mean' and 'max'
+sat_threshold (float)   : the saturation theshold for computing the dimensionality of the latent representations. Default is
+                          .99. This value may be any floating point in 0 and 1.
+modules (torch modules or list of modules) : layer-containing object (may contain submodules)
 log_interval (int) : steps between writing summaries
-stats (list of str): list of stats to collect
+stats (list of str): list of stats to collect 
 
     supported stats are:
         lsat       : layer saturation
-        bcov       : batch covariance
-        eigendist  : eigenvalue distribution
-        neigendist : normalized eigenvalue distribution
-        spectrum   : top-N eigenvalues of covariance matrix
-        spectral   : spectral analysis (eigendist, neigendist, and spectrum)
 
-sat_method         : Method for calculating saturation. Use `cumvar99`, `simpson_di`, or `all`.
+conv_method         : Method for calculating saturation. Use `cumvar99``, or `all`.
                         See https://github.com/justinshenk/playground for a comparison of how they work.
 include_conv       : bool, setting to False includes only linear layers
 verbose (bool)     : print saturation for every layer during training
