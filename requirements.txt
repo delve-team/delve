@@ -2,3 +2,4 @@ tensorboardX >= 1.6
 tqdm
 MDP==3.5
 yapf
+pandas==0.23.4

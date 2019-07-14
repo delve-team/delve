@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+from torchvision.models import resnet18
 from tqdm import tqdm, trange
 
 from delve import CheckLayerSat
@@ -45,56 +46,61 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
+if __name__ == '__main__':
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(1)
 
-torch.manual_seed(1)
+    epochs = 5
 
-epochs = 5
+    for h2 in [8, 32, 128]:  # compare various hidden layer sizes
+        net = resnet18(pretrained=False, num_classes=10)#Net(h2=h2)  # instantiate network with hidden layer size `h2`
 
-for h2 in [8, 32, 128]:  # compare various hidden layer sizes
-    net = Net(h2=h2)  # instantiate network with hidden layer size `h2`
+        net.to(device)
+        print(net)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    net.to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+        logging_dir = 'convNet/simpson_h2-{}'.format(h2)
+        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'])
+        stats.write(
+            "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
-    logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-    stats = CheckLayerSat(logging_dir, net, include_conv=True, sat_method='all')
-    stats.write(
-        "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
+        for epoch in range(epochs):
+            running_loss = 0.0
+            step = 0
+            loader = tqdm(
+                train_loader, leave=True,
+                position=0)  # track step progress and loss - optional
+            for i, data in enumerate(loader):
+                step = epoch * len(loader) + i
+                inputs, labels = data
+                inputs, labels = inputs.to(device), labels.to(device)
+                optimizer.zero_grad()
+                outputs = net(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
 
-    for epoch in range(epochs):
-        running_loss = 0.0
-        step = 0
-        loader = tqdm(
-            train_loader, leave=True,
-            position=0)  # track step progress and loss - optional
-        for i, data in enumerate(loader):
-            step = epoch * len(loader) + i
-            inputs, labels = data
-            inputs, labels = inputs.to(device), labels.to(device)
-            optimizer.zero_grad()
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
+                optimizer.step()
 
-            optimizer.step()
+                running_loss += loss.data
+                if i % 2000 == 1999:  # print every 2000 mini-batches
+                    print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
+                                                    running_loss / 2000))
+                    running_loss = 0.0
 
-            running_loss += loss.data
-            if i % 2000 == 1999:  # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1,
-                                                running_loss / 2000))
-                stats.add_scalar('batch_loss', running_loss, step)  # optional
-                running_loss = 0.0
+                # update the training progress display
+                loader.set_description(desc='[%d/%d, %5d] loss: %.3f' %
+                                       (epoch + 1, epochs, i + 1, loss.data))
+                # display layer saturation levels
 
-            # update the training progress display
-            loader.set_description(desc='[%d/%d, %5d] loss: %.3f' %
-                                   (epoch + 1, epochs, i + 1, loss.data))
-            # display layer saturation levels
-            stats.saturation()
+            stats.add_scalar('epoch', epoch)  # optional
+            stats.add_scalar('loss', running_loss.cpu().numpy())  # optional
+            stats.add_saturations()
+            stats.save()
 
-    loader.write('\n')
-    loader.close()
-    stats.export_scalars_to_json(f"./all_scalars{h2}.json")
-    stats.close()
+
+        loader.write('\n')
+        loader.close()
+        stats.save()
+        stats.close()
