@@ -89,7 +89,7 @@ class CheckLayerSat(object):
             bar.close()
 
     def __getattr__(self, name):
-        if name.startswith('add_'):
+        if name.startswith('add_') and name != 'add_saturations':
             return getattr(self.writer, name)
         else:
             try:
