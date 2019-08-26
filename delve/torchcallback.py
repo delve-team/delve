@@ -5,7 +5,8 @@ from collections import OrderedDict
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
-from mdp.utils import CovarianceMatrix
+#from mdp.utils import CovarianceMatrix
+from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
 from delve.metrics import *
 
@@ -53,9 +54,10 @@ class CheckLayerSat(object):
             average_sat: bool = False,
             ignore_layer_names: List[str] = [],
             include_conv: bool = True,
-            conv_method: str = 'median',
+            conv_method: str = 'mean',
             sat_threshold: str = .99,
             verbose=False,
+            device='cuda:0'
     ):
         self.verbose = verbose
         self.include_conv = include_conv
@@ -76,17 +78,12 @@ class CheckLayerSat(object):
         self.global_steps = 0
         self.global_hooks_registered = False
         self.is_notebook = None
-        self._init_progress_bar()
+        self.device = device
         for name, layer in self.layers.items():
             if isinstance(layer, Conv2d) or isinstance(layer, Linear):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Called upon closing CheckLayerSat."""
-        for bar in self.bars.values():
-            bar.close()
 
     def __getattr__(self, name):
         if name.startswith('add_') and name != 'add_saturations':
@@ -102,50 +99,12 @@ class CheckLayerSat(object):
     def __repr__(self):
         return self.layers.keys().__repr__()
 
-    def _init_progress_bar(self):
-        try:
-            if 'ipykernel.zmqshell.ZMQInteractiveShell' in str(
-                    type(get_ipython())):
-                from tqdm import tqdm_notebook as tqdm
-
-                self.is_notebook = True
-            else:
-                from tqdm import tqdm
-        except NameError:  # not ipython
-            from tqdm import tqdm
-            self.is_notebook = False
-        bars = {}
-        for i, layer in enumerate(self.layers.keys()):
-            # bar_format = "{l_bar}{bar}| {n:.3g}/{total_fmt} [{rate_fmt}{postfix}]" # FIXME: Make it prettier
-            pbar = tqdm(desc=layer, total=100, leave=True, position=i + 1)
-            bars[layer] = pbar
-            # bar = ChargingBar('{} Saturation'.format(layer), suffix='%(percent)d%%')
-            # bars[layer] = bar
-        self.bars = bars
-
     def close(self):
         """User endpoint to close writer and progress bars."""
-        for bar in self.bars.values():
-            bar.close()
         return self.writer.close()
 
     def _format_saturation(self, saturation_status):
         raise NotImplementedError
-
-    def _write(self, text: str):
-        from tqdm import tqdm  # FIXME: Connect to main writer
-
-        tqdm.write("{:^80}".format(text))
-
-    def write(self, text: str):
-        self._write(text)
-
-    def _update(self, layer: torch.nn.Module, percent_sat):
-        if self.is_notebook:
-            # logging.info("{} - %{} saturated".format(layer, percent_sat))
-            self.bars[layer].update(percent_sat)
-        else:
-            self.bars[layer].update(percent_sat)
 
     def _check_stats(self, stats: list):
         if not isinstance(stats, list):
@@ -234,25 +193,25 @@ class CheckLayerSat(object):
             # Increment step counter
             layer.forward_iter += 1
             if layer.forward_iter % layer.interval == 0:
-                activations_batch = output.data.cpu().numpy()
+                activations_batch = output.data
                 training_state = 'train' if layer.training else 'eval'
                 layer_history = setattr(layer, f'{training_state}_layer_history', activations_batch)
                 eig_vals = None
                 if 'lsat' in stats:
                     training_state = 'train' if layer.training else 'eval'
 
-                    if len(activations_batch.shape) == 4:  # conv layer (B x C x H x W)
+                    if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
                         if self.conv_method == 'median':
-                            activations_batch = np.median(activations_batch, axis=(2, 3))  # channel median
+                            activations_batch = torch.median(activations_batch, dim=(2, 3))  # channel median
                         elif self.conv_method == 'max':
-                            activations_batch = np.max(activations_batch, axis=(2, 3))  # channel median
+                            activations_batch = torch.max(activations_batch, dim=(2, 3))  # channel median
                         elif self.conv_method == 'mean':
-                            activations_batch = np.mean(activations_batch, axis=(2, 3))
+                            activations_batch = torch.mean(activations_batch, dim=(2, 3))
 
                     if layer.name in self.logs[f'{training_state}-saturation']:
                         self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
                     else:
-                        self.logs[f'{training_state}-saturation'][layer.name] = CovarianceMatrix()
+                        self.logs[f'{training_state}-saturation'][layer.name] = TorchCovarianceMatrix(device=self.device)
                         self.logs[f'{training_state}-saturation'][layer.name]._init_internals(activations_batch)
 
 
@@ -271,7 +230,7 @@ class CheckLayerSat(object):
                 for layer_name in self.logs[key]:
                     if layer_name in self.ignore_layer_names:
                         continue
-                    sat = compute_saturation(self.logs[key][layer_name]._cov_mtx, thresh=self.threshold)
+                    sat = compute_saturation(self.logs[key][layer_name]._cov_mtx.cpu().numpy(), thresh=self.threshold)
                     if self.layerwise_sat:
                         name = key+'_'+layer_name
                         self.writer.add_scalar(name, sat)
