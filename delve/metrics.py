@@ -1,9 +1,7 @@
-from typing import Union
+from typing import Dict, Union
 
 import numpy as np
-from mdp.utils import CovarianceMatrix
-from typing import Dict
-from mdp.utils import CovarianceMatrix
+
 COVARIANCE_MATRICES = dict()
 
 
