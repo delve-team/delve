@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -50,6 +51,8 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     torch.manual_seed(1)
+    if not os.path.exists('convNet'):
+        os.mkdir('convNet')
 
     epochs = 5
 
@@ -63,8 +66,7 @@ if __name__ == '__main__':
 
         logging_dir = 'convNet/simpson_h2-{}'.format(h2)
         stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'])
-        stats.write(
-            "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
+        #stats.write( "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
         for epoch in range(epochs):
             running_loss = 0.0

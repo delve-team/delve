@@ -47,10 +47,11 @@ class CheckLayerSat(object):
             savefile: str,
             save_to: str,
             modules,
-            log_interval=50,
+            log_interval=1,
             min_subsample=128,
             stats: list = ['lsat'],
             layerwise_sat: bool = True,
+            reset_covariance: bool = False,
             average_sat: bool = False,
             ignore_layer_names: List[str] = [],
             include_conv: bool = True,
@@ -65,6 +66,7 @@ class CheckLayerSat(object):
         self.threshold = sat_threshold
         self.layers = self.get_layers_recursive(modules)
         self.min_subsample = min_subsample
+        self.reset_covariance = reset_covariance
         self.writer = self._get_writer(save_to, savefile)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
@@ -227,10 +229,14 @@ class CheckLayerSat(object):
             train_sats = []
             val_sats = []
             if '-saturation' in key:
-                for layer_name in self.logs[key]:
+                for i, layer_name in enumerate(self.logs[key]):
                     if layer_name in self.ignore_layer_names:
                         continue
+                    if self.logs[key][layer_name]._cov_mtx is None:
+                        raise ValueError('Attempting to compute saturation when covariance is not initialized, try to lower the log interval')
                     sat = compute_saturation(self.logs[key][layer_name]._cov_mtx.cpu().numpy(), thresh=self.threshold)
+                    if self.reset_covariance:
+                        self.logs[key][layer_name]._cov_mtx = None
                     if self.layerwise_sat:
                         name = key+'_'+layer_name
                         self.writer.add_scalar(name, sat)
