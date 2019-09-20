@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 import os
 import os.path as path
-
+from delve.version import __version__
 # Get package version
 exec(open('delve/version.py', 'r').read())
 
