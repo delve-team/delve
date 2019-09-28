@@ -48,7 +48,7 @@ class CheckLayerSat(object):
             save_to: str,
             modules,
             log_interval=1,
-            min_subsample=128,
+            max_samples=None,
             stats: list = ['lsat'],
             layerwise_sat: bool = True,
             reset_covariance: bool = False,
@@ -65,7 +65,7 @@ class CheckLayerSat(object):
         self.conv_method = conv_method
         self.threshold = sat_threshold
         self.layers = self.get_layers_recursive(modules)
-        self.min_subsample = min_subsample
+        self.max_samples = max_samples
         self.reset_covariance = reset_covariance
         self.writer = self._get_writer(save_to, savefile)
         self.interval = log_interval
@@ -76,6 +76,10 @@ class CheckLayerSat(object):
         self.logs = {
             'eval-saturation': OrderedDict(),
             'train-saturation': OrderedDict()
+        }
+        self.seen_samples = {
+            'train': 0,
+            'eval': 0
         }
         self.global_steps = 0
         self.global_hooks_registered = False
@@ -194,13 +198,15 @@ class CheckLayerSat(object):
 
             # Increment step counter
             layer.forward_iter += 1
-            if layer.forward_iter % layer.interval == 0:
-                activations_batch = output.data
-                training_state = 'train' if layer.training else 'eval'
-                layer_history = setattr(layer, f'{training_state}_layer_history', activations_batch)
+
+            training_state = 'train' if layer.training else 'eval'
+            if self.max_samples is None or self.seen_samples[training_state] < self.max_samples:
+                num_samples = min(output.data.shape[0], self.max_samples-self.seen_samples[training_state]) if self.max_samples is not None else output.data.shape[0]
+                activations_batch = output.data[:num_samples]
+                self.seen_samples[training_state] += num_samples
+
                 eig_vals = None
                 if 'lsat' in stats:
-                    training_state = 'train' if layer.training else 'eval'
 
                     if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
                         if self.conv_method == 'median':
@@ -233,7 +239,7 @@ class CheckLayerSat(object):
                     if layer_name in self.ignore_layer_names:
                         continue
                     if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute saturation when covariance is not initialized, try to lower the log interval')
+                        raise ValueError('Attempting to compute saturation when covariance is not initialized')
                     sat = compute_saturation(self.logs[key][layer_name]._cov_mtx.cpu().numpy(), thresh=self.threshold)
                     if self.reset_covariance:
                         self.logs[key][layer_name]._cov_mtx = None
@@ -248,7 +254,10 @@ class CheckLayerSat(object):
         if self.average_sat:
             self.writer.add_scalar('average_train_sat', np.mean(train_sats))
             self.writer.add_scalar('average_eval_sat', np.mean(val_sats))
-
+        self.seen_samples = {
+            'train': 0,
+            'eval': 0
+        }
         self.save()
 
 

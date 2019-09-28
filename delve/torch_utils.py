@@ -28,6 +28,7 @@ class TorchCovarianceMatrix(object):
         self._cov_mtx = torch.zeros((dim, dim)).to(self.device)
         # init average
         self._avg = torch.zeros((dim)).to(self.device)
+        self._tlen = x.shape[0]
 
     def update(self, x):
         """Update internal structures.
