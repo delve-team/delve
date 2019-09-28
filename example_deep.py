@@ -65,7 +65,7 @@ if __name__ == '__main__':
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
         logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'], max_samples=1024)
+        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'], max_samples=1024, verbose=True)
         #stats.write( "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
         for epoch in range(epochs):
