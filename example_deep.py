@@ -60,12 +60,15 @@ if __name__ == '__main__':
         net = resnet18(pretrained=False, num_classes=10)#Net(h2=h2)  # instantiate network with hidden layer size `h2`
 
         net.to(device)
+        logging_dir = 'convNet/simpson_h2-{}'.format(h2)
+        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'], max_samples=1024,
+                              verbose=True)
+        
+        #net = nn.DataParallel(net, device_ids=['cuda:0', 'cuda:1'])
         print(net)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-        logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'], max_samples=1024, verbose=True)
         #stats.write( "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
         for epoch in range(epochs):

@@ -21,6 +21,8 @@ class TorchCovarianceMatrix(object):
         able to derive the input dimension and the dtype directly from the
         data this class receives.
         """
+        #if x.get_device() != self.device:
+        x = x.to(device=self.device)
         # init dtype
         dim = x.shape[1]
         self._input_dim = dim
@@ -36,6 +38,8 @@ class TorchCovarianceMatrix(object):
         Note that no consistency checks are performed on the data (this is
         typically done in the enclosing node).
         """
+       # if x.get_device() != self.device:
+        x = x.to(device=self.device)
         if self._cov_mtx is None:
             self._init_internals(x)
         # update the covariance matrix, the average and the number of
