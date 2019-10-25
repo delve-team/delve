@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Dict, Any, Optional, Union
 import torch
 from collections import OrderedDict
 from torch.nn.modules.activation import ReLU
@@ -9,6 +9,7 @@ from torch.nn.modules.linear import Linear
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
 from delve.metrics import *
+import delve
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
@@ -45,8 +46,9 @@ class CheckLayerSat(object):
     def __init__(
             self,
             savefile: str,
-            save_to: str,
-            modules,
+            save_to: Union[str, delve.writers.AbstractWriter],
+            modules: torch.nn.Module,
+            writer_args: Optional[Dict[str, Any]] = None,
             log_interval=1,
             max_samples=None,
             stats: list = ['lsat'],
@@ -58,7 +60,7 @@ class CheckLayerSat(object):
             conv_method: str = 'mean',
             sat_threshold: str = .99,
             verbose=False,
-            device='cuda:0'
+            device='cuda:0',
     ):
         self.verbose = verbose
         self.include_conv = include_conv
@@ -68,7 +70,12 @@ class CheckLayerSat(object):
         self.max_samples = max_samples
         self.log_interval = log_interval
         self.reset_covariance = reset_covariance
-        self.writer = self._get_writer(save_to, savefile)
+
+        if writer_args is None:
+            writer_args = {}
+        writer_args['savepath'] = savefile
+
+        self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
         self.stats = self._check_stats(stats)
         self.layerwise_sat = layerwise_sat
@@ -160,14 +167,12 @@ class CheckLayerSat(object):
                 layers = self.get_layer_from_submodule(module, layers, '')
         return layers
 
-    def _get_writer(self, save_to, savepath):
+    def _get_writer(self, save_to, writers_args) -> delve.writers.AbstractWriter:
         """Create a writer to log history to `writer_dir`."""
-        if save_to == 'csv':
-            writer = CSVWriter(savepath=savepath)
-        elif save_to == 'console':
-            writer = PrintWriter(savepath=savepath)
-        elif save_to == 'tensorboard':
-            writer = TensorBoardWriter(savepath=savepath)
+        if issubclass(type(save_to), delve.writers.AbstractWriter):
+            return save_to
+        if hasattr(delve, save_to):
+            writer = getattr(delve, save_to)(**writers_args)
         else:
             raise ValueError('Illegal argument for save_to "{}"'.format(save_to))
         return writer
@@ -221,6 +226,8 @@ class CheckLayerSat(object):
                             activations_batch = torch.max(activations_batch, dim=(2, 3))  # channel median
                         elif self.conv_method == 'mean':
                             activations_batch = torch.mean(activations_batch, dim=(2, 3))
+                        elif self.conv_method == 'flatten':
+                            activations_batch = activations_batch.view(activations_batch.size(0), -1)
 
                     if layer.name in self.logs[f'{training_state}-saturation']:
                         self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
@@ -232,7 +239,7 @@ class CheckLayerSat(object):
         layer.register_forward_hook(record_layer_saturation)
 
 
-    def add_saturations(self):
+    def add_saturations(self, save=True):
         """
         Computes saturation and saves all stats
         :return:
@@ -262,8 +269,8 @@ class CheckLayerSat(object):
             self.writer.add_scalar('average_train_sat', np.mean(train_sats))
             self.writer.add_scalar('average_eval_sat', np.mean(val_sats))
 
-
-        self.save()
+        if save:
+            self.save()
 
 
     def save(self):

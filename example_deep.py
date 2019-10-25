@@ -61,9 +61,9 @@ if __name__ == '__main__':
 
         net.to(device)
         logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-        stats = CheckLayerSat(logging_dir, 'csv', net, include_conv=True, stats=['lsat'], max_samples=1024,
-                              verbose=True)
-        
+        stats = CheckLayerSat(logging_dir, 'plot', net, include_conv=True, stats=['lsat'], max_samples=1024,
+                              verbose=True, writer_args={'figsize': [30, 30], 'fontsize': 32}, conv_method='mean', device='cpu')
+
         #net = nn.DataParallel(net, device_ids=['cuda:0', 'cuda:1'])
         print(net)
         criterion = nn.CrossEntropyLoss()
@@ -102,10 +102,7 @@ if __name__ == '__main__':
             stats.add_scalar('epoch', epoch)  # optional
             stats.add_scalar('loss', running_loss.cpu().numpy())  # optional
             stats.add_saturations()
-            stats.save()
-
 
         loader.write('\n')
         loader.close()
-        stats.save()
         stats.close()
