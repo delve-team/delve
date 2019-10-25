@@ -2,13 +2,13 @@
 This file contains alternative file writers
 """
 from abc import ABC, abstractmethod
-from os.path import exists, join, dirname
-from os import mkdir
-from shutil import rmtree
 from matplotlib import pyplot as plt
 import pathlib
 import pandas as pd
-from tensorboardX import SummaryWriter
+try:
+    from tensorboardX import SummaryWriter
+except ModuleNotFoundError:
+    pass
 
 
 class AbstractWriter(ABC):
