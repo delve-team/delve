@@ -221,13 +221,23 @@ class CheckLayerSat(object):
 
                     if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
                         if self.conv_method == 'median':
-                            activations_batch = torch.median(activations_batch, dim=(2, 3))  # channel median
+                            shape = activations_batch.shape
+                            reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2]*shape[3])
+                            activations_batch, _ = torch.median(reshaped_batch, dim=2)  # channel median
                         elif self.conv_method == 'max':
-                            activations_batch = torch.max(activations_batch, dim=(2, 3))  # channel median
+                            shape = activations_batch.shape
+                            reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2]*shape[3])
+                            activations_batch, _ = torch.max(reshaped_batch, dim=2)  # channel median
                         elif self.conv_method == 'mean':
                             activations_batch = torch.mean(activations_batch, dim=(2, 3))
                         elif self.conv_method == 'flatten':
                             activations_batch = activations_batch.view(activations_batch.size(0), -1)
+                        elif self.conv_method == 'channelwise':
+                            reshaped_batch: torch.Tensor = activations_batch.permute([1, 0, 2, 3])
+                            shape = reshaped_batch.shape
+                            reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
+                            reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
+                            activations_batch = reshaped_batch
 
                     if layer.name in self.logs[f'{training_state}-saturation']:
                         self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
