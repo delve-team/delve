@@ -78,6 +78,6 @@ for h in [10, 100, 300]:
         pickle.dump(eig_vecs, handle, protocol=pickle.HIGHEST_PROTOCOL)
     # Open with:
     # with open('filename.pickle', 'rb') as handle:
-        # b = pickle.load(handle)
+        # eig_vecs = pickle.load(handle) # eig_vecs is an ordered dictionary with layers as keys
     break
 
