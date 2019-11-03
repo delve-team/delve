@@ -73,9 +73,11 @@ for h in [10, 100, 300]:
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
-    import json
     eig_vecs = stats.logs["eig_vecs"]
-    with open(f'eigvecs-{h}.json', 'w') as fp:
-        json.dump(eig_vecs, fp)
+    with open(f'eigvecs-{h}.pickle', 'wb') as handle:
+        pickle.dump(eig_vecs, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # Open with:
+    # with open('filename.pickle', 'rb') as handle:
+        # b = pickle.load(handle)
     break
 
