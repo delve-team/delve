@@ -20,25 +20,40 @@ class CheckLayerSat(object):
     summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
 
     Args:
-        logging_dir (str)  : destination for summaries
-        modules (torch modules or list of modules) : layer-containing object
-        log_interval (int) : steps between writing summaries
-        stats (list of str): list of stats to collect
+        savefile            : path without file-extension. This will either a folder with files in it or a single file,
+                              save_to-Option chosen.
+        modules             : The neural networks (must be a Pytorch Module subclass)
+        save_to             : Either a string, specifying the save strategy or a delve.writers.AbstractWriter subclass
+                              legal string-keys are "csv", "tensorboard", "console" and "plot"
+        log_interval        : ever log-interval batch is processed by this callback. Default is set to 1
+        max_samples         : stops collecting data for the statistics after seeing max_samples of datapoints. This is counted
+                              indipendantly for each layer. Default value is None, which is deactivates this feature.
+        reset_covariance    : Resets the covariance matrices everytime saturation is computed. Default is True
 
-            supported stats are:
-                lsat       : layer saturation
-
-        sat_method         : How to calculate saturation
+        stats               : List of stats to compute, stats are specified by string keys.
+                            supported stats are:
+                lsat        : layer saturation
+        layerwise_sat       : toggle weather the saturation should be recorded for each layer. Default True
+        average_sat         : toggle weather the saturation should be recorded as average over over all layers. This stat
+                              is indipendant of layerwiae sat. if both are set to true. Saturation for each layer AND the
+                              average is computed and recorded. Default False.
+        sat_method         :  How to calculate saturation
 
             Choice of:
 
-                cumvar99   : Proportion of eigenvalues needed to explain 99% of variance
-                simpson_di : Simpson diversity index (weighted sum) of explained variance
-                             ratios of eigenvalues
-                all        : All available methods are logged
+                cumvar99  (default)     : Proportion of eigenvalues needed to explain 99% of variance
 
-        include_conv       : setting to False includes only linear layers
-        conv_method        : how to subsample convolutional layers
+            Choice of:
+
+                channelwise (default)   : Each pixel is treated as datapoint for the convolution, resulting in
+                                            (batch-size x heigth x width) datapoints with each dimension corresponding to a feature map.
+                mean                    : Average Pooling is applied on all filters before computation
+                max                     : Max Pooling is applied on all filters before computation
+                median                  : Median Pooling is applied on all filters before computation
+
+        include_conv       : Compute saturation of linear layers only (False) or compute of Conv2D and Linear layers (Defaul, True)
+        conv_method        : Preprocessing method for convolutional layers
+
         verbose (bool)     : print saturation for every layer during training
 
     """
@@ -46,8 +61,8 @@ class CheckLayerSat(object):
     def __init__(
             self,
             savefile: str,
-            save_to: Union[str, delve.writers.AbstractWriter],
             modules: torch.nn.Module,
+            save_to: Union[str, delve.writers.AbstractWriter] = 'csv',
             writer_args: Optional[Dict[str, Any]] = None,
             log_interval=1,
             max_samples=None,
