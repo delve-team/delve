@@ -63,10 +63,10 @@ def compute_saturation(cov: np.ndarray, thresh: float = .99) -> float:
     :return:
     """
     
-    eig_vals = np.linalg.eigvalsh(cov)
-
+    # eig_vals = np.linalg.eigvalsh(cov)
+    eig_vals, eig_vecs = np.linalg.eigh(cov)
     # Sort the eigenvalues from high to low
     eig_vals = sorted(eig_vals, reverse=True)
     total_dim = len(cov)
     nr_eigs = get_explained_variance(eig_vals=eig_vals, threshold=thresh, return_cum=False)
-    return get_layer_saturation(nr_eig_vals=nr_eigs, layer_width=total_dim)
+    return get_layer_saturation(nr_eig_vals=nr_eigs, layer_width=total_dim), eig_vecs

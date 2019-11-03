@@ -73,3 +73,9 @@ for h in [10, 100, 300]:
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()
+    import json
+    eig_vecs = stats.logs["eig_vecs"]
+    with open(f'eigvecs-{h}.json', 'w') as fp:
+        json.dump(eig_vecs, fp)
+    break
+

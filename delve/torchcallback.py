@@ -83,7 +83,8 @@ class CheckLayerSat(object):
         self.ignore_layer_names = ignore_layer_names
         self.logs = {
             'eval-saturation': OrderedDict(),
-            'train-saturation': OrderedDict()
+            'train-saturation': OrderedDict(),
+            'eig_vecs': OrderedDict(),
         }
         self.seen_samples = {
             'train': {},
@@ -98,6 +99,7 @@ class CheckLayerSat(object):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
+            self.logs["eig_vecs"][name] = []
 
     def __getattr__(self, name):
         if name.startswith('add_') and name != 'add_saturations':
@@ -263,7 +265,8 @@ class CheckLayerSat(object):
                         continue
                     if self.logs[key][layer_name]._cov_mtx is None:
                         raise ValueError('Attempting to compute saturation when covariance is not initialized')
-                    sat = compute_saturation(self.logs[key][layer_name]._cov_mtx.cpu().numpy(), thresh=self.threshold)
+                    sat, eig_vecs = compute_saturation(self.logs[key][layer_name]._cov_mtx.cpu().numpy(), thresh=self.threshold)
+                    self.logs["eig_vecs"][layer_name].append(eig_vecs)
                     self.seen_samples[key.split('-')[0]][layer_name] = 0
                     if self.reset_covariance:
                         self.logs[key][layer_name]._cov_mtx = None
