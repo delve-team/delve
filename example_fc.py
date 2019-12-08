@@ -68,7 +68,8 @@ for h in [10, 100, 300]:
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        stats.add_saturations()
+        if i%100 == 0 :#and not i == 0:
+            stats.add_saturations()
         #stats.saturation()
     steps_iter.write('\n')
     stats.close()

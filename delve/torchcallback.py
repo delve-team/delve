@@ -243,7 +243,7 @@ class CheckLayerSat(object):
                         self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
                     else:
                         self.logs[f'{training_state}-saturation'][layer.name] = TorchCovarianceMatrix(device=self.device)
-                        self.logs[f'{training_state}-saturation'][layer.name]._init_internals(activations_batch)
+                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
 
 
         layer.register_forward_hook(record_layer_saturation)
