@@ -1,6 +1,5 @@
 import torch
 
-
 class TorchCovarianceMatrix(object):
 
     def __init__(self, bias=False, device='cuda:0'):
@@ -22,15 +21,15 @@ class TorchCovarianceMatrix(object):
         able to derive the input dimension and the dtype directly from the
         data this class receives.
         """
-        # if x.get_device() != self.device:
-        x = x.to(device=self.device)
+        #if x.get_device() != self.device:
+        x = x.type(torch.float64).to(device=self.device)
         # init dtype
         dim = x.shape[1]
         self._input_dim = dim
         # init covariance matrix
-        self._cov_mtx = torch.zeros((dim, dim)).to(self.device)
+        self._cov_mtx = torch.zeros((dim, dim)).type(torch.float64).to(self.device)
         # init average
-        self._avg = torch.zeros((dim)).to(self.device)
+        self._avg = torch.zeros((dim)).type(torch.float64).to(self.device)
         self._tlen = x.shape[0]
 
     def update(self, x):
@@ -39,8 +38,8 @@ class TorchCovarianceMatrix(object):
         Note that no consistency checks are performed on the data (this is
         typically done in the enclosing node).
         """
-        # if x.get_device() != self.device:
-        x = x.to(device=self.device)
+       # if x.get_device() != self.device:
+        x = x.type(torch.float64).to(device=self.device)
         if self._cov_mtx is None:
             self._init_internals(x)
         # update the covariance matrix, the average and the number of
@@ -71,9 +70,8 @@ class TorchCovarianceMatrix(object):
         if center:
             avg_mtx = torch.ger(avg, avg)
             if self.bias:
-                avg_mtx /= tlen * (tlen)
+                avg_mtx /= tlen*(tlen)
             else:
-                avg_mtx /= tlen * (tlen - 1)
+                avg_mtx /= tlen*(tlen - 1)
             cov_mtx -= avg_mtx
-
         return cov_mtx
