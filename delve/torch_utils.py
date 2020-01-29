@@ -24,7 +24,11 @@ class TorchCovarianceMatrix(object):
         """
         x = x.type(torch.float64).to(device=self.device)
         # init dtype
-        dim = x.shape[1]
+        if len(x.shape) >1:
+            dim = x.shape[1]
+        else:
+            dim = x.shape[0]
+
         self._input_dim = dim
         # init covariance matrix
         self._cov_mtx = torch.zeros((dim, dim)).type(torch.float64).to(self.device)
@@ -32,7 +36,7 @@ class TorchCovarianceMatrix(object):
         self._avg = torch.zeros((dim)).type(torch.float64).to(self.device)
         self._tlen = 0
 
-    def update(self, x):
+    def update(self, x, vae):
         """Update internal structures.
 
         Note that no consistency checks are performed on the data (this is
@@ -43,6 +47,14 @@ class TorchCovarianceMatrix(object):
             self._init_internals(x)
         # update the covariance matrix, the average and the number of
         # observations (try to do everything inplace)
+        if vae:
+            if x.dim() == 3: # For single layer of LSTM; TODO: Support for Multiple layers in single LSTM instance
+                x = x.squeeze().t()
+            elif x.dim() == 2: # Single layer of FC Linear
+                x = x.t()
+            else:
+                x = x.unsqueeze(0).t()
+
         self._cov_mtx.data += torch.matmul(x.transpose(0, 1), x)
         self._avg.data += x.sum(dim=0)
         self._tlen += x.shape[0]

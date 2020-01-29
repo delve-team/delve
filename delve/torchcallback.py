@@ -5,6 +5,7 @@ from collections import OrderedDict
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
+from torch.nn.modules import LSTM
 #from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
@@ -94,7 +95,7 @@ class CheckLayerSat(object):
         self.is_notebook = None
         self.device = device
         for name, layer in self.layers.items():
-            if isinstance(layer, Conv2d) or isinstance(layer, Linear):
+            if isinstance(layer, Conv2d) or isinstance(layer, Linear) or isinstance(layer, LSTM):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
@@ -145,7 +146,7 @@ class CheckLayerSat(object):
             else:
                 layer_name = name_prefix
                 layer_type = layer_name
-                if not isinstance(submodule, Conv2d) and not isinstance(submodule, Linear):
+                if not isinstance(submodule, Conv2d) and not isinstance(submodule, Linear) and not isinstance(submodule, LSTM):
                     print(f"Skipping {layer_type}")
                     return layers
                 if isinstance(submodule, Conv2d) and self.include_conv:
@@ -204,6 +205,12 @@ class CheckLayerSat(object):
 
             # Increment step counter
             layer.forward_iter += 1
+            
+            # VAE output is a tuple; Hence output.data throw exception
+            lstm_ae = False
+            if layer.name in ['encoder_lstm','encoder_output','decoder_lstm','decoder_output']:
+                output = output[1][0]
+                lstm_ae = True
 
             training_state = 'train' if layer.training else 'eval'
             if not layer.name in self.seen_samples[training_state]:
@@ -215,10 +222,10 @@ class CheckLayerSat(object):
                 if self.verbose:
                     print("seen {} samples on layer {}".format(self.seen_samples[training_state][layer.name], layer.name))
 
-
                 eig_vals = None
-                if 'lsat' in stats:
 
+                if 'lsat' in stats:
+                    
                     if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
                         if self.conv_method == 'median':
                             shape = activations_batch.shape
@@ -240,10 +247,10 @@ class CheckLayerSat(object):
                             activations_batch = reshaped_batch
 
                     if layer.name in self.logs[f'{training_state}-saturation']:
-                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
+                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch, lstm_ae)
                     else:
                         self.logs[f'{training_state}-saturation'][layer.name] = TorchCovarianceMatrix(device=self.device)
-                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch)
+                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch, lstm_ae)
 
 
         layer.register_forward_hook(record_layer_saturation)
