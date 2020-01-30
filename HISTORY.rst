@@ -1,3 +1,7 @@
+0.1.32 (2020-1-29)
+------------------
+* Add LSTM, VAE support
+
 0.1.4 (2018-6-19)
 -----------------
 * Fix bug due to incomplete merge
