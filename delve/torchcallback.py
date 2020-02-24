@@ -15,7 +15,6 @@ import delve
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
 
-
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
     summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
@@ -126,6 +125,8 @@ class CheckLayerSat(object):
             stats = list(stats)
         supported_stats = [
             'lsat',
+            'idim',
+            'cov',
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -197,6 +198,33 @@ class CheckLayerSat(object):
         self.register_forward_hooks(layer, self.stats)
         return self
 
+    def _record_stat(self, activations_batch: torch.Tensor, lstm_ae: bool, layer: torch.nn.Module, training_state: str, stat: str):
+        if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
+            if self.conv_method == 'median':
+                shape = activations_batch.shape
+                reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2] * shape[3])
+                activations_batch, _ = torch.median(reshaped_batch, dim=2)  # channel median
+            elif self.conv_method == 'max':
+                shape = activations_batch.shape
+                reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2] * shape[3])
+                activations_batch, _ = torch.max(reshaped_batch, dim=2)  # channel median
+            elif self.conv_method == 'mean':
+                activations_batch = torch.mean(activations_batch, dim=(2, 3))
+            elif self.conv_method == 'flatten':
+                activations_batch = activations_batch.view(activations_batch.size(0), -1)
+            elif self.conv_method == 'channelwise':
+                reshaped_batch: torch.Tensor = activations_batch.permute([1, 0, 2, 3])
+                shape = reshaped_batch.shape
+                reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
+                reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
+                activations_batch = reshaped_batch
+
+        if layer.name in self.logs[f'{training_state}-saturation']:
+            self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
+        else:
+            self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
+            self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
+
     def register_forward_hooks(self, layer: torch.nn.Module, stats: list):
         """Register hook to show `stats` in `layer`."""
 
@@ -225,36 +253,13 @@ class CheckLayerSat(object):
                 eig_vals = None
 
                 if 'lsat' in stats:
-                    
-                    if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
-                        if self.conv_method == 'median':
-                            shape = activations_batch.shape
-                            reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2]*shape[3])
-                            activations_batch, _ = torch.median(reshaped_batch, dim=2)  # channel median
-                        elif self.conv_method == 'max':
-                            shape = activations_batch.shape
-                            reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2]*shape[3])
-                            activations_batch, _ = torch.max(reshaped_batch, dim=2)  # channel median
-                        elif self.conv_method == 'mean':
-                            activations_batch = torch.mean(activations_batch, dim=(2, 3))
-                        elif self.conv_method == 'flatten':
-                            activations_batch = activations_batch.view(activations_batch.size(0), -1)
-                        elif self.conv_method == 'channelwise':
-                            reshaped_batch: torch.Tensor = activations_batch.permute([1, 0, 2, 3])
-                            shape = reshaped_batch.shape
-                            reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
-                            reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
-                            activations_batch = reshaped_batch
-
-                    if layer.name in self.logs[f'{training_state}-saturation']:
-                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch, lstm_ae)
-                    else:
-                        self.logs[f'{training_state}-saturation'][layer.name] = TorchCovarianceMatrix(device=self.device)
-                        self.logs[f'{training_state}-saturation'][layer.name].update(activations_batch, lstm_ae)
-
+                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
+                if 'idim' in stats:
+                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic_dimensionality')
+                if 'cov' in stats:
+                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance_matrix')
 
         layer.register_forward_hook(record_layer_saturation)
-
 
     def add_saturations(self, save=True):
         """
@@ -270,7 +275,7 @@ class CheckLayerSat(object):
                         continue
                     if self.logs[key][layer_name]._cov_mtx is None:
                         raise ValueError('Attempting to compute saturation when covariance is not initialized')
-                    sat = compute_saturation(self.logs[key][layer_name].fix().cpu().numpy(), thresh=self.threshold)
+                    sat = compute_saturation(self.logs[key][layer_name].fix(), thresh=self.threshold)
                     self.seen_samples[key.split('-')[0]][layer_name] = 0
                     if self.reset_covariance:
                         self.logs[key][layer_name]._cov_mtx = None
@@ -281,6 +286,32 @@ class CheckLayerSat(object):
                         val_sats.append(sat)
                     elif 'train' in key:
                         train_sats.append(sat)
+            elif '-intrinsic' in key:
+                for i, layer_name in enumerate(self.logs[key]):
+                    if layer_name in self.ignore_layer_names:
+                        continue
+                    if self.logs[key][layer_name]._cov_mtx is None:
+                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
+                    intrinsic = compute_intrinsic_dimensionality(self.logs[key][layer_name].fix(), thresh=self.threshold)
+                    self.seen_samples[key.split('-')[0]][layer_name] = 0
+                    if self.reset_covariance:
+                        self.logs[key][layer_name]._cov_mtx = None
+                    if self.layerwise_sat:
+                        name = key+'_'+layer_name
+                        self.writer.add_scalar(name, intrinsic)
+            elif '-covariance' in key:
+                for i, layer_name in enumerate(self.logs[key]):
+                    if layer_name in self.ignore_layer_names:
+                        continue
+                    if self.logs[key][layer_name]._cov_mtx is None:
+                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
+                    cov_mat = self.logs[key][layer_name].fix()
+                    self.seen_samples[key.split('-')[0]][layer_name] = 0
+                    if self.reset_covariance:
+                        self.logs[key][layer_name]._cov_mtx = None
+                    if self.layerwise_sat:
+                        name = key+'_'+layer_name
+                        self.writer.add_scalar(name, cov_mat)
 
         if self.average_sat:
             self.writer.add_scalar('average_train_sat', np.mean(train_sats))
@@ -288,7 +319,6 @@ class CheckLayerSat(object):
 
         if save:
             self.save()
-
 
     def save(self):
         self.writer.save()

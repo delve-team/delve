@@ -37,10 +37,7 @@ class TorchCovarianceMatrix(object):
         self._tlen = 0
 
     def update(self, x, vae):
-        """Update internal structures.
-
-        Note that no consistency checks are performed on the data (this is
-        typically done in the enclosing node).
+        """Update internal structures given a batch of data
         """
         x = x.type(torch.float64).to(device=self.device)
         if self._cov_mtx is None:
@@ -60,12 +57,7 @@ class TorchCovarianceMatrix(object):
         self._tlen += x.shape[0]
 
     def fix(self, center=True):
-        """Returns a triple containing the covariance matrix, the average and
-        the number of observations. The covariance matrix is then reset to
-        a zero-state.
-
-        If center is false, the returned matrix is the matrix of the second moments,
-        i.e. the covariance matrix of the data without subtracting the mean."""
+        """Returns the Covariance matrix"""
         # local variables
         tlen = self._tlen
         cov_mtx = self._cov_mtx

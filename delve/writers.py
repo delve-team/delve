@@ -55,6 +55,29 @@ class CSVWriter(AbstractWriter):
         pass
 
 
+class NPZWriter(AbstractWriter):
+
+    def __init__(self, savepath: str, **kwargs):
+        super(NPZWriter, self).__init__()
+        self.savepath = savepath
+        self.epoch_counter = 0
+
+    def add_scalar(self, name, value, **kwargs):
+        #TODO: save as npz-file
+        pass
+
+    def add_scalars(self, prefix, value_dict, **kwargs):
+        #TODO: save as npz
+        for key in value_dict.keys():
+            self.add_scalar(prefix+'_'+key, value_dict[key])
+
+    def save(self):
+        pass
+
+    def close(self):
+        pass
+
+
 class PrintWriter(AbstractWriter):
 
     def __init__(self, savepath: str, **kwargs):
@@ -121,6 +144,7 @@ class CSVandPlottingWriter(CSVWriter):
 
     def close(self):
         pass
+
 
 def extract_layer_saturation(df, epoch=19, primary_metric = None):
     cols = list(df.columns)
