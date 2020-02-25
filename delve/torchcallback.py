@@ -2,6 +2,7 @@ import logging
 from typing import List, Dict, Any, Optional, Union
 import torch
 from collections import OrderedDict
+from itertools import product
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
@@ -77,14 +78,11 @@ class CheckLayerSat(object):
 
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
-        self.stats = self._check_stats(stats)
+
+        self.logs, self.stats = self._check_stats(stats)
         self.layerwise_sat = layerwise_sat
         self.average_sat = average_sat
         self.ignore_layer_names = ignore_layer_names
-        self.logs = {
-            'eval-saturation': OrderedDict(),
-            'train-saturation': OrderedDict()
-        }
         self.seen_samples = {
             'train': {},
             'eval': {}
@@ -132,7 +130,19 @@ class CheckLayerSat(object):
         incompatible = [i for i, x in enumerate(compatible) if not x]
         assert all(compatible), "Stat {} is not supported".format(
             stats[incompatible[0]])
-        return stats
+
+        name_mapper = {
+            'lsat': 'saturation',
+            'idim': 'intrinsic-dimensionality',
+            'cov': 'covariance-matrix'
+        }
+
+        logs = {
+            f'{mode}-{name_mapper[stat]}': OrderedDict()
+            for mode, stat in product(['train', 'eval'], stats)
+        }
+
+        return logs, stats
 
     def _add_conv_layer(self, layer: torch.nn.Module):
         layer.out_features = layer.out_channels
@@ -219,7 +229,7 @@ class CheckLayerSat(object):
                 reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
                 activations_batch = reshaped_batch
 
-        if layer.name in self.logs[f'{training_state}-saturation']:
+        if layer.name in self.logs[f'{training_state}-{stat}']:
             self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
         else:
             self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
@@ -255,9 +265,9 @@ class CheckLayerSat(object):
                 if 'lsat' in stats:
                     self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
                 if 'idim' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic_dimensionality')
+                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic-dimensionality')
                 if 'cov' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance_matrix')
+                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance-matrix')
 
         layer.register_forward_hook(record_layer_saturation)
 
@@ -309,13 +319,13 @@ class CheckLayerSat(object):
                     self.seen_samples[key.split('-')[0]][layer_name] = 0
                     if self.reset_covariance:
                         self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, cov_mat)
+                    #if self.layerwise_sat:
+                    #    name = key+'_'+layer_name
+                    #    self.writer.add_scalar(name, cov_mat)
 
         if self.average_sat:
-            self.writer.add_scalar('average_train_sat', np.mean(train_sats))
-            self.writer.add_scalar('average_eval_sat', np.mean(val_sats))
+            self.writer.add_scalar('average-train-sat', np.mean(train_sats))
+            self.writer.add_scalar('average-eval-sat', np.mean(val_sats))
 
         if save:
             self.save()
