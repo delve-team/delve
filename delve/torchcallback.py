@@ -9,7 +9,7 @@ from torch.nn.modules.linear import Linear
 from torch.nn.modules import LSTM
 #from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import CSVWriter, PrintWriter, TensorBoardWriter
+from delve.writers import CompositWriter
 from delve.metrics import *
 import delve
 
@@ -183,6 +183,11 @@ class CheckLayerSat(object):
         """Create a writer to log history to `writer_dir`."""
         if issubclass(type(save_to), delve.writers.AbstractWriter):
             return save_to
+        if isinstance(save_to, list):
+            all_writers = []
+            for saver in save_to:
+                all_writers.append(self._get_writer(save_to=saver, writers_args=writers_args))
+            return CompositWriter(all_writers)
         if hasattr(delve, save_to):
             writer = getattr(delve, save_to)(**writers_args)
         else:

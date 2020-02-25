@@ -4,7 +4,7 @@ This file contains alternative file writers
 from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
 from shutil import make_archive
-from typing import Callable
+from typing import Callable, List
 import pathlib
 import pandas as pd
 import numpy as np
@@ -39,6 +39,29 @@ class AbstractWriter(ABC):
     @abstractmethod
     def close(self):
         pass
+
+
+class CompositWriter(AbstractWriter):
+
+    def __init__(self, writers: List[AbstractWriter]):
+        super(CompositWriter, self).__init__()
+        self.writers = writers
+
+    def add_scalar(self, name, value, **kwargs):
+        for w in self.writers:
+            w.add_scalar(name, value, **kwargs)
+
+    def add_scalars(self, prefix, value_dict, **kwargs):
+        for w in self.writers:
+            w.add_scalars(prefix, value_dict, **kwargs)
+
+    def save(self):
+        for w in self.writers:
+            w.save()
+
+    def close(self):
+        for w in self.writers:
+            w.close()
 
 
 class CSVWriter(AbstractWriter):
