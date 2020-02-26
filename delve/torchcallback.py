@@ -16,6 +16,7 @@ import delve
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
 
+
 class CheckLayerSat(object):
     """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
     summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
