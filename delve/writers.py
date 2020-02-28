@@ -17,7 +17,7 @@ except ModuleNotFoundError:
 
 STATMAP = {
     'idim': 'intrinsic-dimensionality',
-    'sat': 'saturation',
+    'lsat': 'saturation',
     'cov': 'covariance-matrix'
 }
 
@@ -205,7 +205,7 @@ class CSVandPlottingWriter(CSVWriter):
                 if 'intrinsic-dimensionality' in key:
                     idim = True
             if sat:
-                self.stats.append('sat')
+                self.stats.append('lsat')
             if idim:
                 self.stats.append('idim')
 

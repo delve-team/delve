@@ -65,7 +65,7 @@ def _obtain_stats_from_npy(npy_files: List[str]) -> pd.DataFrame:
 
 def _recompute_value_from_cov(cov_path: str, stat: str, thresh: float) -> float:
     cov = torch.from_numpy(np.load(cov_path))
-    if stat == 'sat':
+    if stat == 'lsat':
         return compute_saturation(cov, thresh)
     elif stat == 'idim':
         return compute_intrinsic_dimensionality(cov, thresh)
@@ -105,7 +105,7 @@ def _recompute_stats(npy_files: List[str], stats: List[str], thresh: float) -> p
 def reconstruct_csv_from_npy_data(npywriter_out_path: str,
                                   savefile: Optional[str] = None,
                                   thresh: Optional[float] = None,
-                                  stats: List[str] = ['sat', 'idim'],
+                                  stats: List[str] = ['lsat', 'idim'],
                                   ) -> pd.DataFrame:
     """
     This function allows the user to reconstruct the csv as constructed by the csv-writer.
