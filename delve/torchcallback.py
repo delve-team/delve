@@ -9,9 +9,10 @@ from torch.nn.modules.linear import Linear
 from torch.nn.modules import LSTM
 #from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import CompositWriter
+from delve.writers import CompositWriter, NPYWriter
 from delve.metrics import *
 import delve
+import warnings
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
@@ -80,6 +81,8 @@ class CheckLayerSat(object):
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
 
+        self._warn_if_covariance_not_saveable(stats)
+
         self.logs, self.stats = self._check_stats(stats)
         self.layerwise_sat = layerwise_sat
         self.average_sat = average_sat
@@ -97,6 +100,23 @@ class CheckLayerSat(object):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
+
+    def _warn_if_covariance_not_saveable(self, stats: List[str]):
+        warn = False
+        if 'cov' in stats:
+            if isinstance(self.writer, CompositWriter):
+                for writer in self.writer.writers:
+                    if isinstance(writer, NPYWriter):
+                        return
+                warn = True
+            elif not isinstance(self.writer, NPYWriter):
+                warn = True
+        if warn:
+            warnings.warn("'cov' was selected as stat, but 'npy' (NPYWriter) is not used as a save strategy,"
+                          "which is the only writer able to save the covariance matrix. The training and logging will"
+                          "run normally, but the covariance matrix will not be saved. Note that you can add multiple writers"
+                          "by passing a list.")
+
 
     def __getattr__(self, name):
         if name.startswith('add_') and name != 'add_saturations':

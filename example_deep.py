@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
         net.to(device)
         logging_dir = 'convNet/simpson_h2-{}'.format(h2)
-        stats = CheckLayerSat(savefile=logging_dir, save_to=['plot', 'npy'], modules=net, include_conv=True, stats=['cov'], max_samples=1024,
+        stats = CheckLayerSat(savefile=logging_dir, save_to=['plot'], modules=net, include_conv=True, stats=['cov'], max_samples=1024,
                               verbose=True, writer_args={}, conv_method='mean', device='cpu')
 
         #net = nn.DataParallel(net, device_ids=['cuda:0', 'cuda:1'])
