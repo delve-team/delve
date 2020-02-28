@@ -325,9 +325,9 @@ class CheckLayerSat(object):
                     self.seen_samples[key.split('-')[0]][layer_name] = 0
                     if self.reset_covariance:
                         self.logs[key][layer_name]._cov_mtx = None
-                    #if self.layerwise_sat:
-                    #    name = key+'_'+layer_name
-                    #    self.writer.add_scalar(name, cov_mat)
+                    if self.layerwise_sat:
+                        name = key+'_'+layer_name
+                        self.writer.add_scalar(name, cov_mat)
 
         if self.average_sat:
             self.writer.add_scalar('average-train-sat', np.mean(train_sats))

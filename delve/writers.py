@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 STATMAP = {
     'idim': 'intrinsic-dimensionality',
     'sat': 'saturation',
-    'cov': 'covariance_matrix'
+    'cov': 'covariance-matrix'
 }
 
 
@@ -72,6 +72,8 @@ class CSVWriter(AbstractWriter):
         self.savepath = savepath
 
     def add_scalar(self, name, value, **kwargs):
+        if 'covariance' in name:
+            return
         if name in self.value_dict:
             self.value_dict[name].append(value)
         else:
@@ -159,6 +161,8 @@ class TensorBoardWriter(AbstractWriter):
         self.writer = SummaryWriter(savepath)
 
     def add_scalar(self, name, value, **kwargs):
+        if 'covariance' in name:
+            return
         self.writer.add_scalar(name, value)
 
     def add_scalars(self, prefix, value_dict, **kwargs):
@@ -206,6 +210,8 @@ class CSVandPlottingWriter(CSVWriter):
                 self.stats.append('idim')
 
     def add_scalar(self, name, value, **kwargs):
+        if 'covariance' in name:
+            return
         if name in self.value_dict:
             self.value_dict[name].append(value)
         else:
