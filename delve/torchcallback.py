@@ -9,7 +9,7 @@ from torch.nn.modules.linear import Linear
 from torch.nn.modules import LSTM
 #from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import CompositWriter, NPYWriter
+from delve.writers import CompositWriter, NPYWriter, STATMAP
 from delve.metrics import *
 import delve
 import warnings
@@ -76,9 +76,12 @@ class CheckLayerSat(object):
                                 is 0.99 (99% of the explained variance), which is the best compromise between a good and interpretable approximation.
                                 From experience the threshold should be between 0.97 and 0.9995 for meaningfull results.
         verbose (bool):     Change verbosity level (default is 0)
-        device          :   Device to do the computations on. Default is cuda:0. Generally it is recommended to to the computations
-                            on gpu in order to get maximum performance. If the memory footprint grows to large you can use "cpu"
-                            to use cpu instead. The string keys are identical to the string keys generally used in pytorch
+        device (str)       :   Device to do the computations on. Default is cuda:0. Generally it is recommended to do the computations
+                            on gpu in order to get maximum performance. Using the cpu is generally slower but it enables
+                            delve to use regular RAM instead of the generally more limited VRAM of the GPU.
+                            Not having delve run on the same device as the network causes slight performance decrease due
+                            to copying memory between devices during each forward pass.
+                            Delve can handle models distributed on multiple GPUs, however delve itself will always run on a single device.
 
     """
 
@@ -188,11 +191,7 @@ class CheckLayerSat(object):
         assert all(compatible), "Stat {} is not supported".format(
             stats[incompatible[0]])
 
-        name_mapper = {
-            'lsat': 'saturation',
-            'idim': 'intrinsic-dimensionality',
-            'cov': 'covariance-matrix'
-        }
+        name_mapper = STATMAP
 
         logs = {
             f'{mode}-{name_mapper[stat]}': OrderedDict()
@@ -324,12 +323,11 @@ class CheckLayerSat(object):
 
                 eig_vals = None
 
-                if 'lsat' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
-                if 'idim' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic-dimensionality')
-                if 'cov' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance-matrix')
+                #if 'lsat' in stats:
+                #    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
+                #if 'idim' in stats:
+                #    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic-dimensionality')
+                self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance-matrix')
 
         layer.register_forward_hook(record_layer_saturation)
 
@@ -341,49 +339,25 @@ class CheckLayerSat(object):
         for key in self.logs:
             train_sats = []
             val_sats = []
-            if '-saturation' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute saturation when covariance is not initialized')
-                    sat = compute_saturation(self.logs[key][layer_name].fix(), thresh=self.threshold)
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, sat)
-                    if 'eval' in key:
-                        val_sats.append(sat)
-                    elif 'train' in key:
-                        train_sats.append(sat)
-            elif '-intrinsic' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
-                    intrinsic = compute_intrinsic_dimensionality(self.logs[key][layer_name].fix(), thresh=self.threshold)
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, intrinsic)
-            elif '-covariance' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
-                    cov_mat = self.logs[key][layer_name].fix()
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, cov_mat)
+            for i, layer_name in enumerate(self.logs[key]):
+                if layer_name in self.ignore_layer_names:
+                   continue
+                if self.logs[key][layer_name]._cov_mtx is None:
+                    raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
+                cov_mat = self.logs[key][layer_name].fix()
+                log_values = {}
+                for stat in self.stats:
+                    if stat == 'lsat':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
+                    elif stat == 'idim':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
+                    elif stat == 'cov':
+                        log_values[key+'_'+layer_name] = cov_mat
+                self.seen_samples[key.split('-')[0]][layer_name] = 0
+                if self.reset_covariance:
+                    self.logs[key][layer_name]._cov_mtx = None
+                if self.layerwise_sat:
+                    self.writer.add_scalars(prefix='', value_dict=log_values)
 
         if self.average_sat:
             self.writer.add_scalar('average-train-sat', np.mean(train_sats))
