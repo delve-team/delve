@@ -4,7 +4,7 @@ This file contains alternative file writers
 from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt
 from shutil import make_archive
-from typing import Callable, List
+from typing import Callable, List, Tuple
 import pathlib
 import pandas as pd
 import numpy as np
@@ -44,6 +44,10 @@ class AbstractWriter(ABC):
 class CompositWriter(AbstractWriter):
 
     def __init__(self, writers: List[AbstractWriter]):
+        """
+        This writers allows you to have multiple writers.
+        :param writers: a list of writers. function call of this writer is executed on every writer in this list.
+        """
         super(CompositWriter, self).__init__()
         self.writers = writers
 
@@ -67,6 +71,11 @@ class CompositWriter(AbstractWriter):
 class CSVWriter(AbstractWriter):
 
     def __init__(self, savepath: str, **kwargs):
+        """
+        This writers produces a csv file that can be used for analysis after training. The csv-file is overwritten with
+        an updated version every time save() is called.
+        :param savepath: The path to save the csv to
+        """
         super(CSVWriter, self).__init__()
         self.value_dict = {}
         self.savepath = savepath
@@ -94,6 +103,14 @@ class CSVWriter(AbstractWriter):
 class NPYWriter(AbstractWriter):
 
     def __init__(self, savepath: str, zip: bool = False, **kwargs):
+        """
+        The npy-writers creates a folder containing one subfolder for each stat. Each subfolder contains a npy-file for each epoch containing the value
+        for each epoch.
+        Other than any other writer, this writer is able to save non-scalar values and can thus be used to save
+        the covariance-matrix
+        :param savepath: the root folder to save the folder structure and npy-files into
+        :param zip: if set to True, the folder structure will be zipped everytime save() is called.
+        """
         super(NPYWriter, self).__init__()
         self.savepath = savepath
         self.epoch_counter = {}
@@ -136,7 +153,10 @@ class NPYWriter(AbstractWriter):
 
 class PrintWriter(AbstractWriter):
 
-    def __init__(self, savepath: str, **kwargs):
+    def __init__(self, **kwargs):
+        """
+        This is a very basic logger, it only prints everything to the console output
+        """
         super(PrintWriter, self).__init__()
 
     def add_scalar(self, name, value, **kwargs):
@@ -156,6 +176,10 @@ class PrintWriter(AbstractWriter):
 class TensorBoardWriter(AbstractWriter):
 
     def __init__(self, savepath: str, **kwargs):
+        """
+        Writes everything to tensorflow logs
+        :param savepath: the path for result logging
+        """
         super(TensorBoardWriter, self).__init__()
         self.savepath = savepath
         self.writer = SummaryWriter(savepath)
@@ -235,7 +259,16 @@ class CSVandPlottingWriter(CSVWriter):
         pass
 
 
-def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation'):
+def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> Tuple[pd.DataFrame, float]:
+    """
+    Extracts a specific statistic for a single epoch from a result dataframe as produced by the CSV-writer
+    :param df: the dataframe as produced by the csv-writer
+    :param epoch: the epoch to filter by
+    :param primary_metric: the primary metric for logged for performance evaluation, may be left empty
+    :param stat: the statistic to look for, must be a substring matching all columns belonging to stat statistic like "saturation"
+    :return: a dataframe with a single row, corresponding to the epoch containing only the columns that contain the substring
+    described in the stat-parameter in their name. Second return value is the primary metric value
+    """
     cols = list(df.columns)
     train_cols = [col for col in cols if
                   'train' in col and not 'accuracy' in col and stat in col]
@@ -249,6 +282,30 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
               line=True, scatter=True, ylim=(0, 1.0), alpha_line=.6, alpha_scatter=1.0, color_line=None,
               color_scatter=None,
               primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True, show_grid=True, save=True):
+    """
+
+    :param df:
+    :param stat:
+    :param pm:
+    :param savepath:
+    :param epoch:
+    :param primary_metric:
+    :param fontsize:
+    :param figsize:
+    :param line:
+    :param scatter:
+    :param ylim:
+    :param alpha_line:
+    :param alpha_scatter:
+    :param color_line:
+    :param color_scatter:
+    :param primary_metric_loc:
+    :param show_col_label_x:
+    :param show_col_label_y:
+    :param show_grid:
+    :param save:
+    :return:
+    """
     plt.clf()
     if figsize is not None:
         print(figsize)

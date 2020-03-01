@@ -19,30 +19,56 @@ logging.basicConfig(format='%(levelname)s:delve:%(message)s',
 
 
 class CheckLayerSat(object):
-    """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
-    summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
+    """Takes PyTorch module and records layer saturation, intrinsic dimensionality and other scalars.
 
     Args:
-        logging_dir (str)  : destination for summaries
-        modules (torch modules or list of modules) : layer-containing object
-        log_interval (int) : steps between writing summaries
-        stats (list of str): list of stats to collect
+        savefile (str)  : destination for summaries
+        save_to (str, List[Union[str, delve.writers.AbstractWriter]]: Specify one or multiple save strategies.
+        You can use preimplemented save strategies or inherit from the AbstractWriter in order to implement your
+        own preferred saving strategy.
+
+            preixisting saving strategies are:
+                csv         : stores all stats in a csv-file with 1 row for each epoch.
+                plot        : produces plots from intrinsic dimensionality and / or layer saturation
+                tensorboard : saves all stats to tensorboard
+                print       : print all metrics on console as soon as they are logged
+                npy         : creates a folder-structure with npy-files containing the logged values. This is the only
+                              save strategy that can save the full covariance matrix.
+                              This strategy is useful if you want to reproduce intrinsic dimensionality and saturation
+                              values with other thresholds without re-evaluating model checkpoints.
+        modules (torch modules or list of modules) : layer-containing object. Per default, only Conv2D, Linear and LSTM-Cells are recorded
+        writers_args (dict) : contains additional arguments passed over to the writers. This is only used, when a writer is initialized
+                              through a string-key.
+        log_interval (int) : distances between two batches used for updaing the covariance matrix. Default value is 1, which means
+                             that all data is used for computing intrinsic dimensionality and saturation. Increasing the log
+                             interval is usefull on very large datasets to reduce numeric instability.
+        max_samples (int)  : if this value is set, the covariance matrix in each layer will halt updating itself when max_samples
+                             are reached. Usecase is similar to log-interval, when datasets are very large.
+        stats (list of str): list of stats to compute
 
             supported stats are:
-                lsat       : layer saturation
+                idim        : intrinsic dimensionality
+                lsat        : layer saturation (intrinsic dimensionality divided by feature space dimensionality)
+                cov         : the covariance-matrix (only saveable using the 'npy' save strategy)
 
-        sat_method         : How to calculate saturation
-
-            Choice of:
-
-                cumvar99   : Proportion of eigenvalues needed to explain 99% of variance
-                simpson_di : Simpson diversity index (weighted sum) of explained variance
-                             ratios of eigenvalues
-                all        : All available methods are logged
+        layerwise_sat (bool): weather or not to include layerwise saturation when saving
+        reset_covariance (bool): True by default, resets the covariance everytime the stats are computed. Disabling this,
+                            will cause a strong bias of the covariance due to gradient influencing the model. We recomment
+                            computing saturation at the end of training and testing.
 
         include_conv       : setting to False includes only linear layers
-        conv_method        : how to subsample convolutional layers
+        conv_method        : how to subsample convolutional layers. Default is channelwise, which means that the
+                             each position of the filter tensor is considered a datapoint, effectivly yielding
+                             a data matrix of shape (height*width*batch_size, num_filters)
         verbose (bool)     : print saturation for every layer during training
+        sat_threshold (float): the threshold used to determine the number of eigendirection belonging to the latent space
+                                in effects, this is the threshold determining the the intrinsic dimensionality. Default value
+                                is 0.99 (99% of the explained variance), which is the best compromise between a good and interpretable approximation.
+                                From experience the threshold should be between 0.97 and 0.9995 for meaningfull results.
+        verbose (bool):     Change verbosity level (default is 0)
+        device          :   Device to do the computations on. Default is cuda:0. Generally it is recommended to to the computations
+                            on gpu in order to get maximum performance. If the memory footprint grows to large you can use "cpu"
+                            to use cpu instead.
 
     """
 
