@@ -57,9 +57,19 @@ class CheckLayerSat(object):
                             computing saturation at the end of training and testing.
 
         include_conv       : setting to False includes only linear layers
-        conv_method        : how to subsample convolutional layers. Default is channelwise, which means that the
+        conv_method (str)  : how to subsample convolutional layers. Default is channelwise, which means that the
                              each position of the filter tensor is considered a datapoint, effectivly yielding
                              a data matrix of shape (height*width*batch_size, num_filters)
+
+            supported stats are:
+                channelwise : treats every depth vector of the tensor as a datapoint, effectivly reshaping the
+                              data tensor from shape (batch_size, height, width, channel) into (batch_size*height*width, channel).
+                mean        : applies global average pooling on each feature map
+                max         : applies global max pooling on each feature map
+                median      : applies global median pooling on each feature map
+                flatten     : flattenes the entire feature map to a vector, reshaping the data tensor into a data matrix
+                              of shape (batch_size, height*width*channel). This strategy for dealing with convolutions is extremly
+                              memory intensive and will likely cause memory and performance problems for any non toy-problem
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): the threshold used to determine the number of eigendirection belonging to the latent space
                                 in effects, this is the threshold determining the the intrinsic dimensionality. Default value
@@ -68,7 +78,7 @@ class CheckLayerSat(object):
         verbose (bool):     Change verbosity level (default is 0)
         device          :   Device to do the computations on. Default is cuda:0. Generally it is recommended to to the computations
                             on gpu in order to get maximum performance. If the memory footprint grows to large you can use "cpu"
-                            to use cpu instead.
+                            to use cpu instead. The string keys are identical to the string keys generally used in pytorch
 
     """
 
