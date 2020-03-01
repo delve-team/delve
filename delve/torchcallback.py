@@ -9,7 +9,7 @@ from torch.nn.modules.linear import Linear
 from torch.nn.modules import LSTM
 #from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import CompositWriter, NPYWriter
+from delve.writers import CompositWriter, NPYWriter, STATMAP
 from delve.metrics import *
 import delve
 import warnings
@@ -19,30 +19,69 @@ logging.basicConfig(format='%(levelname)s:delve:%(message)s',
 
 
 class CheckLayerSat(object):
-    """Takes PyTorch layers, layer or model as `modules` and writes tensorboardX
-    summaries to `logging_dir`. Outputs layer saturation with call to self.saturation().
+    """Takes PyTorch module and records layer saturation, intrinsic dimensionality and other scalars.
 
     Args:
-        logging_dir (str)  : destination for summaries
-        modules (torch modules or list of modules) : layer-containing object
-        log_interval (int) : steps between writing summaries
-        stats (list of str): list of stats to collect
+        savefile (str)  : destination for summaries
+        save_to (str, List[Union[str, delve.writers.AbstractWriter]]: Specify one or multiple save strategies.
+        You can use preimplemented save strategies or inherit from the AbstractWriter in order to implement your
+        own preferred saving strategy.
+
+            preixisting saving strategies are:
+                csv         : stores all stats in a csv-file with 1 row for each epoch.
+                plot        : produces plots from intrinsic dimensionality and / or layer saturation
+                tensorboard : saves all stats to tensorboard
+                print       : print all metrics on console as soon as they are logged
+                npy         : creates a folder-structure with npy-files containing the logged values. This is the only
+                              save strategy that can save the full covariance matrix.
+                              This strategy is useful if you want to reproduce intrinsic dimensionality and saturation
+                              values with other thresholds without re-evaluating model checkpoints.
+        modules (torch modules or list of modules) : layer-containing object. Per default, only Conv2D, Linear and LSTM-Cells are recorded
+        writers_args (dict) : contains additional arguments passed over to the writers. This is only used, when a writer is initialized
+                              through a string-key.
+        log_interval (int) : distances between two batches used for updaing the covariance matrix. Default value is 1, which means
+                             that all data is used for computing intrinsic dimensionality and saturation. Increasing the log
+                             interval is usefull on very large datasets to reduce numeric instability.
+        max_samples (int)  : if this value is set, the covariance matrix in each layer will halt updating itself when max_samples
+                             are reached. Usecase is similar to log-interval, when datasets are very large.
+        stats (list of str): list of stats to compute
 
             supported stats are:
-                lsat       : layer saturation
+                idim        : intrinsic dimensionality
+                lsat        : layer saturation (intrinsic dimensionality divided by feature space dimensionality)
+                cov         : the covariance-matrix (only saveable using the 'npy' save strategy)
 
-        sat_method         : How to calculate saturation
-
-            Choice of:
-
-                cumvar99   : Proportion of eigenvalues needed to explain 99% of variance
-                simpson_di : Simpson diversity index (weighted sum) of explained variance
-                             ratios of eigenvalues
-                all        : All available methods are logged
+        layerwise_sat (bool): weather or not to include layerwise saturation when saving
+        reset_covariance (bool): True by default, resets the covariance everytime the stats are computed. Disabling this,
+                            will cause a strong bias of the covariance due to gradient influencing the model. We recomment
+                            computing saturation at the end of training and testing.
 
         include_conv       : setting to False includes only linear layers
-        conv_method        : how to subsample convolutional layers
+        conv_method (str)  : how to subsample convolutional layers. Default is channelwise, which means that the
+                             each position of the filter tensor is considered a datapoint, effectivly yielding
+                             a data matrix of shape (height*width*batch_size, num_filters)
+
+            supported stats are:
+                channelwise : treats every depth vector of the tensor as a datapoint, effectivly reshaping the
+                              data tensor from shape (batch_size, height, width, channel) into (batch_size*height*width, channel).
+                mean        : applies global average pooling on each feature map
+                max         : applies global max pooling on each feature map
+                median      : applies global median pooling on each feature map
+                flatten     : flattenes the entire feature map to a vector, reshaping the data tensor into a data matrix
+                              of shape (batch_size, height*width*channel). This strategy for dealing with convolutions is extremly
+                              memory intensive and will likely cause memory and performance problems for any non toy-problem
         verbose (bool)     : print saturation for every layer during training
+        sat_threshold (float): the threshold used to determine the number of eigendirection belonging to the latent space
+                                in effects, this is the threshold determining the the intrinsic dimensionality. Default value
+                                is 0.99 (99% of the explained variance), which is the best compromise between a good and interpretable approximation.
+                                From experience the threshold should be between 0.97 and 0.9995 for meaningfull results.
+        verbose (bool):     Change verbosity level (default is 0)
+        device (str)       :   Device to do the computations on. Default is cuda:0. Generally it is recommended to do the computations
+                            on gpu in order to get maximum performance. Using the cpu is generally slower but it enables
+                            delve to use regular RAM instead of the generally more limited VRAM of the GPU.
+                            Not having delve run on the same device as the network causes slight performance decrease due
+                            to copying memory between devices during each forward pass.
+                            Delve can handle models distributed on multiple GPUs, however delve itself will always run on a single device.
 
     """
 
@@ -152,15 +191,11 @@ class CheckLayerSat(object):
         assert all(compatible), "Stat {} is not supported".format(
             stats[incompatible[0]])
 
-        name_mapper = {
-            'lsat': 'saturation',
-            'idim': 'intrinsic-dimensionality',
-            'cov': 'covariance-matrix'
-        }
+        name_mapper = STATMAP
 
         logs = {
             f'{mode}-{name_mapper[stat]}': OrderedDict()
-            for mode, stat in product(['train', 'eval'], stats)
+            for mode, stat in product(['train', 'eval'], ['cov'])
         }
 
         return logs, stats
@@ -288,12 +323,11 @@ class CheckLayerSat(object):
 
                 eig_vals = None
 
-                if 'lsat' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
-                if 'idim' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic-dimensionality')
-                if 'cov' in stats:
-                    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance-matrix')
+                #if 'lsat' in stats:
+                #    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'saturation')
+                #if 'idim' in stats:
+                #    self._record_stat(activations_batch, lstm_ae, layer, training_state, 'intrinsic-dimensionality')
+                self._record_stat(activations_batch, lstm_ae, layer, training_state, 'covariance-matrix')
 
         layer.register_forward_hook(record_layer_saturation)
 
@@ -305,49 +339,25 @@ class CheckLayerSat(object):
         for key in self.logs:
             train_sats = []
             val_sats = []
-            if '-saturation' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute saturation when covariance is not initialized')
-                    sat = compute_saturation(self.logs[key][layer_name].fix(), thresh=self.threshold)
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, sat)
-                    if 'eval' in key:
-                        val_sats.append(sat)
-                    elif 'train' in key:
-                        train_sats.append(sat)
-            elif '-intrinsic' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
-                    intrinsic = compute_intrinsic_dimensionality(self.logs[key][layer_name].fix(), thresh=self.threshold)
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, intrinsic)
-            elif '-covariance' in key:
-                for i, layer_name in enumerate(self.logs[key]):
-                    if layer_name in self.ignore_layer_names:
-                        continue
-                    if self.logs[key][layer_name]._cov_mtx is None:
-                        raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
-                    cov_mat = self.logs[key][layer_name].fix()
-                    self.seen_samples[key.split('-')[0]][layer_name] = 0
-                    if self.reset_covariance:
-                        self.logs[key][layer_name]._cov_mtx = None
-                    if self.layerwise_sat:
-                        name = key+'_'+layer_name
-                        self.writer.add_scalar(name, cov_mat)
+            for i, layer_name in enumerate(self.logs[key]):
+                if layer_name in self.ignore_layer_names:
+                   continue
+                if self.logs[key][layer_name]._cov_mtx is None:
+                    raise ValueError('Attempting to compute intrinsic dimensionality when covariance is not initialized')
+                cov_mat = self.logs[key][layer_name].fix()
+                log_values = {}
+                for stat in self.stats:
+                    if stat == 'lsat':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
+                    elif stat == 'idim':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
+                    elif stat == 'cov':
+                        log_values[key+'_'+layer_name] = cov_mat
+                self.seen_samples[key.split('-')[0]][layer_name] = 0
+                if self.reset_covariance:
+                    self.logs[key][layer_name]._cov_mtx = None
+                if self.layerwise_sat:
+                    self.writer.add_scalars(prefix='', value_dict=log_values)
 
         if self.average_sat:
             self.writer.add_scalar('average-train-sat', np.mean(train_sats))
