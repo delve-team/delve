@@ -195,7 +195,7 @@ class CheckLayerSat(object):
 
         logs = {
             f'{mode}-{name_mapper[stat]}': OrderedDict()
-            for mode, stat in product(['train', 'eval'], STATMAP['cov'])
+            for mode, stat in product(['train', 'eval'], ['cov'])
         }
 
         return logs, stats
