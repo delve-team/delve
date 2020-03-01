@@ -352,7 +352,7 @@ class CheckLayerSat(object):
                     elif stat == 'idim':
                         log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
                     elif stat == 'cov':
-                        log_values[key+'_'+layer_name] = cov_mat
+                        log_values[key+'_'+layer_name] = cov_mat.cpu().numpy()
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None
