@@ -103,6 +103,7 @@ class CheckLayerSat(object):
             sat_threshold: str = .99,
             verbose=False,
             device='cuda:0',
+            initial_epoch: int = 0
     ):
         self.verbose = verbose
         self.include_conv = include_conv
@@ -112,6 +113,7 @@ class CheckLayerSat(object):
         self.max_samples = max_samples
         self.log_interval = log_interval
         self.reset_covariance = reset_covariance
+        self.initial_epoch = initial_epoch
 
         if writer_args is None:
             writer_args = {}
@@ -139,6 +141,8 @@ class CheckLayerSat(object):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
+        if self.initial_epoch != 0:
+            self.writer.resume_from_saved_state(self.initial_epoch)
 
     def _warn_if_covariance_not_saveable(self, stats: List[str]):
         warn = False

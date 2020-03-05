@@ -9,6 +9,8 @@ import pathlib
 import pandas as pd
 import numpy as np
 import os
+import warnings
+import pickle as pkl
 
 try:
     from tensorboardX import SummaryWriter
@@ -23,6 +25,22 @@ STATMAP = {
 
 
 class AbstractWriter(ABC):
+
+    def _check_savestate_ok(self, savepath: str) -> bool:
+        """
+        Checks if a savestate from a writer is okayer, returns False and raises a warning if it isn't
+        :param savepath: the path to the savestate
+        :return:
+        """
+        if not os.path.exists(savepath):
+            warnings.warn(f'{savepath} does not exists, savestate is unloadable for {self.__class__.__name__}')
+            return False
+        else:
+            return True
+
+    @abstractmethod
+    def resume_from_saved_state(self, initial_epoch: int):
+        raise NotImplementedError()
 
     @abstractmethod
     def add_scalar(self, name, value, **kwargs):
@@ -50,6 +68,14 @@ class CompositWriter(AbstractWriter):
         """
         super(CompositWriter, self).__init__()
         self.writers = writers
+
+    def resume_from_saved_state(self, initial_epoch: int):
+        for w in self.writers:
+            try:
+                w.resume_from_saved_state(initial_epoch)
+            except NotImplementedError:
+                warnings.warn(f'Writer {w.__class__.__name__} raised a NotImplementedError when attempting to resume training'
+                              'This may result in corrupted or overwritten data.')
 
     def add_scalar(self, name, value, **kwargs):
         for w in self.writers:
@@ -79,6 +105,11 @@ class CSVWriter(AbstractWriter):
         super(CSVWriter, self).__init__()
         self.value_dict = {}
         self.savepath = savepath
+
+    def resume_from_saved_state(self, initial_epoch: int):
+        self.epoch_counter = initial_epoch
+        if self._check_savestate_ok(self.savepath+'.csv'):
+            self.value_dict = pd.read_csv(self.savepath + '.csv', sep=';', index_col=0).to_dict('list')
 
     def add_scalar(self, name, value, **kwargs):
         if 'covariance' in name:
@@ -116,6 +147,11 @@ class NPYWriter(AbstractWriter):
         self.epoch_counter = {}
         self.zip = zip
 
+    def resume_from_saved_state(self, initial_epoch: int):
+        if self._check_savestate_ok(os.path.join(self.savepath, 'epoch_counter.pkl')):
+            self.epoch_counter = pkl.load(open(os.path.join(self.savepath, 'epoch_counter.pkl'), 'rb'))
+        return
+
     def _update_epoch_counter(self, name: str) -> int:
         if name not in self.epoch_counter:
             self.epoch_counter[name] = 0
@@ -139,6 +175,7 @@ class NPYWriter(AbstractWriter):
             self.add_scalar(prefix + '_' + key, value_dict[key])
 
     def save(self):
+        pkl.dump(self.epoch_counter, open(os.path.join(self.savepath, 'epoch_counter.pkl'), 'wb'))
         if self.zip:
             make_archive(
                 base_name=os.path.basename(self.savepath),
@@ -158,6 +195,9 @@ class PrintWriter(AbstractWriter):
         This is a very basic logger, it only prints everything to the console output
         """
         super(PrintWriter, self).__init__()
+
+    def resume_from_saved_state(self, initial_epoch: int):
+        pass
 
     def add_scalar(self, name, value, **kwargs):
         print(name, ':', value)
@@ -183,6 +223,9 @@ class TensorBoardWriter(AbstractWriter):
         super(TensorBoardWriter, self).__init__()
         self.savepath = savepath
         self.writer = SummaryWriter(savepath)
+
+    def resume_from_saved_state(self, initial_epoch: int):
+        raise NotImplementedError('Resuming is not yet implemented for TensorBoardWriter')
 
     def add_scalar(self, name, value, **kwargs):
         if 'covariance' in name:
@@ -218,6 +261,12 @@ class CSVandPlottingWriter(CSVWriter):
         self.figsize = None if not 'figsize' in kwargs else kwargs['figsize']
         self.epoch_counter: int = 0
         self.stats = []
+
+    def resume_from_saved_state(self, initial_epoch: int):
+        self.epoch_counter = initial_epoch
+        if not self._check_savestate_ok(self.savepath + '.csv'):
+            return
+        self.value_dict = pd.read_csv(self.savepath + '.csv', sep=';', index_col=0).to_dict('list')
 
     def _look_for_stats(self):
         if len(self.stats) == 0:
@@ -272,6 +321,8 @@ def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> 
     cols = list(df.columns)
     train_cols = [col for col in cols if
                   'train' in col and not 'accuracy' in col and stat in col]
+    if not np.any(epoch == df.index.values):
+        raise ValueError(f'Epoch {epoch} could not be recoreded, dataframe has only the following indices: {df.index.values}')
     epoch_df = df[df.index.values == epoch]
     pm = None if primary_metric is None else epoch_df[primary_metric].values[0]
     epoch_df = epoch_df[train_cols]
