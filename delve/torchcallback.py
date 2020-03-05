@@ -82,6 +82,10 @@ class CheckLayerSat(object):
                             Not having delve run on the same device as the network causes slight performance decrease due
                             to copying memory between devices during each forward pass.
                             Delve can handle models distributed on multiple GPUs, however delve itself will always run on a single device.
+        initial_epoch (int):    The initial epoch to start with. Default is 0, which corresponds to a new run. If initial_epoch != 0
+                            the writers will look for save states that they can resume.
+                            If set to zero, all existing states will be overwritten. If set to a lower epoch than actually recorded
+                            the behavior of the writers is undefined and may result in crashes, loss of data or corrupted data.
 
     """
 
