@@ -82,6 +82,10 @@ class CheckLayerSat(object):
                             Not having delve run on the same device as the network causes slight performance decrease due
                             to copying memory between devices during each forward pass.
                             Delve can handle models distributed on multiple GPUs, however delve itself will always run on a single device.
+        initial_epoch (int):    The initial epoch to start with. Default is 0, which corresponds to a new run. If initial_epoch != 0
+                            the writers will look for save states that they can resume.
+                            If set to zero, all existing states will be overwritten. If set to a lower epoch than actually recorded
+                            the behavior of the writers is undefined and may result in crashes, loss of data or corrupted data.
 
     """
 
@@ -103,6 +107,7 @@ class CheckLayerSat(object):
             sat_threshold: str = .99,
             verbose=False,
             device='cuda:0',
+            initial_epoch: int = 0
     ):
         self.verbose = verbose
         self.include_conv = include_conv
@@ -112,6 +117,7 @@ class CheckLayerSat(object):
         self.max_samples = max_samples
         self.log_interval = log_interval
         self.reset_covariance = reset_covariance
+        self.initial_epoch = initial_epoch
 
         if writer_args is None:
             writer_args = {}
@@ -139,6 +145,8 @@ class CheckLayerSat(object):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
+        if self.initial_epoch != 0:
+            self.writer.resume_from_saved_state(self.initial_epoch)
 
     def _warn_if_covariance_not_saveable(self, stats: List[str]):
         warn = False
@@ -352,7 +360,7 @@ class CheckLayerSat(object):
                     elif stat == 'idim':
                         log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
                     elif stat == 'cov':
-                        log_values[key+'_'+layer_name] = cov_mat
+                        log_values[key+'_'+layer_name] = cov_mat.cpu().numpy()
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None
