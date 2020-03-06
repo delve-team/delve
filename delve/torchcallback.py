@@ -290,7 +290,6 @@ class CheckLayerSat(object):
         if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
             if self.interpolation_strategy is not None and (activations_batch.shape[3] > self.interpolation_downsampling or activations_batch.shape[2] > self.interpolation_downsampling):
                 activations_batch = interpolate(activations_batch, size=self.interpolation_downsampling, mode=self.interpolation_strategy)
-                print(activations_batch.shape)
             if self.conv_method == 'median':
                 shape = activations_batch.shape
                 reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2] * shape[3])
