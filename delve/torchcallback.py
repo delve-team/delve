@@ -269,20 +269,13 @@ class CheckLayerSat(object):
 
     def _register_hooks(self, layer: torch.nn.Module, layer_name: str,
                         interval):
-        if not hasattr(layer, 'eval_layer_history'):
-            layer.eval_layer_history = []
-        if not hasattr(layer, 'train_layer_history'):
-            layer.train_layer_history = []
-        if not hasattr(layer, 'layer_svd'):
-            layer.layer_svd = None
-        if not hasattr(layer, 'forward_iter'):
-            layer.forward_iter = 0
-        if not hasattr(layer, 'interval'):
-            layer.interval = interval
-        if not hasattr(layer, 'writer'):
-            layer.writer = self.writer
-        if not hasattr(layer, 'name'):
-            layer.name = layer_name
+        layer.eval_layer_history = getattr(layer, 'eval_layer_history', list())
+        layer.train_layer_history = getattr(layer, 'train_layer_history', list())
+        layer.layer_svd = getattr(layer, 'layer_svd', None)
+        layer.forward_iter = getattr(layer, 'forward_iter', 0)
+        layer.interval = getattr(layer, 'interval', interval)
+        layer.writer = getattr(layer, 'writer', self.writer)
+        layer.name = getattr(layer, 'name', layer_name)
         self.register_forward_hooks(layer, self.stats)
         return self
 
@@ -309,11 +302,10 @@ class CheckLayerSat(object):
                 reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
                 activations_batch = reshaped_batch
 
-        if layer.name in self.logs[f'{training_state}-{stat}']:
-            self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
-        else:
+        if layer.name not in self.logs[f'{training_state}-{stat}']:
             self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
-            self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
+
+        self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
 
     def register_forward_hooks(self, layer: torch.nn.Module, stats: list):
         """Register hook to show `stats` in `layer`."""
@@ -323,7 +315,7 @@ class CheckLayerSat(object):
 
             # Increment step counter
             layer.forward_iter += 1
-            
+
             # VAE output is a tuple; Hence output.data throw exception
             lstm_ae = False
             if layer.name in ['encoder_lstm','encoder_output','decoder_lstm','decoder_output']:
