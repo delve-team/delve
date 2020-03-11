@@ -62,8 +62,8 @@ class TorchCovarianceMatrix(object):
         tlen = self._tlen
         cov_mtx = self._cov_mtx
         avg = self._avg / tlen
+        cov_mtx = cov_mtx / tlen
         if center:
             avg_mtx = torch.ger(avg, avg)
             cov_mtx -= avg_mtx
-        cov_mtx = cov_mtx / tlen
         return cov_mtx
