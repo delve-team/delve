@@ -299,7 +299,7 @@ class CSVandPlottingWriter(CSVWriter):
         self._look_for_stats()
         pd.DataFrame.from_dict(self.value_dict).to_csv(self.savepath + '.csv', sep=';')
         for stat in self.stats:
-            plot_stat_level_from_results(self.savepath + '.csv', stat=stat, epoch=self.epoch_counter,
+            plot_stat_level_from_results(self.savepath + '.csv', stat=stat, epoch=-1,
                                          primary_metric=self.primary_metric, fontsize=self.fontsize,
                                          figsize=self.figsize)
         self.epoch_counter += 1
@@ -358,6 +358,10 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
     :return:
     """
     plt.clf()
+    plt.cla()
+    plt.close()
+    if epoch == -1:
+        epoch = df.index.values[-1]
     if figsize is not None:
         print(figsize)
         plt.figure(figsize=figsize)
@@ -395,6 +399,9 @@ def plot_stat_level_from_results(savepath, epoch, stat, primary_metric=None, fon
                                  primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True,
                                  show_grid=True, save=True):
     df = pd.read_csv(savepath, sep=';')
+    if epoch == -1:
+        epoch = df.index.values[-1]
+
     epoch_df, pm = extract_layer_stat(df, stat=STATMAP[stat], epoch=epoch, primary_metric=primary_metric)
     ax = plot_stat(df=epoch_df, pm=pm, savepath=savepath, epoch=epoch, primary_metric=primary_metric, fontsize=fontsize,
                    figsize=figsize, stat=stat, ylim=None if stat is 'idim' else (0, 1.0), line=line, scatter=scatter,

@@ -150,6 +150,7 @@ class CheckLayerSat(object):
         self.global_hooks_registered = False
         self.is_notebook = None
         self.device = device
+        self.record = True
         for name, layer in self.layers.items():
             if isinstance(layer, Conv2d) or isinstance(layer, Linear) or isinstance(layer, LSTM):
                 self._register_hooks(layer=layer,
@@ -176,7 +177,13 @@ class CheckLayerSat(object):
 
     def __getattr__(self, name):
         if name.startswith('add_') and name != 'add_saturations':
-            return getattr(self.writer, name)
+            if self.record:
+                return getattr(self.writer, name)
+            else:
+                def noop(*args, **kwargs):
+                    print(f'Not recording {args}, {kwargs}, recording is disabled')
+                    pass
+                return noop
         else:
             try:
                 # Redirect to writer object
@@ -187,6 +194,15 @@ class CheckLayerSat(object):
 
     def __repr__(self):
         return self.layers.keys().__repr__()
+
+    def is_recording(self) -> bool:
+        return self.record
+
+    def stop(self):
+        self.record = False
+
+    def resume(self):
+        self.record = True
 
     def close(self):
         """User endpoint to close writer and progress bars."""
@@ -321,6 +337,9 @@ class CheckLayerSat(object):
         def record_layer_saturation(layer: torch.nn.Module, input, output):
             """Hook to register in `layer` module."""
 
+            if not self.record:
+                return
+
             # Increment step counter
             layer.forward_iter += 1
             
@@ -355,6 +374,8 @@ class CheckLayerSat(object):
         Computes saturation and saves all stats
         :return:
         """
+        if not self.record:
+            return
         for key in self.logs:
             train_sats = []
             val_sats = []

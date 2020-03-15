@@ -73,6 +73,10 @@ if __name__ == '__main__':
         #stats.write( "CIFAR10 ConvNet - Changing fc2 - size {}".format(h2))  # optional
 
         for epoch in range(epochs):
+            if epoch == 2:
+                stats.stop()
+            if epoch == 3:
+                stats.resume()
             running_loss = 0.0
             step = 0
             loader = tqdm(
