@@ -28,12 +28,12 @@ class AbstractWriter(ABC):
 
     def _check_savestate_ok(self, savepath: str) -> bool:
         """
-        Checks if a savestate from a writer is okayer, returns False and raises a warning if it isn't
+        Checks if a savestate from a writer is okay; raises a warning if not
         :param savepath: the path to the savestate
         :return:
         """
         if not os.path.exists(savepath):
-            warnings.warn(f'{savepath} does not exists, savestate is unloadable for {self.__class__.__name__}')
+            warnings.warn(f'{savepath} does not exists, savestate for {self.__class__.__name__} cannot be loaded')
             return False
         else:
             return True
@@ -63,8 +63,8 @@ class CompositWriter(AbstractWriter):
 
     def __init__(self, writers: List[AbstractWriter]):
         """
-        This writers allows you to have multiple writers.
-        :param writers: a list of writers. function call of this writer is executed on every writer in this list.
+        This writer combines multiple writers.
+        :param writers: List of writers. Each writer is called when the CompositeWriter is invoked.
         """
         super(CompositWriter, self).__init__()
         self.writers = writers
@@ -98,9 +98,10 @@ class CSVWriter(AbstractWriter):
 
     def __init__(self, savepath: str, **kwargs):
         """
-        This writers produces a csv file that can be used for analysis after training. The csv-file is overwritten with
+        This writer produces a csv file with all saturation values.
+        The csv-file is overwritten with
         an updated version every time save() is called.
-        :param savepath: The path to save the csv to
+        :param savepath: CSV file path
         """
         super(CSVWriter, self).__init__()
         self.value_dict = {}
@@ -135,12 +136,12 @@ class NPYWriter(AbstractWriter):
 
     def __init__(self, savepath: str, zip: bool = False, **kwargs):
         """
-        The npy-writers creates a folder containing one subfolder for each stat. Each subfolder contains a npy-file for each epoch containing the value
-        for each epoch.
-        Other than any other writer, this writer is able to save non-scalar values and can thus be used to save
-        the covariance-matrix
-        :param savepath: the root folder to save the folder structure and npy-files into
-        :param zip: if set to True, the folder structure will be zipped everytime save() is called.
+        The NPYWriter creates a folder containing one subfolder for each stat.
+        Each subfolder contains a npy-file with the saturation value for each epoch.
+        This writer saves non-scalar values and can thus be used to save
+        the covariance-matrix.
+        :param savepath: The root folder to save the folder structure to
+        :param zip: Whether to zip the output folder after every invocation
         """
         super(NPYWriter, self).__init__()
         self.savepath = savepath
@@ -192,7 +193,7 @@ class PrintWriter(AbstractWriter):
 
     def __init__(self, **kwargs):
         """
-        This is a very basic logger, it only prints everything to the console output
+        Prints output to the console
         """
         super(PrintWriter, self).__init__()
 
@@ -217,7 +218,7 @@ class TensorBoardWriter(AbstractWriter):
 
     def __init__(self, savepath: str, **kwargs):
         """
-        Writes everything to tensorflow logs
+        Writes output to tensorflow logs
         :param savepath: the path for result logging
         """
         super(TensorBoardWriter, self).__init__()
@@ -246,12 +247,10 @@ class CSVandPlottingWriter(CSVWriter):
 
     def __init__(self, savepath: str, plot_manipulation_func: Callable[[plt.Axes], plt.Axes] = None, **kwargs):
         """
-        This writer produces the CSV similar to the CSV writer, but also provides plots, which are per default stored in
-        the subfolder.
-        :param savepath: path to store images and csvs
-        :param plot_manipulation_func: this is a function mapping an axis object to an axis object, you can use this to
-                                       to manipulate the plot even further, by writing arbitrary pyplot code in this
-                                       function
+        This writer produces CSV files and plots.
+        :param savepath: Path to store plots and CSV files
+        :param plot_manipulation_func: A function mapping an axis object to an axis object by
+                                       using pyplot code.
         :param kwargs:
         """
         super(CSVandPlottingWriter, self).__init__(savepath)
@@ -311,11 +310,11 @@ class CSVandPlottingWriter(CSVWriter):
 def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> Tuple[pd.DataFrame, float]:
     """
     Extracts a specific statistic for a single epoch from a result dataframe as produced by the CSV-writer
-    :param df: the dataframe as produced by the csv-writer
-    :param epoch: the epoch to filter by
-    :param primary_metric: the primary metric for logged for performance evaluation, may be left empty
-    :param stat: the statistic to look for, must be a substring matching all columns belonging to stat statistic like "saturation"
-    :return: a dataframe with a single row, corresponding to the epoch containing only the columns that contain the substring
+    :param df: The dataframe produced by a CSVWriter
+    :param epoch: Epoch to filter by
+    :param primary_metric: Primary metric for performance evaluation (optional)
+    :param stat: The statistic to match. Must be a substring matching all columns belonging to stat statistic like "saturation"
+    :return: A dataframe with a single row, corresponding to the epoch containing only the columns that contain the substring
     described in the stat-parameter in their name. Second return value is the primary metric value
     """
     cols = list(df.columns)
