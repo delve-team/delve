@@ -20,7 +20,10 @@ except ModuleNotFoundError:
 STATMAP = {
     'idim': 'intrinsic-dimensionality',
     'lsat': 'saturation',
-    'cov': 'covariance-matrix'
+    'cov': 'covariance-matrix',
+    'det': 'covariance-determinant',
+    'trc': 'covariance-trace',
+    'dtrc': 'diagonal-trace'
 }
 
 
@@ -112,7 +115,7 @@ class CSVWriter(AbstractWriter):
             self.value_dict = pd.read_csv(self.savepath + '.csv', sep=';', index_col=0).to_dict('list')
 
     def add_scalar(self, name, value, **kwargs):
-        if 'covariance' in name:
+        if 'covariance-matrix' in name:
             return
         if name in self.value_dict:
             self.value_dict[name].append(value)
@@ -228,7 +231,7 @@ class TensorBoardWriter(AbstractWriter):
         raise NotImplementedError('Resuming is not yet implemented for TensorBoardWriter')
 
     def add_scalar(self, name, value, **kwargs):
-        if 'covariance' in name:
+        if 'covariance-matrix' in name:
             return
         self.writer.add_scalar(name, value)
 
@@ -272,18 +275,33 @@ class CSVandPlottingWriter(CSVWriter):
         if len(self.stats) == 0:
             sat = False
             idim = False
+            det = False
+            trc = False
+            dtrc = False
             for key in self.value_dict.keys():
                 if 'saturation' in key:
                     sat = True
                 if 'intrinsic-dimensionality' in key:
                     idim = True
+                if 'covariance-determinant' in key:
+                    det = True
+                if 'covariance-trace' in key:
+                    trc = True
+                if 'diagonal-trace' in key:
+                    dtrc = True
             if sat:
                 self.stats.append('lsat')
             if idim:
                 self.stats.append('idim')
+            if det:
+                self.stats.append('det')
+            if trc:
+                self.stats.append('trc')
+            if dtrc:
+                self.stats.append('dtrc')
 
     def add_scalar(self, name, value, **kwargs):
-        if 'covariance' in name:
+        if 'covariance-matrix' in name:
             return
         if name in self.value_dict:
             self.value_dict[name].append(value)
@@ -404,7 +422,7 @@ def plot_stat_level_from_results(savepath, epoch, stat, primary_metric=None, fon
 
     epoch_df, pm = extract_layer_stat(df, stat=STATMAP[stat], epoch=epoch, primary_metric=primary_metric)
     ax = plot_stat(df=epoch_df, pm=pm, savepath=savepath, epoch=epoch, primary_metric=primary_metric, fontsize=fontsize,
-                   figsize=figsize, stat=stat, ylim=None if stat is 'idim' else (0, 1.0), line=line, scatter=scatter,
+                   figsize=figsize, stat=stat, ylim=None if not stat is 'lsat' else (0, 1.0), line=line, scatter=scatter,
                    alpha_line=alpha_line, alpha_scatter=alpha_scatter, color_line=color_line,
                    color_scatter=color_scatter,
                    primary_metric_loc=primary_metric_loc, show_col_label_x=show_col_label_x,

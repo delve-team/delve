@@ -34,3 +34,33 @@ def compute_saturation(cov: torch.Tensor, thresh: float = .99) -> float:
     feature_space_dimensionality = cov.shape[0]
 
     return intrinsic_dimensionality / feature_space_dimensionality
+
+
+def compute_cov_determinant(cov: torch.Tensor) -> float:
+    """
+    Computes the determinant of the covariance matrix (also known as generalized variance)
+    :param cov: the covariannce matrix as torch tensor
+    :return: the determinant
+    """
+    return cov.det().unsqueeze(dim=0).cpu().numpy()[0]
+
+
+def compute_cov_trace(cov: torch.Tensor) -> float:
+    """
+    Computes the trace of the covariance matrix (also known as total variance)
+    :param cov: the covariannce matrix as torch tensor
+    :return: the trace
+    """
+    return cov.trace().unsqueeze(dim=0).cpu().numpy()[0]
+
+
+def compute_diag_trace(cov: torch.Tensor) -> float:
+    """
+    Computes the trace of the covariance matrix diagonal matrix
+    :param cov: the covariannce matrix as torch tensor
+    :return: the trace
+    """
+    eig_vals, eigen_space = cov.symeig(True)
+    eig_vals[eig_vals < 0] = 0
+    return eig_vals.sum().unsqueeze(dim=0).cpu().numpy()[0]
+

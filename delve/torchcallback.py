@@ -51,6 +51,13 @@ class CheckLayerSat(object):
                 idim        : intrinsic dimensionality
                 lsat        : layer saturation (intrinsic dimensionality divided by feature space dimensionality)
                 cov         : the covariance-matrix (only saveable using the 'npy' save strategy)
+                det         : the determinant of the covariance matrix (also known as generalized variance)
+                trc         : the trace of the covariance matrix, generally a more useful metric than det for determining
+                              the total variance of the data than the determinant.
+                              However note that this does not take the correlation between
+                              features into account. On the other hand, in most cases the determinent will be zero, since
+                              there will be very strongly correlated features, so trace might be the better option.
+                dtrc        : the trace of the diagonalmatrix, another way of measuring the dispersion of the data.
 
         layerwise_sat (bool): weather or not to include layerwise saturation when saving
         reset_covariance (bool): True by default, resets the covariance everytime the stats are computed. Disabling this,
@@ -218,6 +225,9 @@ class CheckLayerSat(object):
             'lsat',
             'idim',
             'cov',
+            'det',
+            'trc',
+            'dtrc',
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -393,6 +403,12 @@ class CheckLayerSat(object):
                         log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
                     elif stat == 'cov':
                         log_values[key+'_'+layer_name] = cov_mat.cpu().numpy()
+                    elif stat == 'det':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['det'])+'_'+layer_name] = compute_cov_determinant(cov_mat)
+                    elif stat == 'trc':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['trc'])+'_'+layer_name] = compute_cov_trace(cov_mat)
+                    elif stat == 'dtrc':
+                        log_values[key.replace(STATMAP['cov'], STATMAP['dtrc'])+'_'+layer_name] = compute_diag_trace(cov_mat)
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None
