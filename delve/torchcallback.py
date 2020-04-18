@@ -228,6 +228,9 @@ class CheckLayerSat(object):
                                      interval=log_interval)
         if self.initial_epoch != 0:
             self.writer.resume_from_saved_state(self.initial_epoch)
+        self.backward_hooks = dict()
+
+    layer_current_sat2 = dict()
 
     def _warn_if_covariance_not_saveable(self, stats: List[str]):
         warn = False
@@ -442,6 +445,15 @@ class CheckLayerSat(object):
 
         layer.register_forward_hook(record_layer_saturation)
 
+        def modify_learning_rate(layer: torch.nn.Module, input2, output):
+            modded_rate = (1 - self.layer_current_sat2[layer.name])
+            res = []
+            for entry in input2:
+                res.append(entry * modded_rate if entry is not None else None)
+            return tuple(res)
+        self.layer_current_sat2[layer.name] = 0
+        layer.register_backward_hook(modify_learning_rate)
+
     def add_saturations(self, save=True):
         """
         Computes saturation and saves all stats
@@ -464,6 +476,7 @@ class CheckLayerSat(object):
                 for stat in self.stats:
                     if stat == 'lsat':
                         log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
+                        self.layer_current_sat2[layer_name] = log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name]
                     elif stat == 'idim':
                         log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
                     elif stat == 'cov':
