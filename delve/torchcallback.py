@@ -98,7 +98,7 @@ class CheckLayerSat(object):
                              effectivly yielding a data matrix of shape
                              (height*width*batch_size, num_filters)
 
-            supported stats are:
+            supported methods are:
                 channelwise : treats every depth vector of the tensor as a
                               datapoint, effectivly reshaping the data tensor
                               from shape (batch_size, height, width, channel)
@@ -116,6 +116,10 @@ class CheckLayerSat(object):
                               extremly memory intensive and will likely cause
                               memory and performance problems for any
                               non toy-problem
+        timeseries_method (str) : how to subsample timeseries methods. Default
+                                  is timestepwise.
+            supported methods are:
+                timestepwise    : stacks each sample timestep-by-timestep
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -179,6 +183,7 @@ class CheckLayerSat(object):
             ignore_layer_names: List[str] = [],
             include_conv: bool = True,
             conv_method: str = 'channelwise',
+            timeseries_method: str = 'timestepwise',
             sat_threshold: str = .99,
             verbose: bool = False,
             device='cuda:0',
@@ -189,6 +194,8 @@ class CheckLayerSat(object):
         self.verbose = verbose
         self.include_conv = include_conv
         self.conv_method = conv_method
+
+        self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
         self.layers = self.get_layers_recursive(modules)
         self.max_samples = max_samples
@@ -312,6 +319,10 @@ class CheckLayerSat(object):
         layer.out_features = layer.out_channels
         layer.conv_method = self.conv_method
 
+    def _add_lstm_layer(self, layer: torch.nn.Module):
+        layer.out_features = layer.hidden_size
+        layer.timeseries_method = self.timeseries_method
+
     def get_layer_from_submodule(self, submodule: torch.nn.Module,
                                  layers: dict, name_prefix: str = ''):
         if len(submodule._modules) > 0:
@@ -400,7 +411,10 @@ class CheckLayerSat(object):
                 reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
                 reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
                 activations_batch = reshaped_batch
-
+        elif activations_batch.dim() == 3: # LSTM layer (B x T x U)
+            if self.timeseries_method == 'timestepwise':
+                activations_batch = activations_batch.flatten(1)
+                
         if layer.name not in self.logs[f'{training_state}-{stat}']:
             self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
 
@@ -424,6 +438,8 @@ class CheckLayerSat(object):
                               'decoder_lstm', 'decoder_output']:
                 output = output[1][0]
                 lstm_ae = True
+            elif isinstance(layer, torch.nn.LSTM):
+                output = output[0]
 
             training_state = 'train' if layer.training else 'eval'
             if layer.name not in self.seen_samples[training_state]:
