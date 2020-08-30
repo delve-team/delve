@@ -117,9 +117,10 @@ class CheckLayerSat(object):
                               memory and performance problems for any
                               non toy-problem
         timeseries_method (str) : how to subsample timeseries methods. Default
-                                  is timestepwise.
+                                  is last_timestep.
             supported methods are:
                 timestepwise    : stacks each sample timestep-by-timestep
+                last_timestep   : selects the last timestep's output
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -183,7 +184,7 @@ class CheckLayerSat(object):
             ignore_layer_names: List[str] = [],
             include_conv: bool = True,
             conv_method: str = 'channelwise',
-            timeseries_method: str = 'timestepwise',
+            timeseries_method: str = 'last_timestep',
             sat_threshold: str = .99,
             verbose: bool = False,
             device='cuda:0',
@@ -414,6 +415,8 @@ class CheckLayerSat(object):
         elif activations_batch.dim() == 3: # LSTM layer (B x T x U)
             if self.timeseries_method == 'timestepwise':
                 activations_batch = activations_batch.flatten(1)
+            elif self.timeseries_method == 'last_timestep':
+                activations_batch = activations_batch[:, -1, :]
                 
         if layer.name not in self.logs[f'{training_state}-{stat}']:
             self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
