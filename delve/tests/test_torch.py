@@ -25,7 +25,11 @@ def test_lstm_saturation_runs():
 
     # Run 1
     timeseries_method = 'timestepwise'
-    model = torch.nn.Sequential(torch.nn.LSTM(10, 88, 2))
+
+    model = torch.nn.Sequential()
+    lstm = torch.nn.LSTM(10, 88, 2)
+    lstm.name = 'lstm2'
+    model.add_module('lstm', lstm)
 
     writer = CSVandPlottingWriter(save_path, fontsize=16, primary_metric='test_accuracy')
     saturation = CheckLayerSat(save_path,
@@ -39,7 +43,11 @@ def test_lstm_saturation_runs():
 
     # Run 2
     timeseries_method = 'last_timestep'
-    model = torch.nn.Sequential(torch.nn.LSTM(10, 88, 2))
+
+    model = torch.nn.Sequential()
+    lstm = torch.nn.LSTM(10, 88, 2)
+    lstm.name = 'lstm2'
+    model.add_module('lstm', lstm)
 
     writer = CSVandPlottingWriter(save_path, fontsize=16, primary_metric='test_accuracy')
     saturation = CheckLayerSat(save_path,
@@ -47,6 +55,8 @@ def test_lstm_saturation_runs():
                                stats=['lsat', 'idim'],
                                timeseries_method=timeseries_method)
 
+    input = torch.randn(5, 3, 10)
+    output, (hn, cn) = model(input)
     input = torch.randn(5, 3, 10)
     output, (hn, cn) = model(input)
     saturation.close()
