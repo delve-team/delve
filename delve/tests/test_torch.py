@@ -21,7 +21,7 @@ def test_dense_saturation_runs():
 
 
 def test_lstm_saturation_runs():
-    save_path = 'temp/'
+    save_path = 'temp/test'
 
     # Run 1
     timeseries_method = 'timestepwise'
@@ -46,18 +46,21 @@ def test_lstm_saturation_runs():
 
     model = torch.nn.Sequential()
     lstm = torch.nn.LSTM(10, 88, 2)
-    lstm.name = 'lstm2'
     model.add_module('lstm', lstm)
 
-    writer = CSVandPlottingWriter(save_path, fontsize=16, primary_metric='test_accuracy')
+    writer = CSVandPlottingWriter(save_path, fontsize=16)
     saturation = CheckLayerSat(save_path,
                                [writer], model,
-                               stats=['lsat', 'idim'],
+                               stats=['lsat', 'idim', 'embed'],
                                timeseries_method=timeseries_method)
 
     input = torch.randn(5, 3, 10)
     output, (hn, cn) = model(input)
-    input = torch.randn(5, 3, 10)
+    assert saturation.logs['train-covariance-matrix']['lstm'].saved_samples.shape == torch.Size([5, 88])
+
+    input = torch.randn(8, 3, 10)
     output, (hn, cn) = model(input)
+    assert saturation.logs['train-covariance-matrix']['lstm'].saved_samples.shape == torch.Size([13, 88])
+    saturation.add_saturations()
     saturation.close()
     return True

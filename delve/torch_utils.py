@@ -3,7 +3,7 @@ import torch
 
 class TorchCovarianceMatrix(object):
 
-    def __init__(self, bias=False, device='cuda:0', save_data=True):
+    def __init__(self, bias=False, device='cuda:0', save_data=False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
         # covariance matrix, updated during the training phase
@@ -62,7 +62,7 @@ class TorchCovarianceMatrix(object):
 
         if self.save_data:
             if self.saved_samples is not None:
-                torch.cat([self.saved_samples, x])
+                self.saved_samples = torch.cat([self.saved_samples, x])
             else:
                 self.saved_samples = x
             pass

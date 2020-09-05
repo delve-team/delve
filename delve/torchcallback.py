@@ -81,6 +81,7 @@ class CheckLayerSat(object):
                               divided by feature space dimensionality)
                 cov         : the covariance-matrix (only saveable using
                               the 'npy' save strategy)
+                embed       : samples embedded in the eigenspace of dimension 2
 
         layerwise_sat (bool): weather or not to include
                               layerwise saturation when saving
@@ -166,7 +167,6 @@ class CheckLayerSat(object):
                                        is done if the resolution is smaller.
         interpolation_downsampling (int): Default is 32. The target resolution
                                           if downsampling is enabled.
-
     """
 
     def __init__(
@@ -301,6 +301,7 @@ class CheckLayerSat(object):
             'det',
             'trc',
             'dtrc',
+            'embed',
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -419,7 +420,9 @@ class CheckLayerSat(object):
                 activations_batch = activations_batch[:, -1, :]
                 
         if layer.name not in self.logs[f'{training_state}-{stat}']:
-            self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
+            save_data = 'embed' in self.stats
+            self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device,
+                                                                                      save_data=save_data)
 
         self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
 
@@ -493,6 +496,17 @@ class CheckLayerSat(object):
                         log_values[key.replace(STATMAP['cov'], STATMAP['trc'])+'_'+layer_name] = compute_cov_trace(cov_mat)
                     elif stat == 'dtrc':
                         log_values[key.replace(STATMAP['cov'], STATMAP['dtrc'])+'_'+layer_name] = compute_diag_trace(cov_mat)
+                    elif stat == 'embed':
+                        transformation_matrix = torch.mm(cov_mat[0:2].transpose(0, 1), cov_mat[0:2])
+                        saved_samples = self.logs[key][layer_name].saved_samples
+                        for (index, sample) in enumerate(saved_samples):
+                            coord = torch.matmul(transformation_matrix, sample)
+                            log_values[
+                                key.replace(STATMAP['cov'], STATMAP['embed']) + '_' + layer_name + '_{}_x'.format(
+                                    index)] = "{}".format(coord[0])
+                            log_values[
+                                key.replace(STATMAP['cov'], STATMAP['embed']) + '_' + layer_name + '_{}_y'.format(
+                                    index)] = "{}".format(coord[1])
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None

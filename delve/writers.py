@@ -23,7 +23,8 @@ STATMAP = {
     'cov': 'covariance-matrix',
     'det': 'covariance-determinant',
     'trc': 'covariance-trace',
-    'dtrc': 'diagonal-trace'
+    'dtrc': 'diagonal-trace',
+    'embed': 'embedded-sample'
 }
 
 
