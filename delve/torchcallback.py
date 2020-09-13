@@ -483,6 +483,7 @@ class CheckLayerSat(object):
                                      "is not initialized")
                 cov_mat = self.logs[key][layer_name].fix()
                 log_values = {}
+                sample_log_values = {}
                 for stat in self.stats:
                     if stat == 'lsat':
                         log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
@@ -499,19 +500,15 @@ class CheckLayerSat(object):
                     elif stat == 'embed':
                         transformation_matrix = torch.mm(cov_mat[0:2].transpose(0, 1), cov_mat[0:2])
                         saved_samples = self.logs[key][layer_name].saved_samples
+                        sample_log_values['embed'] = list()
                         for (index, sample) in enumerate(saved_samples):
                             coord = torch.matmul(transformation_matrix, sample)
-                            log_values[
-                                key.replace(STATMAP['cov'], STATMAP['embed']) + '_' + layer_name + '_{}_x'.format(
-                                    index)] = "{}".format(coord[0])
-                            log_values[
-                                key.replace(STATMAP['cov'], STATMAP['embed']) + '_' + layer_name + '_{}_y'.format(
-                                    index)] = "{}".format(coord[1])
+                            sample_log_values['embed'].append((coord[0], coord[1]))
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None
                 if self.layerwise_sat:
-                    self.writer.add_scalars(prefix='', value_dict=log_values)
+                    self.writer.add_scalars(prefix='', value_dict=log_values, sample_value_dict=sample_log_values)
 
         if self.average_sat:
             self.writer.add_scalar('average-train-sat', np.mean(train_sats))

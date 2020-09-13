@@ -41,6 +41,9 @@ def test_lstm_saturation_runs():
     output, (hn, cn) = model(input)
     saturation.close()
 
+
+def test_lstm_saturation_embed_runs():
+    save_path = 'temp/test'
     # Run 2
     timeseries_method = 'last_timestep'
 

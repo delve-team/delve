@@ -264,6 +264,8 @@ class CSVandPlottingWriter(CSVWriter):
         self.figsize = None if not 'figsize' in kwargs else kwargs['figsize']
         self.epoch_counter: int = 0
         self.stats = []
+        self.sample_stats = list()
+        self.sample_value_dict = dict()
 
     def resume_from_saved_state(self, initial_epoch: int):
         self.epoch_counter = initial_epoch
@@ -278,6 +280,7 @@ class CSVandPlottingWriter(CSVWriter):
             det = False
             trc = False
             dtrc = False
+            embed = True
             for key in self.value_dict.keys():
                 if 'saturation' in key:
                     sat = True
@@ -289,6 +292,8 @@ class CSVandPlottingWriter(CSVWriter):
                     trc = True
                 if 'diagonal-trace' in key:
                     dtrc = True
+                if 'embed' in key:
+                    embed = True
             if sat:
                 self.stats.append('lsat')
             if idim:
@@ -299,6 +304,8 @@ class CSVandPlottingWriter(CSVWriter):
                 self.stats.append('trc')
             if dtrc:
                 self.stats.append('dtrc')
+            if embed:
+                self.sample_stats.append('embed')
 
     def add_scalar(self, name, value, **kwargs):
         if 'covariance-matrix' in name:
@@ -307,11 +314,19 @@ class CSVandPlottingWriter(CSVWriter):
             self.value_dict[name].append(value)
         else:
             self.value_dict[name] = [value]
-        return
 
-    def add_scalars(self, prefix, value_dict, **kwargs):
+    def add_sample_scalar(self, name, value, **kwargs):
+        if name in self.sample_value_dict:
+            self.sample_value_dict[name].append(value)
+        else:
+            self.sample_value_dict[name] = [value]
+
+    def add_scalars(self, prefix, value_dict, sample_value_dict, **kwargs):
         for name in value_dict.keys():
             self.add_scalar(name, value_dict[name])
+        if sample_value_dict:
+            for name in sample_value_dict.keys():
+                self.add_sample_scalar(name, sample_value_dict[name])
 
     def save(self):
         self._look_for_stats()
@@ -320,6 +335,9 @@ class CSVandPlottingWriter(CSVWriter):
             plot_stat_level_from_results(self.savepath + '.csv', stat=stat, epoch=-1,
                                          primary_metric=self.primary_metric, fontsize=self.fontsize,
                                          figsize=self.figsize)
+        for stat in self.sample_stats:
+            plot_scatter_from_results(self.savepath + '.csv', -1, stat,
+                                      pd.DataFrame.from_dict(self.sample_value_dict))
         self.epoch_counter += 1
 
     def close(self):
@@ -350,7 +368,8 @@ def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> 
 def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None, fontsize=16, figsize=None,
               line=True, scatter=True, ylim=(0, 1.0), alpha_line=.6, alpha_scatter=1.0, color_line=None,
               color_scatter=None,
-              primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True, show_grid=True, save=True):
+              primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True, show_grid=True, save=True,
+              samples=False):
     """
 
     :param df:
@@ -386,11 +405,21 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
     ax = plt.gca()
     col_names = [i for i in df.columns]
     if line:
-        ax.plot(list(range(len(col_names))), df.values[0], alpha=alpha_line, color=color_line)
+        if samples:
+            pass
+        else:
+            ax.plot(list(range(len(col_names))), df.values[0], alpha=alpha_line, color=color_line)
     if scatter:
-        ax.scatter(list(range(len(col_names))), df.values[0], alpha=alpha_scatter, color=color_scatter)
-    plt.xticks(list(range(len(col_names))), [col_name.split('_', )[1] for col_name in col_names],
-               rotation=90)
+        if samples:
+            for sample in df.values[0][0]:
+                x = float(sample[0])
+                y = float(sample[1])
+                ax.scatter(x, y, alpha=alpha_scatter, color=color_scatter)
+        else:
+            ax.scatter(list(range(len(col_names))), df.values[0], alpha=alpha_scatter, color=color_scatter)
+    if not samples:
+        plt.xticks(list(range(len(col_names))), [col_name.split('_', )[1] for col_name in col_names],
+                   rotation=90)
     if not ylim is None:
         ax.set_ylim(ylim)
     if primary_metric is not None:
@@ -428,4 +457,9 @@ def plot_stat_level_from_results(savepath, epoch, stat, primary_metric=None, fon
                    primary_metric_loc=primary_metric_loc, show_col_label_x=show_col_label_x,
                    show_col_label_y=show_col_label_y,
                    show_grid=show_grid, save=save)
+    return ax
+
+
+def plot_scatter_from_results(savepath, epoch, stat, df):
+    ax = plot_stat(df=df, savepath=savepath, epoch=epoch, stat=stat, line=False, save=True, samples=True, ylim=None)
     return ax
