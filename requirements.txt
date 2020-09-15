@@ -1,2 +1,5 @@
 yapf
+tqdm
 pandas==0.23.4
+matplotlib
+pytest

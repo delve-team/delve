@@ -81,6 +81,7 @@ class CheckLayerSat(object):
                               divided by feature space dimensionality)
                 cov         : the covariance-matrix (only saveable using
                               the 'npy' save strategy)
+                embed       : samples embedded in the eigenspace of dimension 2
 
         layerwise_sat (bool): weather or not to include
                               layerwise saturation when saving
@@ -98,7 +99,7 @@ class CheckLayerSat(object):
                              effectivly yielding a data matrix of shape
                              (height*width*batch_size, num_filters)
 
-            supported stats are:
+            supported methods are:
                 channelwise : treats every depth vector of the tensor as a
                               datapoint, effectivly reshaping the data tensor
                               from shape (batch_size, height, width, channel)
@@ -116,6 +117,11 @@ class CheckLayerSat(object):
                               extremly memory intensive and will likely cause
                               memory and performance problems for any
                               non toy-problem
+        timeseries_method (str) : how to subsample timeseries methods. Default
+                                  is last_timestep.
+            supported methods are:
+                timestepwise    : stacks each sample timestep-by-timestep
+                last_timestep   : selects the last timestep's output
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -161,7 +167,6 @@ class CheckLayerSat(object):
                                        is done if the resolution is smaller.
         interpolation_downsampling (int): Default is 32. The target resolution
                                           if downsampling is enabled.
-
     """
 
     def __init__(
@@ -179,6 +184,7 @@ class CheckLayerSat(object):
             ignore_layer_names: List[str] = [],
             include_conv: bool = True,
             conv_method: str = 'channelwise',
+            timeseries_method: str = 'last_timestep',
             sat_threshold: str = .99,
             verbose: bool = False,
             device='cuda:0',
@@ -189,6 +195,8 @@ class CheckLayerSat(object):
         self.verbose = verbose
         self.include_conv = include_conv
         self.conv_method = conv_method
+
+        self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
         self.layers = self.get_layers_recursive(modules)
         self.max_samples = max_samples
@@ -293,6 +301,7 @@ class CheckLayerSat(object):
             'det',
             'trc',
             'dtrc',
+            'embed',
         ]
         compatible = [stat in supported_stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -311,6 +320,10 @@ class CheckLayerSat(object):
     def _add_conv_layer(self, layer: torch.nn.Module):
         layer.out_features = layer.out_channels
         layer.conv_method = self.conv_method
+
+    def _add_lstm_layer(self, layer: torch.nn.Module):
+        layer.out_features = layer.hidden_size
+        layer.timeseries_method = self.timeseries_method
 
     def get_layer_from_submodule(self, submodule: torch.nn.Module,
                                  layers: dict, name_prefix: str = ''):
@@ -400,9 +413,16 @@ class CheckLayerSat(object):
                 reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
                 reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
                 activations_batch = reshaped_batch
-
+        elif activations_batch.dim() == 3: # LSTM layer (B x T x U)
+            if self.timeseries_method == 'timestepwise':
+                activations_batch = activations_batch.flatten(1)
+            elif self.timeseries_method == 'last_timestep':
+                activations_batch = activations_batch[:, -1, :]
+                
         if layer.name not in self.logs[f'{training_state}-{stat}']:
-            self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device)
+            save_data = 'embed' in self.stats
+            self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device,
+                                                                                      save_data=save_data)
 
         self.logs[f'{training_state}-{stat}'][layer.name].update(activations_batch, lstm_ae)
 
@@ -424,6 +444,8 @@ class CheckLayerSat(object):
                               'decoder_lstm', 'decoder_output']:
                 output = output[1][0]
                 lstm_ae = True
+            elif isinstance(layer, torch.nn.LSTM):
+                output = output[0]
 
             training_state = 'train' if layer.training else 'eval'
             if layer.name not in self.seen_samples[training_state]:
@@ -461,6 +483,7 @@ class CheckLayerSat(object):
                                      "is not initialized")
                 cov_mat = self.logs[key][layer_name].fix()
                 log_values = {}
+                sample_log_values = {}
                 for stat in self.stats:
                     if stat == 'lsat':
                         log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
@@ -474,11 +497,18 @@ class CheckLayerSat(object):
                         log_values[key.replace(STATMAP['cov'], STATMAP['trc'])+'_'+layer_name] = compute_cov_trace(cov_mat)
                     elif stat == 'dtrc':
                         log_values[key.replace(STATMAP['cov'], STATMAP['dtrc'])+'_'+layer_name] = compute_diag_trace(cov_mat)
+                    elif stat == 'embed':
+                        transformation_matrix = torch.mm(cov_mat[0:2].transpose(0, 1), cov_mat[0:2])
+                        saved_samples = self.logs[key][layer_name].saved_samples
+                        sample_log_values['embed'] = list()
+                        for (index, sample) in enumerate(saved_samples):
+                            coord = torch.matmul(transformation_matrix, sample)
+                            sample_log_values['embed'].append((coord[0], coord[1]))
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
                 if self.reset_covariance:
                     self.logs[key][layer_name]._cov_mtx = None
                 if self.layerwise_sat:
-                    self.writer.add_scalars(prefix='', value_dict=log_values)
+                    self.writer.add_scalars(prefix='', value_dict=log_values, sample_value_dict=sample_log_values)
 
         if self.average_sat:
             self.writer.add_scalar('average-train-sat', np.mean(train_sats))

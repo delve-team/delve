@@ -3,7 +3,7 @@ import torch
 
 class TorchCovarianceMatrix(object):
 
-    def __init__(self, bias=False, device='cuda:0'):
+    def __init__(self, bias=False, device='cuda:0', save_data=False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
         # covariance matrix, updated during the training phase
@@ -14,6 +14,10 @@ class TorchCovarianceMatrix(object):
         self._tlen = 0
 
         self.bias = bias
+
+        self.save_data = save_data
+        if self.save_data:
+            self.saved_samples = None
 
     def _init_internals(self, x: torch.Tensor):
         """Init the internal structures.
@@ -55,6 +59,13 @@ class TorchCovarianceMatrix(object):
         self._cov_mtx.data += torch.matmul(x.transpose(0, 1), x)
         self._avg.data += x.sum(dim=0)
         self._tlen += x.shape[0]
+
+        if self.save_data:
+            if self.saved_samples is not None:
+                self.saved_samples = torch.cat([self.saved_samples, x])
+            else:
+                self.saved_samples = x
+            pass
 
     def fix(self, center=True):
         """Returns the Covariance matrix"""
