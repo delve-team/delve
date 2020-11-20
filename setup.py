@@ -12,7 +12,7 @@ exec(open('delve/version.py', 'r').read())
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['tensorboardX', 'tqdm', 'MDP']
+requirements = ['tensorboardX', 'tqdm', "matplotlib", "pandas"]
 
 this_dir = path.abspath(path.dirname(__file__))
 with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
