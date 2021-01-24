@@ -461,5 +461,8 @@ def plot_stat_level_from_results(savepath, epoch, stat, primary_metric=None, fon
 
 
 def plot_scatter_from_results(savepath, epoch, stat, df):
-    ax = plot_stat(df=df, savepath=savepath, epoch=epoch, stat=stat, line=False, save=True, samples=True, ylim=None)
-    return ax
+    if len(df) > 0:
+        ax = plot_stat(df=df, savepath=savepath, epoch=epoch, stat=stat, line=False, save=True, samples=True, ylim=None)
+        return ax
+    else:
+        return None

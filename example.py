@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from os import mkdir
+from os.path import exists
+
 import torch
 from tqdm import trange
 
@@ -17,6 +20,8 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
+if not exists("regression/"):
+    mkdir("regression/")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
@@ -34,7 +39,7 @@ for h in [3, 32, 128]:
     x, y, model = x.to(device), y.to(device), model.to(device)
 
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), layers, device=device)
+    stats = CheckLayerSat('regression/h{}'.format(h), save_to="csv", modules=layers, device=device)
 
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
@@ -49,7 +54,7 @@ for h in [3, 32, 128]:
         loss.backward()
         optimizer.step()
 
-        stats.saturation()
+        stats.add_saturations()
     steps_iter.write('\n')
     stats.close()
     steps_iter.close()

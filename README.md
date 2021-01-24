@@ -2,180 +2,159 @@
 
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/delve-team/delve.svg?branch=master)](https://travis-ci.org/delve-team/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Delve is a Python package for visualizing deep learning model training.
+Delve is a Python package for analyzing the inference dynamics of your model.
 
 ![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)
 
-Use Delve if you need a lightweight PyTorch or Keras extension that:
-- Plots live statistics of network layer inputs to TensorBoard or terminal
-- Performs spectral analysis to identify layer saturation for network pruning
-- Is easily extendible and configurable
+Use Delve if you need a lightweight PyTorch extension that:
+- Gives you insight into the inference dynamics of your architecture
+- Allows you to optimize and adjust neural networks models to your dataset
+  without much trial and error
+- Allows you to analyze the eigenspaces your data at different stages of inference
+- Provides you basic tooling for experiment logging
 
 ------------------
 
 ## Motivation
 
-Designing a deep neural network involves optimizing over a wide range of parameters and hyperparameters. Delve allows you to visualize your layer saturation during training so you can grow and shrink layers as needed.  
+Designing a deep neural network is a trial and error heavy process that mostly revolves around comparing 
+performance metrics of different runs.
+One of the key issues with this development process is that the results of metrics not realy propagte back easily
+to concrete design improvements.
+Delve provides you with spectral analysis tools that allow you to investigate the inference
+dynamic evolving in the model while training.
+This allows you to spot underutilized and unused layers. Missmatches between
+object size and neural architecture among other inefficiencies.
+These observations can be propagated back directly to design changes in the architecture even before
+the model has fully converged, allowing for a quicker and mor guided design process. 
 
-## Demo
-
-![live layer saturation demo](images/layer-saturation-convnet.gif)
-
-![example_fc.gif](images/example_fc.gif)
-
-## Getting Started
+## Installation
 
 ```bash
 pip install delve
 ```
 
-### Layer Saturation
 
-#### PyTorch
+### Using Layer Saturation to improve model performance
+The saturation metric is the core feature of delve. By default saturation is a value between 0 and 1.0 computed
+for any convolutional, lstm or dense layer in the network.
+The saturation describes the percentage of eigendirections required for explaining 99% of the variance.
+Simply speaking, it tells you how much your data is "filling up" the individual layers inside 
+your model.
 
-`delve.CheckLayerSat` can be configured as follows:
+In the image below you can see how saturation portraits inefficiencies in your neural network.
+The depicted model is ResNet18 trained on 32 pixel images, which is way to small for 
+a model with a receptive field exceeding 400 pixels in the final layers.
 
-```
-savefile (str)  : destination for summaries, depending on the saving strategy, this may be a directory or file
-save_to (str)   : specifies the saving strategy
-    supported writers are:
-        console     : print the stats to console everytime save() is called
-        tensorboard : logs everything in tensorboard format, in this case the savefile must be a directory
-        csv         : creates a csv file with each column corresponding to a logged variable. Everytime save() is called a new 
-                      line in the file is created
+![demo1](images/resnet.png)
 
-        
-        
-layerwise_sat (bool)    : toggles if layerwise sautration should be saved by the writer
-average_sat (bool)      : toggles if average saturation should be saved by the writer
-ignore_layer_names (list) : a list of layer names, as specified in the modules. The layers specified will be excluded in the 
-                          computation. Usefull for excluding layers which are force into a speciic saturation like softmaxes                                 or other output layers.
-include_conv (bool)     : toggle if convolutional layers should be included
-conv_method (str)       : the method used to pool the latent space of convolutional layers. Default is 'median", valid inputs
-                          'median', 'mean' and 'max'
-sat_threshold (float)   : the saturation theshold for computing the dimensionality of the latent representations. Default is
-                          .99. This value may be any floating point in 0 and 1.
-modules (torch modules or list of modules) : layer-containing object (may contain submodules)
-log_interval (int) : steps between writing summaries
-stats (list of str): list of stats to collect 
+To visualize what this poorly chosen input resolution does to the inference, we trained logistic regressions on the output of 
+every layer to solve the same task as the model.
+You can clearly see that only the first half of the model (at best) is improving 
+the intermedia solutions of our logistic regression "probes".
+The layers following this are contributing nothing to the quality of the prediction!
+You also see that saturation is extremly low for this layers!
 
-    supported stats are:
-        lsat       : layer saturation
+We call this a *tail* and it can be removed by either increasing the input resolution or
+(which is more economical) reducing the receptive field size to match the object size of your
+dataset.
 
-conv_method         : Method for calculating saturation. Use `cumvar99``, or `all`.
-                        See https://github.com/justinshenk/playground for a comparison of how they work.
-include_conv       : bool, setting to False includes only linear layers
-verbose (bool)     : print saturation for every layer during training
-```        
-Pass either a PyTorch model or `torch.nn.Linear` layers to `CheckLayerSat`:
+![demo2](images/resnetBetter.png)
 
-```python
+We can do this by removing the first two downsampling layers, which quarters the growth 
+of the receptive field of your network, which reduced not only the number of
+parameters but also makes more use of the available parameters, by making more layers
+contribute effectivly!
+
+__For more details check our publication on this topics__
+- [Spectral Analysis of Latent Representations](https://arxiv.org/abs/1907.08589)
+- [Feature Space Saturation during Training](https://arxiv.org/abs/2006.08679)
+- Size Matters (soon)
+
+
+## Demo
+
+````python
+
+import torch
 from delve import CheckLayerSat
+from torch.cuda import is_available
+from torch.nn import CrossEntropyLoss
+from torchvision.datasets import CIFAR10
+from torchvision.transforms import ToTensor, Compose
+from torch.utils.data.dataloader import DataLoader
+from torch.optim import Adam
+from torchvision.models.vgg import vgg16
 
-model = TwoLayerNet() # PyTorch network
-stats = CheckLayerSat('runs', model) #logging directory and input
+# setup compute device
+from tqdm import tqdm
 
-... # setup data loader
+if __name__ == "__main__":
 
-for i, data in enumerate(train_loader):    
-    stats.saturation() # output saturation
-```
+    device = "cuda:0" if is_available() else "cpu"
 
-Only fully-connected and convolutional layers are currently supported.
+    # Get some data
+    train_data = CIFAR10(root="./tmp", train=True,
+                         download=True, transform=Compose([ToTensor()]))
+    test_data = CIFAR10(root="./tmp", train=False, download=True, transform=Compose([ToTensor()]))
 
-To log the saturation to console, call `stats.saturation()`. For example:
+    train_loader = DataLoader(train_data, batch_size=1024,
+                              shuffle=True, num_workers=6,
+                              pin_memory=True)
+    test_loader = DataLoader(test_data, batch_size=1024,
+                             shuffle=False, num_workers=6,
+                             pin_memory=True)
 
-```bash
-Regression - SixLayerNet - Hidden layer size 10                        │
-loss=0.231825:  68%|████████████████████▎         | 1350/2000 [00:04<00:02, 289.30it/s]│
-linear1:  90%|█████████████████████████████████▎   | 90.0/100 [00:00<00:00, 453.47it/s]│
-linear2:  18%|██████▊                               | 18.0/100 [00:00<00:00, 90.68it/s]│
-linear3:  32%|███████████▊                         | 32.0/100 [00:00<00:00, 161.22it/s]│
-linear4:  32%|███████████▊                         | 32.0/100 [00:00<00:00, 161.24it/s]│
-linear5:  28%|██████████▎                          | 28.0/100 [00:00<00:00, 141.11it/s]│
-linear6:  90%|██████████████████████████████████▏   | 90.0/100 [00:01<00:00, 56.04it/s]
-```
+    # instantiate model
+    model = vgg16(num_classes=10).to(device)
 
-#### Keras
+    # instantiate optimizer and loss
+    optimizer = Adam(params=model.parameters())
+    criterion = CrossEntropyLoss().to(device)
 
-Two classes are provided in `delve.kerascallback`: `CustomTensorBoard`,`SaturationLogger`.
+    # initialize delve
+    tracker = CheckLayerSat("my_experiment", save_to="plotcsv", modules=model, device=device)
 
-`CustomTensorBoard` takes two parameters:
+    # begin training
+    for epoch in range(10):
+        model.train()
+        for (images, labels) in tqdm(train_loader):
+            images, labels = images.to(device), labels.to(device)
+            prediction = model(images)
+            optimizer.zero_grad(set_to_none=True)
+            with torch.cuda.amp.autocast():
+                outputs = model(images)
+                _, predicted = torch.max(outputs.data, 1)
 
-| Argument | Description |
-| --- | --- |
-| `log_dir` | location for writing summaries |
-| `user_defined_freq` |  frequency for writing summaries |
-| `kwargs` | passed to `tf.keras.callbacks.TensorBoard` |
+                loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-`SaturationLogger` contains two parameters:
+        total = 0
+        test_loss = 0
+        correct = 0
+        model.eval()
+        for (images, labels) in tqdm(test_loader):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            _, predicted = torch.max(outputs.data, 1)
 
-| Argument | Description |
-| --- | --- |
-| `model` | Keras model |
-| `input_data` |  data for passing through the model |
-| `print_freq` |  frequency for printing |
- 
- Example usage:
+            total += labels.size(0)
+            correct += torch.sum((predicted == labels)).item()
+            test_loss += loss.item()
+    
+        # add some additional metrics we want to keep track of
+        tracker.add_scalar("accuracy", correct / total)
+        tracker.add_scalar("loss", test_loss / total)
 
-``` python
-from delve.kerascallback import CustomTensorBoard, SaturationLogger
+        # add saturation to the mix
+        tracker.add_saturations()
 
-...
+    # close the tracker to finish training
+    tracker.close()
 
-# Tensorboard logging
-tbCallBack = CustomTensorBoard(log_dir='./runs', user_defined_freq=1)
-
-# Console logging
-saturation_logger = SaturationLogger(model, input_data=input_x_train[:2], print_freq=1)
-
-...
-
-# Add callback to Keras `fit` method
-model.fit(x_train, y_train,
-          epochs=100,
-          batch_size=128,
-          callbacks=[saturation_logger]) # can also pass tbCallBack
-```
-
-Output:
-
-```bash
-Epoch 29/100
- 128/1000 [==>...........................] - ETA: 0s - loss: 2.2783 - acc: 0.1406
-dense_1  : %0.83 | dense_2  : %0.79 | dense_3  : %0.67 |
-```
-
-#### Optimize neural network topology
-
-Ever wonder how big your fully-connected layers should be? Delve helps you visualize the effect of modifying the layer size on your layer saturation.
-
-For example, see how modifying the hidden layer size of this network affects the second layer saturation but not the first. Multiple runs show that the fully-connected "linear2" layer (light blue is 256-wide and orange is 8-wide) saturation is sensitive to layer size:
-
-![saturation](images/layer1-saturation.png)
-
-![saturation](images/layer2-saturation.png)
-
-### Log spectral analysis
-
-Writes the top 5 eigenvalues of each layer to TensorBoard summaries:
-
-```python
-# PyTorch-only
-stats = CheckLayerSat('runs', layers, 'spectrum')
-```
-
-Other options
-![spectrum](images/spectrum.png)
-
-### Intrinsic dimensionality
-
-View the intrinsic dimensionality of models in realtime:
-
-
-![intrinsic_dimensionality-layer2](images/layer2-intrinsic.png)
-
-This comparison suggests that the 8-unit layer (light blue) is too saturated and that a larger layer is needed.
+````
 
 ### Why this name, Delve?
 
