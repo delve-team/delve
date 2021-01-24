@@ -46,7 +46,7 @@ In the image below you can see how saturation portraits inefficiencies in your n
 The depicted model is ResNet18 trained on 32 pixel images, which is way to small for 
 a model with a receptive field exceeding 400 pixels in the final layers.
 
-![demo1](images/resnet.png)
+![demo1](./images/resnet.png)
 
 To visualize what this poorly chosen input resolution does to the inference, we trained logistic regressions on the output of 
 every layer to solve the same task as the model.
@@ -59,7 +59,7 @@ We call this a *tail* and it can be removed by either increasing the input resol
 (which is more economical) reducing the receptive field size to match the object size of your
 dataset.
 
-![demo2](images/resnetBetter.png)
+![demo2](./images/resnetBetter.png)
 
 We can do this by removing the first two downsampling layers, which quarters the growth 
 of the receptive field of your network, which reduced not only the number of
