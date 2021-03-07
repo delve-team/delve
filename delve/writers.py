@@ -295,15 +295,20 @@ class CSVandPlottingWriter(CSVWriter):
                 if 'embed' in key:
                     embed = True
             if sat:
-                self.stats.append('lsat')
+                self.stats.append('lsat_train')
+                self.stats.append('lsat_eval')
             if idim:
-                self.stats.append('idim')
+                self.stats.append('idim_train')
+                self.stats.append('idim_eval')
             if det:
-                self.stats.append('det')
+                self.stats.append('det_train')
+                self.stats.append('det_eval')
             if trc:
-                self.stats.append('trc')
+                self.stats.append('trc_train')
+                self.stats.append('trc_eval')
             if dtrc:
-                self.stats.append('dtrc')
+                self.stats.append('dtrc_train')
+                self.stats.append('dtrc_eval')
             if embed:
                 self.sample_stats.append('embed')
 
@@ -344,7 +349,7 @@ class CSVandPlottingWriter(CSVWriter):
         pass
 
 
-def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> Tuple[pd.DataFrame, float]:
+def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation', state_mode="train") -> Tuple[pd.DataFrame, float]:
     """
     Extracts a specific statistic for a single epoch from a result dataframe as produced by the CSV-writer
     :param df: The dataframe produced by a CSVWriter
@@ -356,7 +361,7 @@ def extract_layer_stat(df, epoch=19, primary_metric=None, stat='saturation') -> 
     """
     cols = list(df.columns)
     train_cols = [col for col in cols if
-                  'train' in col and not 'accuracy' in col and stat in col]
+                  state_mode in col and not 'accuracy' in col and stat in col]
     if not np.any(epoch == df.index.values):
         raise ValueError(f'Epoch {epoch} could not be recoreded, dataframe has only the following indices: {df.index.values}')
     epoch_df = df[df.index.values == epoch]
@@ -369,7 +374,7 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
               line=True, scatter=True, ylim=(0, 1.0), alpha_line=.6, alpha_scatter=1.0, color_line=None,
               color_scatter=None,
               primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True, show_grid=True, save=True,
-              samples=False):
+              samples=False, stat_mode="train"):
     """
 
     :param df:
@@ -434,7 +439,7 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
         plt.grid()
     plt.tight_layout()
     if save:
-        final_savepath = savepath.replace('.csv', f'{stat}_epoch_{epoch}.png')
+        final_savepath = savepath.replace('.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
         print(final_savepath)
         plt.savefig(final_savepath)
     return ax
@@ -444,24 +449,28 @@ def plot_stat_level_from_results(savepath, epoch, stat, primary_metric=None, fon
                                  scatter=True, ylim=(0, 1.0), alpha_line=.6, alpha_scatter=1.0, color_line=None,
                                  color_scatter=None,
                                  primary_metric_loc=(0.7, 0.8), show_col_label_x=True, show_col_label_y=True,
-                                 show_grid=True, save=True):
+                                 show_grid=True, save=True, stat_mode="train"):
     df = pd.read_csv(savepath, sep=';')
+    if "_" in stat:
+        stat, stat_mode = stat.split("_")
     if epoch == -1:
         epoch = df.index.values[-1]
 
-    epoch_df, pm = extract_layer_stat(df, stat=STATMAP[stat], epoch=epoch, primary_metric=primary_metric)
+    epoch_df, pm = extract_layer_stat(df, stat=STATMAP[stat], epoch=epoch, primary_metric=primary_metric, state_mode=stat_mode)
     ax = plot_stat(df=epoch_df, pm=pm, savepath=savepath, epoch=epoch, primary_metric=primary_metric, fontsize=fontsize,
                    figsize=figsize, stat=stat, ylim=None if not stat is 'lsat' else (0, 1.0), line=line, scatter=scatter,
                    alpha_line=alpha_line, alpha_scatter=alpha_scatter, color_line=color_line,
                    color_scatter=color_scatter,
                    primary_metric_loc=primary_metric_loc, show_col_label_x=show_col_label_x,
                    show_col_label_y=show_col_label_y,
-                   show_grid=show_grid, save=save)
+                   show_grid=show_grid, save=save, stat_mode=stat_mode)
     return ax
 
 
 def plot_scatter_from_results(savepath, epoch, stat, df):
     if len(df) > 0:
+        if "_" in stat:
+            stat = stat.split("_")[0]
         ax = plot_stat(df=df, savepath=savepath, epoch=epoch, stat=stat, line=False, save=True, samples=True, ylim=None)
         return ax
     else:

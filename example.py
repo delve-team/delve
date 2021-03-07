@@ -39,7 +39,7 @@ for h in [3, 32, 128]:
     x, y, model = x.to(device), y.to(device), model.to(device)
 
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), save_to="csv", modules=layers, device=device)
+    stats = CheckLayerSat('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
 
     loss_fn = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)

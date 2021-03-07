@@ -303,7 +303,7 @@ class CheckLayerSat(object):
             'dtrc',
             'embed',
         ]
-        compatible = [stat in supported_stats for stat in stats]
+        compatible = [stat in supported_stats if not "_" in stat else stat.split("_")[0] in stats for stat in stats]
         incompatible = [i for i, x in enumerate(compatible) if not x]
         assert all(compatible), "Stat {} is not supported".format(
             stats[incompatible[0]])
