@@ -333,8 +333,22 @@ class CSVandPlottingWriter(CSVWriter):
             for name in sample_value_dict.keys():
                 self.add_sample_scalar(name, sample_value_dict[name])
 
+    def _find_longest_entry(self) -> int:
+        return max(*(len(value) for value in self.value_dict.values()))
+
+    def _pad_entry(self, entry, max):
+        if len(entry) == max:
+            return entry
+        else:
+            return [np.nan for _ in range(max-entry)] + entry
+
+    def _pad_stat(self):
+        max_entry = self._find_longest_entry()
+        return {k: self._pad_entry(v, max_entry) for k, v in self.value_dict.items()}
+
     def save(self):
         self._look_for_stats()
+
         pd.DataFrame.from_dict(self.value_dict).to_csv(self.savepath + '.csv', sep=';')
         for stat in self.stats:
             plot_stat_level_from_results(self.savepath + '.csv', stat=stat, epoch=-1,
@@ -409,6 +423,8 @@ def plot_stat(df, stat, pm=-1, savepath='run.png', epoch=0, primary_metric=None,
         plt.figure(figsize=figsize)
     ax = plt.gca()
     col_names = [i for i in df.columns]
+    if np.all(np.isnan(df.values[0])):
+        return ax
     if line:
         if samples:
             pass
