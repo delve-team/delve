@@ -8,7 +8,7 @@ from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 from torch.nn.modules import LSTM
 from torch.nn.functional import interpolate
-#from mdp.utils import CovarianceMatrix
+# from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import CompositWriter, NPYWriter, STATMAP
 from delve.metrics import *
@@ -193,8 +193,10 @@ class CheckLayerSat(object):
             interpolation_downsampling: int = 32
     ):
         self.verbose = verbose
+        # self.disable_compute: bool = False
         self.include_conv = include_conv
         self.conv_method = conv_method
+        self.nosave = False
 
         self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
@@ -230,7 +232,7 @@ class CheckLayerSat(object):
         self.record = True
         for name, layer in self.layers.items():
             if isinstance(layer, Conv2d) or isinstance(layer, Linear) \
-                                  or isinstance(layer, LSTM):
+                    or isinstance(layer, LSTM):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
@@ -257,12 +259,13 @@ class CheckLayerSat(object):
 
     def __getattr__(self, name):
         if name.startswith('add_') and name != 'add_saturations':
-            if self.record:
+            if not self.nosave:
                 return getattr(self.writer, name)
             else:
                 def noop(*args, **kwargs):
-                    print(f'Not recording {args}, {kwargs}, recording is disabled')
+                    print(f'Logging disabled, not logging: {args}, {kwargs}')
                     pass
+
                 return noop
         else:
             try:
@@ -329,7 +332,7 @@ class CheckLayerSat(object):
                                  layers: dict, name_prefix: str = ''):
         if len(submodule._modules) > 0:
             for idx, (name, subsubmodule) in \
-                              enumerate(submodule._modules.items()):
+                    enumerate(submodule._modules.items()):
                 new_prefix = name if name_prefix == '' else name_prefix + \
                                                             '-' + name
                 self.get_layer_from_submodule(subsubmodule, layers, new_prefix)
@@ -338,8 +341,8 @@ class CheckLayerSat(object):
             layer_name = name_prefix
             layer_type = layer_name
             if not isinstance(submodule, Conv2d) and not \
-                   isinstance(submodule, Linear) and not \
-                   isinstance(submodule, LSTM):
+                    isinstance(submodule, Linear) and not \
+                    isinstance(submodule, LSTM):
                 print(f"Skipping {layer_type}")
                 return layers
             if isinstance(submodule, Conv2d) and self.include_conv:
@@ -391,10 +394,14 @@ class CheckLayerSat(object):
         self.register_forward_hooks(layer, self.stats)
         return self
 
-    def _record_stat(self, activations_batch: torch.Tensor, lstm_ae: bool, layer: torch.nn.Module, training_state: str, stat: str):
+    def _record_stat(self, activations_batch: torch.Tensor, lstm_ae: bool, layer: torch.nn.Module, training_state: str,
+                     stat: str):
         if activations_batch.dim() == 4:  # conv layer (B x C x H x W)
-            if self.interpolation_strategy is not None and (activations_batch.shape[3] > self.interpolation_downsampling or activations_batch.shape[2] > self.interpolation_downsampling):
-                activations_batch = interpolate(activations_batch, size=self.interpolation_downsampling, mode=self.interpolation_strategy)
+            if self.interpolation_strategy is not None and (
+                    activations_batch.shape[3] > self.interpolation_downsampling or activations_batch.shape[
+                2] > self.interpolation_downsampling):
+                activations_batch = interpolate(activations_batch, size=self.interpolation_downsampling,
+                                                mode=self.interpolation_strategy)
             if self.conv_method == 'median':
                 shape = activations_batch.shape
                 reshaped_batch = activations_batch.reshape(shape[0], shape[1], shape[2] * shape[3])
@@ -413,13 +420,13 @@ class CheckLayerSat(object):
                 reshaped_batch: torch.Tensor = reshaped_batch.flatten(1)
                 reshaped_batch: torch.Tensor = reshaped_batch.permute([1, 0])
                 activations_batch = reshaped_batch
-        elif activations_batch.dim() == 3: # LSTM layer (B x T x U)
+        elif activations_batch.dim() == 3:  # LSTM layer (B x T x U)
             if self.timeseries_method == 'timestepwise':
                 activations_batch = activations_batch.flatten(1)
             elif self.timeseries_method == 'last_timestep':
                 activations_batch = activations_batch[:, -1, :]
-                
-        if layer.name not in self.logs[f'{training_state}-{stat}']:
+
+        if layer.name not in self.logs[f'{training_state}-{stat}'] or (not isinstance(self.logs[f'{training_state}-{stat}'], TorchCovarianceMatrix) and self.record):
             save_data = 'embed' in self.stats
             self.logs[f'{training_state}-{stat}'][layer.name] = TorchCovarianceMatrix(device=self.device,
                                                                                       save_data=save_data)
@@ -433,6 +440,9 @@ class CheckLayerSat(object):
             """Hook to register in `layer` module."""
 
             if not self.record:
+                if layer.name not in self.logs[f'{"train" if layer.training else "eval"}-{"covariance-matrix"}']:
+                    save_data = 'embed' in self.stats
+                    self.logs[f'{"train" if layer.training else "eval"}-{"covariance-matrix"}'][layer.name] = np.nan
                 return
 
             # Increment step counter
@@ -450,12 +460,15 @@ class CheckLayerSat(object):
             training_state = 'train' if layer.training else 'eval'
             if layer.name not in self.seen_samples[training_state]:
                 self.seen_samples[training_state][layer.name] = 0
-            if (self.max_samples is None or self.seen_samples[training_state][layer.name] < self.max_samples) and layer.forward_iter % self.log_interval == 0:
-                num_samples = min(output.data.shape[0], self.max_samples-self.seen_samples[training_state][layer.name]) if self.max_samples is not None else output.data.shape[0]
+            if (self.max_samples is None or self.seen_samples[training_state][
+                layer.name] < self.max_samples) and layer.forward_iter % self.log_interval == 0:
+                num_samples = min(output.data.shape[0], self.max_samples - self.seen_samples[training_state][
+                    layer.name]) if self.max_samples is not None else output.data.shape[0]
                 activations_batch = output.data[:num_samples]
                 self.seen_samples[training_state][layer.name] += num_samples
                 if self.verbose:
-                    print("seen {} samples on layer {}".format(self.seen_samples[training_state][layer.name], layer.name))
+                    print(
+                        "seen {} samples on layer {}".format(self.seen_samples[training_state][layer.name], layer.name))
 
                 eig_vals = None
 
@@ -469,34 +482,44 @@ class CheckLayerSat(object):
         Computes saturation and saves all stats
         :return:
         """
-        if not self.record:
-            return
+        #if not self.record:
+        #    return
         for key in self.logs:
             train_sats = []
             val_sats = []
             for i, layer_name in enumerate(self.logs[key]):
                 if layer_name in self.ignore_layer_names:
                     continue
-                if self.logs[key][layer_name]._cov_mtx is None:
+                if self.record and self.logs[key][layer_name]._cov_mtx is None:
                     raise ValueError("Attempting to compute intrinsic"
                                      "dimensionality when covariance"
                                      "is not initialized")
-                cov_mat = self.logs[key][layer_name].fix()
+                if self.record:
+                    cov_mat = self.logs[key][layer_name].fix()
                 log_values = {}
                 sample_log_values = {}
                 for stat in self.stats:
                     if stat == 'lsat':
-                        log_values[key.replace(STATMAP['cov'], STATMAP['lsat'])+'_'+layer_name] = compute_saturation(cov_mat, thresh=self.threshold)
+                        log_values[
+                            key.replace(STATMAP['cov'], STATMAP['lsat']) + '_' + layer_name] = compute_saturation(
+                            cov_mat, thresh=self.threshold) if self.record else np.nan
                     elif stat == 'idim':
-                        log_values[key.replace(STATMAP['cov'], STATMAP['idim'])+'_'+layer_name] = compute_intrinsic_dimensionality(cov_mat, thresh=self.threshold)
+                        log_values[key.replace(STATMAP['cov'],
+                                               STATMAP['idim']) + '_' + layer_name] = compute_intrinsic_dimensionality(
+                            cov_mat, thresh=self.threshold) if self.record else np.nan
                     elif stat == 'cov':
-                        log_values[key+'_'+layer_name] = cov_mat.cpu().numpy()
+                        log_values[key + '_' + layer_name] = cov_mat.cpu().numpy()
                     elif stat == 'det':
-                        log_values[key.replace(STATMAP['cov'], STATMAP['det'])+'_'+layer_name] = compute_cov_determinant(cov_mat)
+                        log_values[
+                            key.replace(STATMAP['cov'], STATMAP['det']) + '_' + layer_name] = compute_cov_determinant(
+                            cov_mat) if self.record else np.nan
                     elif stat == 'trc':
-                        log_values[key.replace(STATMAP['cov'], STATMAP['trc'])+'_'+layer_name] = compute_cov_trace(cov_mat)
+                        log_values[key.replace(STATMAP['cov'], STATMAP['trc']) + '_' + layer_name] = compute_cov_trace(
+                            cov_mat)
                     elif stat == 'dtrc':
-                        log_values[key.replace(STATMAP['cov'], STATMAP['dtrc'])+'_'+layer_name] = compute_diag_trace(cov_mat)
+                        log_values[
+                            key.replace(STATMAP['cov'], STATMAP['dtrc']) + '_' + layer_name] = compute_diag_trace(
+                            cov_mat)
                     elif stat == 'embed':
                         transformation_matrix = torch.mm(cov_mat[0:2].transpose(0, 1), cov_mat[0:2])
                         saved_samples = self.logs[key][layer_name].saved_samples
@@ -505,7 +528,7 @@ class CheckLayerSat(object):
                             coord = torch.matmul(transformation_matrix, sample)
                             sample_log_values['embed'].append((coord[0], coord[1]))
                 self.seen_samples[key.split('-')[0]][layer_name] = 0
-                if self.reset_covariance:
+                if self.reset_covariance and self.record:
                     self.logs[key][layer_name]._cov_mtx = None
                 if self.layerwise_sat:
                     self.writer.add_scalars(prefix='', value_dict=log_values, sample_value_dict=sample_log_values)

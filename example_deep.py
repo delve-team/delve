@@ -1,5 +1,6 @@
 import torch
 from delve import CheckLayerSat
+from delve.writers import CSVandPlottingWriter
 from torch.cuda import is_available
 from torch.nn import CrossEntropyLoss
 from torchvision.datasets import CIFAR10
@@ -15,7 +16,7 @@ from delve.writers import CSVandPlottingWriter
 
 if __name__ == "__main__":
 
-    device = "cuda:0" if is_available() else "cpu"
+    device = "cuda:1" if is_available() else "cpu"
 
     # Get some data
     train_data = CIFAR10(root="./tmp", train=True,
@@ -37,10 +38,15 @@ if __name__ == "__main__":
     criterion = CrossEntropyLoss().to(device)
 
     # initialize delve
-    tracker = CheckLayerSat("my_experiment", save_to="plotcsv", stats=["lsat"], modules=model, device=device)
+    tracker = CheckLayerSat("experiment", save_to="plotcsv", stats=["lsat"], modules=model, device=device)
 
     # begin training
     for epoch in range(10):
+        # only record saturation for uneven epochs
+        if epoch %2 == 1:
+            tracker.resume()
+        else:
+            tracker.stop()
         model.train()
         for (images, labels) in tqdm(train_loader):
             images, labels = images.to(device), labels.to(device)
@@ -74,6 +80,7 @@ if __name__ == "__main__":
 
         # add saturation to the mix
         tracker.add_saturations()
+        tracker.save()
 
     # close the tracker to finish training
     tracker.close()
