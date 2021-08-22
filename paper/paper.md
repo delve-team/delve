@@ -5,10 +5,10 @@ tags:
   - deep learning
   - saturation
 authors:
-  - name: Justin Shenk
+  - name: Justin Shenk^[co-first author]
     orcid: 0000-0002-0664-7337
     affiliation: "1,2"
-  - name: Mats L. Richter
+  - name: Mats L. Richter^[co-first author]
     affiliation: 3
     orcid: 0000-0002-9525-9730
   - name: Wolf Byttner
