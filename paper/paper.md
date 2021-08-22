@@ -36,7 +36,7 @@ Tools such as ... allow ...
 [Limitation of these methods]
 
 Delve is a Python package for statistical analysis of neural network layer eigenspaces.
-Delve hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard events or CSV writers. 
+Delve hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers. 
 A comprehensive source of documentation is provided on the home page
 ([http://delve-docs.readthedocs.io](delve-docs.readthedocs.io)).
 
@@ -48,7 +48,7 @@ By packaging a library that is particularly useful for extracting statistics fro
 ## Overview of the Library
 The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>. The ... module provides ...
 
-Subclassing the TensorBoardX `SummaryWriter`...
+Subclassing the TensorBoardX `SummaryWriter` [@tensorflow2015-whitepaper]...
 
 ## Eigendecomposition of the feature covariance matrix
 
