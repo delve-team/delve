@@ -9,20 +9,18 @@ authors:
     orcid: 0000-0002-0664-7337
     affiliation: "1,2"
   - name: Mats L. Richter^[co-first author]
-    affiliation: 3
+    affiliation: 2
     orcid: 0000-0002-9525-9730
   - name: Wolf Byttner
-    affiliation: 4
+    affiliation: 3
     orcid: 0000-0002-9525-9730
 affiliations:
  - name: VisioLab, Berlin, Germany
    index: 1
- - name: Peltarion, Stockholm, Sweden
-   index: 2
  - name: Institute of Cognitive Science, University of Osnabrueck, Osnabrueck, Germany
-   index: 3
+   index: 2
  - name: Rapid Health, London, England, United Kingdom
-   index: 4
+   index: 3
 date: 16 August 2021
 bibliography: paper.bib
 ---
