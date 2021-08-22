@@ -13,6 +13,10 @@ class TorchCovarianceMatrix(object):
         \end{eqnarray}
 
     for :math:`B` batches of layer output matrix :math:`A_l` and :math:`n` number of samples.
+
+    .. note::
+
+        Method enforces float-64 precision, which may cause numerical instability in some cases.
     """
     def __init__(self,
                  bias: bool = False,
