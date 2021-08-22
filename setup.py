@@ -5,9 +5,21 @@ from setuptools import setup, find_packages
 
 import os
 import os.path as path
-from delve.version import __version__
+import re
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+def read(*parts):
+    with open(os.path.join(here, *parts), "r", encoding="utf8") as fp:
+        return fp.read()
+
 # Get package version
-exec(open('delve/version.py', 'r').read())
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
@@ -20,7 +32,7 @@ with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='delve',
-    version=__version__,
+    version=find_version("delve", "__init__.py"),
     description=
     'Delve lets you monitor PyTorch model layer saturation during training',
     url='https://github.com/delve-team/delve',
