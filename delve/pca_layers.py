@@ -6,27 +6,38 @@ from torch.nn.functional import interpolate
 global num
 
 
-def rvs(dim=3):
-     random_state = np.random
-     H = np.eye(dim)
-     D = np.ones((dim,))
-     for n in range(1, dim):
-         x = random_state.normal(size=(dim-n+1,))
-         D[n-1] = np.sign(x[0])
-         x[0] -= D[n-1]*np.sqrt((x*x).sum())
-         # Householder transformation
-         Hx = (np.eye(dim-n+1) - 2.*np.outer(x, x)/(x*x).sum())
-         mat = np.eye(dim)
-         mat[n-1:, n-1:] = Hx
-         H = np.dot(H, mat)
-         # Fix the last sign such that the determinant is 1
-     D[-1] = (-1)**(1-(dim % 2))*D.prod()
-     # Equivalent to np.dot(np.diag(D), H) but faster, apparently
-     H = (D*H.T).T
-     return H
+def rvs(dim=3) -> np.ndarray:
+    """Create random orthonormal matrix of size ``dim``.
+    
+    .. note:: 
+    
+        Yanked from hpaulj's implementation of SciPy's :func:`scipy.stats.special_ortho_group` in Numpy at https://stackoverflow.com/questions/38426349/how-to-create-random-orthonormal-matrix-in-python-numpy which is from the paper:
+
+        Stewart, G.W., "The efficient generation of random orthogonal
+        matrices with an application to condition estimators", SIAM Journal
+        on Numerical Analysis, 17(3), pp. 403-409, 1980.
+
+    """
+    random_state = np.random
+    H = np.eye(dim)
+    D = np.ones((dim,))
+    for n in range(1, dim):
+        x = random_state.normal(size=(dim-n+1,))
+        D[n-1] = np.sign(x[0])
+        x[0] -= D[n-1]*np.sqrt((x*x).sum())
+        # Householder transformation
+        Hx = (np.eye(dim-n+1) - 2.*np.outer(x, x)/(x*x).sum())
+        mat = np.eye(dim)
+        mat[n-1:, n-1:] = Hx
+        H = np.dot(H, mat)
+        # Fix the last sign such that the determinant is 1
+    D[-1] = (-1)**(1-(dim % 2))*D.prod()
+    # Equivalent to np.dot(np.diag(D), H) but faster, apparently
+    H = (D*H.T).T
+    return H
 
 
-def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: float, network: Module, verbose: bool = False, device='cpu', include_names: bool = False):
+def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: float, network: Module, verbose: bool = False, device='cpu', include_names: bool = False) -> list, list, list:
     in_dims = []
     fs_dims = []
     sat = []
@@ -106,7 +117,7 @@ def change_all_pca_layer_centering(centering: bool, network: Module, verbose: bo
 
 
 class LinearPCALayer(Module):
-
+    """Eigenspace of the autocorrelation matrix generated in TorchCovarianceMatrix"""
     num = 0
 
     def __init__(self, in_features: int,
@@ -235,7 +246,7 @@ class LinearPCALayer(Module):
 
 
 class Conv2DPCALayer(LinearPCALayer):
-
+    """Compute PCA of Conv2D layer"""
     def __init__(self, in_filters, threshold: float = 0.99, verbose: bool = True, gradient_epoch_start: int = 20, centering: bool = False, downsampling: int = None):
         super(Conv2DPCALayer, self).__init__(centering=centering, in_features=in_filters, threshold=threshold, keepdim=True, verbose=verbose, gradient_epoch_start=gradient_epoch_start)
         if verbose:

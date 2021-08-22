@@ -2,8 +2,15 @@ import torch
 
 
 class TorchCovarianceMatrix(object):
-    """Computes covariance matrix"""
-    def __init__(self, bias=False, device='cuda:0', save_data=False):
+    """Computes covariance matrix of features as described in https://arxiv.org/pdf/2006.08679.pdf:
+    
+    .. math::
+        
+        Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)
+
+        for $B$ batches of layer output matrix $A_l$ and $n$ number of samples.
+    """
+    def __init__(self, bias:bool=False, device:str='cuda:0', save_data:bool=False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
         # covariance matrix, updated during the training phase
@@ -40,7 +47,7 @@ class TorchCovarianceMatrix(object):
         self._avg = torch.zeros((dim)).type(torch.float64).to(self.device)
         self._tlen = 0
 
-    def update(self, x, vae):
+    def update(self, x: torch.Tensor, vae: bool):
         """Update internal structures given a batch of data
         """
         x = x.type(torch.float64).to(device=self.device)
