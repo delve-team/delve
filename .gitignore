@@ -109,3 +109,5 @@ docs/build/
 .DS_Store
 .idea/
 .vscode/
+
+.pickle
