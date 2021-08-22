@@ -58,7 +58,7 @@ class CheckLayerSat(object):
         writers_args (dict) : contains additional arguments passed over to the
                               writers. This is only used, when a writer is
                               initialized through a string-key.
-        log_interval (int) : distances between two batches used for updaing the
+        log_interval (int) : distances between two batches used for updating the
                              covariance matrix. Default value is 1, which means
                              that all data is used for computing
                              intrinsic dimensionality and saturation.
