@@ -104,7 +104,6 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             specified for summary visualization.
         kwargs: Passed to tf.keras.callbacks.TensorBoard.
     """
-
     def __init__(self, user_defined_freq=0, **kwargs):
         self.user_defined_freq = user_defined_freq
         super(CustomTensorBoard, self).__init__(**kwargs)
@@ -125,7 +124,6 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             # pylint: enable=protected-access
 
         super(CustomTensorBoard, self).on_epoch_begin(epoch, logs=None)
-
 
     def on_epoch_end(self, epoch, logs=None):
         """Checks if summary ops should run next epoch, logs scalar summaries."""
@@ -150,7 +148,6 @@ class SaturationMetric(keras.callbacks.Callback):
             input_data: sample input to calculate layer saturation with, eg train
             print_freq
     """
-
     def __init__(self, model, input_data, print_freq=1):
         self.model = model
         self.input_data = input_data
@@ -189,7 +186,6 @@ class SaturationLogger(keras.callbacks.Callback):
             input_data: sample input to calculate layer saturation with, eg train
             print_freq
     """
-
     def __init__(self, model, input_data, print_freq=1):
         self.model = model
         self.input_data = input_data

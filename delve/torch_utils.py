@@ -10,7 +10,10 @@ class TorchCovarianceMatrix(object):
 
         for $B$ batches of layer output matrix $A_l$ and $n$ number of samples.
     """
-    def __init__(self, bias:bool=False, device:str='cuda:0', save_data:bool=False):
+    def __init__(self,
+                 bias: bool = False,
+                 device: str = 'cuda:0',
+                 save_data: bool = False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
         # covariance matrix, updated during the training phase
@@ -35,14 +38,15 @@ class TorchCovarianceMatrix(object):
         """
         x = x.type(torch.float64).to(device=self.device)
         # init dtype
-        if len(x.shape) >1:
+        if len(x.shape) > 1:
             dim = x.shape[1]
         else:
             dim = x.shape[0]
 
         self._input_dim = dim
         # init covariance matrix
-        self._cov_mtx = torch.zeros((dim, dim)).type(torch.float64).to(self.device)
+        self._cov_mtx = torch.zeros(
+            (dim, dim)).type(torch.float64).to(self.device)
         # init average
         self._avg = torch.zeros((dim)).type(torch.float64).to(self.device)
         self._tlen = 0
@@ -56,9 +60,10 @@ class TorchCovarianceMatrix(object):
         # update the covariance matrix, the average and the number of
         # observations (try to do everything inplace)
         if vae:
-            if x.dim() == 3: # For single layer of LSTM; TODO: Support for Multiple layers in single LSTM instance
+            if x.dim(
+            ) == 3:  # For single layer of LSTM; TODO: Support for Multiple layers in single LSTM instance
                 x = x.squeeze().t()
-            elif x.dim() == 2: # Single layer of FC Linear
+            elif x.dim() == 2:  # Single layer of FC Linear
                 x = x.t()
             else:
                 x = x.unsqueeze(0).t()

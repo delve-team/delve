@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import torch
 from torch.nn import Module
 import numpy as np
@@ -20,24 +22,29 @@ def rvs(dim=3) -> np.ndarray:
     """
     random_state = np.random
     H = np.eye(dim)
-    D = np.ones((dim,))
+    D = np.ones((dim, ))
     for n in range(1, dim):
-        x = random_state.normal(size=(dim-n+1,))
-        D[n-1] = np.sign(x[0])
-        x[0] -= D[n-1]*np.sqrt((x*x).sum())
+        x = random_state.normal(size=(dim - n + 1, ))
+        D[n - 1] = np.sign(x[0])
+        x[0] -= D[n - 1] * np.sqrt((x * x).sum())
         # Householder transformation
-        Hx = (np.eye(dim-n+1) - 2.*np.outer(x, x)/(x*x).sum())
+        Hx = (np.eye(dim - n + 1) - 2. * np.outer(x, x) / (x * x).sum())
         mat = np.eye(dim)
-        mat[n-1:, n-1:] = Hx
+        mat[n - 1:, n - 1:] = Hx
         H = np.dot(H, mat)
         # Fix the last sign such that the determinant is 1
-    D[-1] = (-1)**(1-(dim % 2))*D.prod()
+    D[-1] = (-1)**(1 - (dim % 2)) * D.prod()
     # Equivalent to np.dot(np.diag(D), H) but faster, apparently
-    H = (D*H.T).T
+    H = (D * H.T).T
     return H
 
 
-def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: float, network: Module, verbose: bool = False, device='cpu', include_names: bool = False) -> list, list, list:
+def change_all_pca_layer_thresholds_and_inject_random_directions(
+        threshold: float,
+        network: Module,
+        verbose: bool = False,
+        device='cpu',
+        include_names: bool = False) -> Tuple[list, list, list]:
     in_dims = []
     fs_dims = []
     sat = []
@@ -51,7 +58,8 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: floa
             fs_dims.append(module.fs_dim)
             sat.append(module.sat)
             fake_projection = fake_base @ fake_base.T
-            module.transformation_matrix.data = torch.from_numpy(fake_projection.astype('float32')).to(device)
+            module.transformation_matrix.data = torch.from_numpy(
+                fake_projection.astype('float32')).to(device)
             names.append(f'Linear-{lc["lin"]}')
             lc["lin"] += 1
             if verbose:
@@ -63,8 +71,10 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: floa
             sat.append(module.sat)
             fake_base = rvs(module.fs_dim)[:, :module.in_dim]
             fake_projection = fake_base @ fake_base.T
-            module.transformation_matrix.data = torch.from_numpy(fake_projection.astype('float32')).to(device)
-            weight = torch.nn.Parameter(module.transformation_matrix.unsqueeze(2).unsqueeze(3))
+            module.transformation_matrix.data = torch.from_numpy(
+                fake_projection.astype('float32')).to(device)
+            weight = torch.nn.Parameter(
+                module.transformation_matrix.unsqueeze(2).unsqueeze(3))
             module.convolution.weight = weight
             names.append(f'Conv-{lc["conv"]}')
             lc['conv'] += 1
@@ -75,14 +85,17 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(threshold: floa
     return sat, in_dims, fs_dims
 
 
-def change_all_pca_layer_thresholds(threshold: float, network: Module, verbose: bool = False):
+def change_all_pca_layer_thresholds(threshold: float,
+                                    network: Module,
+                                    verbose: bool = False):
     in_dims = []
     fs_dims = []
     sat = []
     names = []
     lc = {'lin': 0, 'conv': 0}
     for module in network.modules():
-        if isinstance(module, Conv2DPCALayer) or isinstance(module, LinearPCALayer):
+        if isinstance(module, Conv2DPCALayer) or isinstance(
+                module, LinearPCALayer):
             module.threshold = threshold
             in_dims.append(module.in_dim)
             fs_dims.append(module.fs_dim)
@@ -98,12 +111,16 @@ def change_all_pca_layer_thresholds(threshold: float, network: Module, verbose: 
     return sat, in_dims, fs_dims, names
 
 
-def change_all_pca_layer_centering(centering: bool, network: Module, verbose: bool = False, downsampling=None):
+def change_all_pca_layer_centering(centering: bool,
+                                   network: Module,
+                                   verbose: bool = False,
+                                   downsampling=None):
     in_dims = []
     fs_dims = []
     sat = []
     for module in network.modules():
-        if isinstance(module, Conv2DPCALayer) or isinstance(module, LinearPCALayer):
+        if isinstance(module, Conv2DPCALayer) or isinstance(
+                module, LinearPCALayer):
             module.centering = centering
             if isinstance(module, Conv2DPCALayer):
                 print('Changed downsampling to ', downsampling)
@@ -120,20 +137,30 @@ class LinearPCALayer(Module):
     """Eigenspace of the autocorrelation matrix generated in TorchCovarianceMatrix"""
     num = 0
 
-    def __init__(self, in_features: int,
+    def __init__(self,
+                 in_features: int,
                  threshold: float = .99,
                  keepdim: bool = True,
                  verbose: bool = False,
                  gradient_epoch_start: int = 20,
                  centering: bool = True):
         super(LinearPCALayer, self).__init__()
-        self.register_buffer('eigenvalues', torch.zeros(in_features, dtype=torch.float64))
-        self.register_buffer('eigenvectors', torch.zeros((in_features, in_features), dtype=torch.float64))
-        self.register_buffer('_threshold', torch.Tensor([threshold]).type(torch.float64))
-        self.register_buffer('sum_squares', torch.zeros((in_features, in_features), dtype=torch.float64))
-        self.register_buffer('seen_samples', torch.zeros(1, dtype=torch.float64))
-        self.register_buffer('running_sum', torch.zeros(in_features, dtype=torch.float64))
-        self.register_buffer('mean', torch.zeros(in_features, dtype=torch.float32))
+        self.register_buffer('eigenvalues',
+                             torch.zeros(in_features, dtype=torch.float64))
+        self.register_buffer(
+            'eigenvectors',
+            torch.zeros((in_features, in_features), dtype=torch.float64))
+        self.register_buffer('_threshold',
+                             torch.Tensor([threshold]).type(torch.float64))
+        self.register_buffer(
+            'sum_squares',
+            torch.zeros((in_features, in_features), dtype=torch.float64))
+        self.register_buffer('seen_samples', torch.zeros(1,
+                                                         dtype=torch.float64))
+        self.register_buffer('running_sum',
+                             torch.zeros(in_features, dtype=torch.float64))
+        self.register_buffer('mean',
+                             torch.zeros(in_features, dtype=torch.float32))
         self.keepdim: bool = keepdim
         self.verbose: bool = verbose
         self.pca_computed: bool = True
@@ -153,7 +180,8 @@ class LinearPCALayer(Module):
 
     @threshold.setter
     def threshold(self, threshold: float) -> None:
-        self._threshold.data = torch.Tensor([threshold]).type(torch.float64).to(self.threshold.device)
+        self._threshold.data = torch.Tensor([threshold]).type(
+            torch.float64).to(self.threshold.device)
         self._compute_pca_matrix()
 
     @property
@@ -169,7 +197,7 @@ class LinearPCALayer(Module):
         if self.data_dtype is None:
             self.data_dtype = x.dtype
         x = x.type(torch.float64)
-       # print(x.dtype)
+        # print(x.dtype)
         self.sum_squares.data += torch.matmul(x.transpose(0, 1), x)
         self.running_sum += x.sum(dim=0)
         self.seen_samples.data += x.shape[0]
@@ -177,7 +205,7 @@ class LinearPCALayer(Module):
     def _compute_autorcorrelation(self) -> torch.Tensor:
         tlen = self.seen_samples
         cov_mtx = self.sum_squares
-        cov_mtx = cov_mtx/tlen
+        cov_mtx = cov_mtx / tlen
         avg = self.running_sum / tlen
         if self.centering:
             avg_mtx = torch.ger(avg, avg)
@@ -185,16 +213,23 @@ class LinearPCALayer(Module):
         return cov_mtx
 
     def _compute_eigenspace(self):
-        self.eigenvalues.data, self.eigenvectors.data = self._compute_autorcorrelation().symeig(True)#.type(self.data_dtype)
+        self.eigenvalues.data, self.eigenvectors.data = self._compute_autorcorrelation(
+        ).symeig(True)  #.type(self.data_dtype)
         self.eigenvalues.data, idx = self.eigenvalues.sort(descending=True)
         # correct numerical error, matrix must be positivly semi-definitie
         self.eigenvalues[self.eigenvalues < 0] = 0
         self.eigenvectors.data = self.eigenvectors[:, idx]
 
     def _reset_autorcorrelation(self):
-        self.sum_squares.data = torch.zeros(self.sum_squares.shape, dtype=torch.float64).to(self.sum_squares.device)
-        self.seen_samples.data = torch.zeros(self.seen_samples.shape, dtype=torch.float64).to(self.sum_squares.device)
-        self.running_sum.data = torch.zeros(self.running_sum.shape, dtype=torch.float64).to(self.sum_squares.device)
+        self.sum_squares.data = torch.zeros(self.sum_squares.shape,
+                                            dtype=torch.float64).to(
+                                                self.sum_squares.device)
+        self.seen_samples.data = torch.zeros(self.seen_samples.shape,
+                                             dtype=torch.float64).to(
+                                                 self.sum_squares.device)
+        self.running_sum.data = torch.zeros(self.running_sum.shape,
+                                            dtype=torch.float64).to(
+                                                self.sum_squares.device)
 
     def _compute_pca_matrix(self):
         if self.verbose:
@@ -204,18 +239,28 @@ class LinearPCALayer(Module):
         eigen_space = self.eigenvectors[:, percentages < self.threshold]
         if eigen_space.shape[1] == 0:
             eigen_space = self.eigenvectors[:, :1]
-            print(f'Detected singularity defaulting to single dimension {eigen_space.shape}')
-        elif self.threshold - (percentages[percentages < self.threshold][-1]) > 0.02:
-            print(f'Highest cumvar99 is {percentages[percentages < self.threshold][-1]}, extending eigenspace by one dimension for eigenspace of {eigen_space.shape}')
-            eigen_space = self.eigenvectors[:, :eigen_space.shape[1]+1]
+            print(
+                f'Detected singularity defaulting to single dimension {eigen_space.shape}'
+            )
+        elif self.threshold - (
+                percentages[percentages < self.threshold][-1]) > 0.02:
+            print(
+                f'Highest cumvar99 is {percentages[percentages < self.threshold][-1]}, extending eigenspace by one dimension for eigenspace of {eigen_space.shape}'
+            )
+            eigen_space = self.eigenvectors[:, :eigen_space.shape[1] + 1]
 
-        sat = round((eigen_space.shape[1] / self.eigenvalues.shape[0])*100, 4)
+        sat = round((eigen_space.shape[1] / self.eigenvalues.shape[0]) * 100,
+                    4)
         fs_dim = eigen_space.shape[0]
         in_dim = eigen_space.shape[1]
         if self.verbose:
-            print(f'Saturation: {round(eigen_space.shape[1] / self.eigenvalues.shape[0], 4)}%', 'Eigenspace has shape', eigen_space.shape)
-        self.transformation_matrix: torch.Tensor = eigen_space.matmul(eigen_space.t()).type(torch.float32)
-        self.reduced_transformation_matrix: torch.Tensor = eigen_space.type(torch.float32)
+            print(
+                f'Saturation: {round(eigen_space.shape[1] / self.eigenvalues.shape[0], 4)}%',
+                'Eigenspace has shape', eigen_space.shape)
+        self.transformation_matrix: torch.Tensor = eigen_space.matmul(
+            eigen_space.t()).type(torch.float32)
+        self.reduced_transformation_matrix: torch.Tensor = eigen_space.type(
+            torch.float32)
         self.sat, self.in_dim, self.fs_dim = sat, in_dim, fs_dim
 
     def forward(self, x):
@@ -236,30 +281,49 @@ class LinearPCALayer(Module):
                     return x @ self.transformation_matrix.t()
                 else:
                     self.mean = self.mean.to(x.device)
-                    self.transformation_matrix = self.transformation_matrix.to(x.device)
-                    return ((x-self.mean) @ self.transformation_matrix.t()) + self.mean
+                    self.transformation_matrix = self.transformation_matrix.to(
+                        x.device)
+                    return ((x - self.mean)
+                            @ self.transformation_matrix.t()) + self.mean
             else:
                 if not self.centering:
                     return x @ self.reduced_transformation_matrix
                 else:
-                    return ((x-self.mean) @ self.reduced_transformation_matrix) + self.mean
+                    return ((x - self.mean)
+                            @ self.reduced_transformation_matrix) + self.mean
 
 
 class Conv2DPCALayer(LinearPCALayer):
     """Compute PCA of Conv2D layer"""
-    def __init__(self, in_filters, threshold: float = 0.99, verbose: bool = True, gradient_epoch_start: int = 20, centering: bool = False, downsampling: int = None):
-        super(Conv2DPCALayer, self).__init__(centering=centering, in_features=in_filters, threshold=threshold, keepdim=True, verbose=verbose, gradient_epoch_start=gradient_epoch_start)
+    def __init__(self,
+                 in_filters,
+                 threshold: float = 0.99,
+                 verbose: bool = True,
+                 gradient_epoch_start: int = 20,
+                 centering: bool = False,
+                 downsampling: int = None):
+        super(Conv2DPCALayer,
+              self).__init__(centering=centering,
+                             in_features=in_filters,
+                             threshold=threshold,
+                             keepdim=True,
+                             verbose=verbose,
+                             gradient_epoch_start=gradient_epoch_start)
         if verbose:
             print('Added Conv2D PCA Layer')
         self.convolution = torch.nn.Conv2d(in_channels=in_filters,
                                            out_channels=in_filters,
-                                           kernel_size=1, stride=1, bias=True)
-        self.mean_subtracting_convolution = torch.nn.Conv2d(in_channels=in_filters,
-                                                              out_channels=in_filters,
-                                                              kernel_size=1, stride=1, bias=True)
+                                           kernel_size=1,
+                                           stride=1,
+                                           bias=True)
+        self.mean_subtracting_convolution = torch.nn.Conv2d(
+            in_channels=in_filters,
+            out_channels=in_filters,
+            kernel_size=1,
+            stride=1,
+            bias=True)
         self.mean_subtracting_convolution.weight = torch.nn.Parameter(
-            torch.zeros((in_filters, in_filters)).unsqueeze(2).unsqueeze(3)
-        )
+            torch.zeros((in_filters, in_filters)).unsqueeze(2).unsqueeze(3))
         self.downsampling = downsampling
 
     def _compute_pca_matrix(self):
@@ -268,28 +332,23 @@ class Conv2DPCALayer(LinearPCALayer):
         super()._compute_pca_matrix()
         # unsequeeze the matrix into 1x1xDxD in order to make it behave like a 1x1 convolution
         weight = torch.nn.Parameter(
-            self.transformation_matrix.unsqueeze(2).unsqueeze(3)
-        )
+            self.transformation_matrix.unsqueeze(2).unsqueeze(3))
         self.convolution.weight = weight
 
         self.mean_subtracting_convolution.weight = torch.nn.Parameter(
-            torch.zeros_like(self.transformation_matrix).unsqueeze(2).unsqueeze(3)
-        )
+            torch.zeros_like(
+                self.transformation_matrix).unsqueeze(2).unsqueeze(3))
 
         if self.centering:
             self.convolution.bias = torch.nn.Parameter(
-                self.mean.type(torch.float32)
-            )
+                self.mean.type(torch.float32))
             self.mean_subtracting_convolution.bias = torch.nn.Parameter(
-                -self.mean.type(torch.float32)
-            )
+                -self.mean.type(torch.float32))
         else:
             self.convolution.bias = torch.nn.Parameter(
-                torch.zeros_like(self.mean)
-            )
+                torch.zeros_like(self.mean))
             self.mean_subtracting_convolution.bias = torch.nn.Parameter(
-                torch.zeros_like(self.mean)
-            )
+                torch.zeros_like(self.mean))
 
     def forward(self, x):
         if self.training:
