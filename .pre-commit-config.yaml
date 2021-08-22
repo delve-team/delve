@@ -10,3 +10,9 @@ repos:
         entry: python -m pflake8
         language: system
         types: [python]
+-   repo: git://github.com/timothycrosley/isort
+    rev: 5.8.0
+    hooks:
+    - id: isort
+      args: [ "--profile", "black" ]
+      exclude: ^scripts/old_notebooks
