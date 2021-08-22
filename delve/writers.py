@@ -2,6 +2,7 @@
 This file contains alternative file writers
 """
 import os
+import logging
 import pathlib
 import pickle as pkl
 import warnings
@@ -511,7 +512,7 @@ def plot_stat(df,
     if save:
         final_savepath = savepath.replace(
             '.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
-        print(final_savepath)
+        logging.info(final_savepath)
         plt.savefig(final_savepath)
     return ax
 

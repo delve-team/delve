@@ -7,7 +7,7 @@ except ImportError:
     pass
 name = "delve"
 
-try:
+try:    
     from delve.writers import CSVWriter as csv
     from delve.writers import NPYWriter as npy
     from delve.writers import PrintWriter as console
