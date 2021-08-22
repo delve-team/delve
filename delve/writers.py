@@ -248,15 +248,14 @@ class TensorBoardWriter(AbstractWriter):
 
 
 class CSVandPlottingWriter(CSVWriter):
-
+    """
+    This writer produces CSV files and plots.
+    :param savepath: Path to store plots and CSV files
+    :param plot_manipulation_func: A function mapping an axis object to an axis object by
+                                    using pyplot code.
+    :param kwargs:
+    """
     def __init__(self, savepath: str, plot_manipulation_func: Callable[[plt.Axes], plt.Axes] = None, **kwargs):
-        """
-        This writer produces CSV files and plots.
-        :param savepath: Path to store plots and CSV files
-        :param plot_manipulation_func: A function mapping an axis object to an axis object by
-                                       using pyplot code.
-        :param kwargs:
-        """
         super(CSVandPlottingWriter, self).__init__(savepath)
         self.plot_man_func = plot_manipulation_func if plot_manipulation_func is not None else lambda x: x
         self.primary_metric = None if not 'primary_metric' in kwargs else kwargs['primary_metric']
