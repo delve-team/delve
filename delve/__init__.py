@@ -18,4 +18,4 @@ try:
 except ImportError:
     pass
 
-__version__ = "0.1.44"
+__version__ = "0.1.45"
