@@ -90,6 +90,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Sphinx documentation
+docs/build/
+
 # Spyder project settings
 .spyderproject
 .spyproject
