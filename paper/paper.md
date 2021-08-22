@@ -19,7 +19,7 @@ affiliations:
    index: 1
  - name: Peltarion, Stockholm, Sweden
    index: 2
--  name: Institute of Cognitive Science, University of Osnabrueck, Osnabrueck, Germany
+ - name: Institute of Cognitive Science, University of Osnabrueck, Osnabrueck, Germany
    index: 3
  - name: Rapid Health, London, England, United Kingdom
    index: 4
