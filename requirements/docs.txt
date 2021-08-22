@@ -1,0 +1,13 @@
+yapf
+tqdm
+pandas==0.23.4
+matplotlib
+pytest
+pydata-sphinx-theme
+sphinx
+sphinx-gallery
+torch
+pytest
+pytest-cov
+codecov
+ipython
