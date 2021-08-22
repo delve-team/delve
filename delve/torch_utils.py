@@ -2,13 +2,17 @@ import torch
 
 
 class TorchCovarianceMatrix(object):
-    """Computes covariance matrix of features as described in https://arxiv.org/pdf/2006.08679.pdf:
+    r"""Computes covariance matrix of features as described in https://arxiv.org/pdf/2006.08679.pdf:
     
     .. math::
-        
-        Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)
+        :nowrap:
+        :label: covariance
 
-        for $B$ batches of layer output matrix $A_l$ and $n$ number of samples.
+        \begin{eqnarray}
+        Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)
+        \end{eqnarray}
+
+    for :math:`B` batches of layer output matrix :math:`A_l` and :math:`n` number of samples.
     """
     def __init__(self,
                  bias: bool = False,

@@ -134,7 +134,9 @@ def change_all_pca_layer_centering(centering: bool,
 
 
 class LinearPCALayer(Module):
-    """Eigenspace of the autocorrelation matrix generated in TorchCovarianceMatrix"""
+    """Eigenspace of the covariance matrix generated in TorchCovarianceMatrix with 
+    equation :eq:`covariance`.    
+    """
     num = 0
 
     def __init__(self,
