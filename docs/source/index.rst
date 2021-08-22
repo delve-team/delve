@@ -13,7 +13,6 @@ Welcome to Delve's documentation!
 .. automodule:: delve
    :imported-members:
    :members:
-   :undoc-members:
    :show-inheritance:
 
 

@@ -102,13 +102,13 @@ class CompositWriter(AbstractWriter):
 
 
 class CSVWriter(AbstractWriter):
+    """
+    This writer produces a csv file with all saturation values.
+    The csv-file is overwritten with
+    an updated version every time save() is called.
+    :param savepath: CSV file path
+    """
     def __init__(self, savepath: str, **kwargs):
-        """
-        This writer produces a csv file with all saturation values.
-        The csv-file is overwritten with
-        an updated version every time save() is called.
-        :param savepath: CSV file path
-        """
         super(CSVWriter, self).__init__()
         self.value_dict = {}
         self.savepath = savepath
@@ -223,11 +223,11 @@ class PrintWriter(AbstractWriter):
 
 
 class TensorBoardWriter(AbstractWriter):
+    """
+    Writes output to tensorflow logs
+    :param savepath: the path for result logging
+    """
     def __init__(self, savepath: str, **kwargs):
-        """
-        Writes output to tensorflow logs
-        :param savepath: the path for result logging
-        """
         super(TensorBoardWriter, self).__init__()
         self.savepath = savepath
         self.writer = SummaryWriter(savepath)
@@ -430,8 +430,8 @@ def plot_stat(df,
               show_grid=True,
               save=True,
               samples=False,
-              stat_mode="train"):
-    """
+              stat_mode="train") -> matplotlib.axes.Axes:
+    """Plot statistics
 
     :param df:
     :param stat:
