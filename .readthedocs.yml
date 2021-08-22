@@ -1,0 +1,13 @@
+version: 2
+sphinx:
+  configuration: docs/source/conf.py
+
+formats: all
+
+build:
+  image: latest
+
+python:
+  version: 3.7
+  install:
+    - requirements: requirements/docs.txt

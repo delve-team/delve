@@ -64,4 +64,3 @@ def compute_diag_trace(cov: torch.Tensor) -> float:
     eig_vals, eigen_space = cov.symeig(True)
     eig_vals[eig_vals < 0] = 0
     return eig_vals.sum().unsqueeze(dim=0).cpu().numpy()[0]
-

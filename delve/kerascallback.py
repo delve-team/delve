@@ -1,11 +1,9 @@
-import datetime
+import logging
 
 import keras
-import tensorflow as tf
-
-from keras import backend as K
-
 import numpy as np
+import tensorflow as tf
+from keras import backend as K
 from numpy.linalg import LinAlgError
 
 
@@ -104,7 +102,6 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             specified for summary visualization.
         kwargs: Passed to tf.keras.callbacks.TensorBoard.
     """
-
     def __init__(self, user_defined_freq=0, **kwargs):
         self.user_defined_freq = user_defined_freq
         super(CustomTensorBoard, self).__init__(**kwargs)
@@ -125,7 +122,6 @@ class CustomTensorBoard(tf.keras.callbacks.TensorBoard):
             # pylint: enable=protected-access
 
         super(CustomTensorBoard, self).on_epoch_begin(epoch, logs=None)
-
 
     def on_epoch_end(self, epoch, logs=None):
         """Checks if summary ops should run next epoch, logs scalar summaries."""
@@ -150,7 +146,6 @@ class SaturationMetric(keras.callbacks.Callback):
             input_data: sample input to calculate layer saturation with, eg train
             print_freq
     """
-
     def __init__(self, model, input_data, print_freq=1):
         self.model = model
         self.input_data = input_data
@@ -174,11 +169,11 @@ class SaturationMetric(keras.callbacks.Callback):
         if epoch > 2:
             for layer in layers:
                 try:
-                    print("epoch = %4d  layer = %r  sat = %0.2f%%" \
+                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" \
                           % (epoch, layer, logs[layer]))
                     logs[layer] = self.preactivation_states[layer]
                 except Exception as e:
-                    print(e)
+                    logging.error(e)
 
 
 class SaturationLogger(keras.callbacks.Callback):
@@ -189,7 +184,6 @@ class SaturationLogger(keras.callbacks.Callback):
             input_data: sample input to calculate layer saturation with, eg train
             print_freq
     """
-
     def __init__(self, model, input_data, print_freq=1):
         self.model = model
         self.input_data = input_data
@@ -219,4 +213,4 @@ class SaturationLogger(keras.callbacks.Callback):
             print_str = ""
             for layer in layers:
                 print_str += "{:^10}: %{:4.2f} |".format(layer, logs[layer])
-            print(print_str)
+            logging.info(print_str)

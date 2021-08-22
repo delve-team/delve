@@ -1,4 +1,27 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+    -   id: check-json
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: check-added-large-files
+    -   id: requirements-txt-fixer
 -   repo: https://github.com/pre-commit/mirrors-yapf
     rev: stable  # Use the sha / tag you want to point at
     hooks:
     -   id: yapf
+-   repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        entry: python -m pflake8
+        language: system
+        types: [python]
+-   repo: git://github.com/timothycrosley/isort
+    rev: 5.8.0
+    hooks:
+    - id: isort
+      args: [ "--profile", "black" ]
+      exclude: ^scripts/old_notebooks

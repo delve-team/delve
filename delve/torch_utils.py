@@ -2,8 +2,26 @@ import torch
 
 
 class TorchCovarianceMatrix(object):
+    r"""Computes covariance matrix of features as described in https://arxiv.org/pdf/2006.08679.pdf:
+    
+    .. math::
+        :nowrap:
+        :label: covariance
 
-    def __init__(self, bias=False, device='cuda:0', save_data=False):
+        \begin{eqnarray}
+        Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)
+        \end{eqnarray}
+
+    for :math:`B` batches of layer output matrix :math:`A_l` and :math:`n` number of samples.
+
+    .. note::
+
+        Method enforces float-64 precision, which may cause numerical instability in some cases.
+    """
+    def __init__(self,
+                 bias: bool = False,
+                 device: str = 'cuda:0',
+                 save_data: bool = False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
         # covariance matrix, updated during the training phase
@@ -28,19 +46,20 @@ class TorchCovarianceMatrix(object):
         """
         x = x.type(torch.float64).to(device=self.device)
         # init dtype
-        if len(x.shape) >1:
+        if len(x.shape) > 1:
             dim = x.shape[1]
         else:
             dim = x.shape[0]
 
         self._input_dim = dim
         # init covariance matrix
-        self._cov_mtx = torch.zeros((dim, dim)).type(torch.float64).to(self.device)
+        self._cov_mtx = torch.zeros(
+            (dim, dim)).type(torch.float64).to(self.device)
         # init average
         self._avg = torch.zeros((dim)).type(torch.float64).to(self.device)
         self._tlen = 0
 
-    def update(self, x, vae):
+    def update(self, x: torch.Tensor, vae: bool):
         """Update internal structures given a batch of data
         """
         x = x.type(torch.float64).to(device=self.device)
@@ -49,9 +68,10 @@ class TorchCovarianceMatrix(object):
         # update the covariance matrix, the average and the number of
         # observations (try to do everything inplace)
         if vae:
-            if x.dim() == 3: # For single layer of LSTM; TODO: Support for Multiple layers in single LSTM instance
+            if x.dim(
+            ) == 3:  # For single layer of LSTM; TODO: Support for Multiple layers in single LSTM instance
                 x = x.squeeze().t()
-            elif x.dim() == 2: # Single layer of FC Linear
+            elif x.dim() == 2:  # Single layer of FC Linear
                 x = x.t()
             else:
                 x = x.unsqueeze(0).t()
@@ -75,6 +95,6 @@ class TorchCovarianceMatrix(object):
         avg = self._avg / tlen
         cov_mtx = cov_mtx / tlen
         if center:
-            avg_mtx = torch.ger(avg, avg)
+            avg_mtx = torch.outer(avg, avg)
             cov_mtx -= avg_mtx
         return cov_mtx
