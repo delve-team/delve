@@ -17,3 +17,5 @@ try:
     from delve.writers import TensorBoardWriter as tensorboard
 except ImportError:
     pass
+
+__version__ = "0.1.44"
