@@ -111,3 +111,6 @@ docs/build/
 .vscode/
 
 *.pickle
+
+# paper
+paper.pdf
