@@ -20,6 +20,7 @@ from delve.writers import STATMAP, CompositWriter, NPYWriter
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
 
+WRITERS = ["csvplot", "plot", "plotcsv"]
 
 class CheckLayerSat(object):
     """Takes PyTorch module and records layer saturation,
@@ -369,7 +370,7 @@ class CheckLayerSat(object):
 
     def _get_writer(self, save_to, writers_args) -> \
             delve.writers.AbstractWriter:
-        """Create a writer to log history to `writer_dir`."""
+        """Create a writer to log history to `writer_dir`."""        
         if issubclass(type(save_to), delve.writers.AbstractWriter):
             return save_to
         if isinstance(save_to, list):
@@ -378,7 +379,7 @@ class CheckLayerSat(object):
                 all_writers.append(
                     self._get_writer(save_to=saver, writers_args=writers_args))
             return CompositWriter(all_writers)
-        if hasattr(delve, save_to):
+        if save_to in WRITERS:
             writer = getattr(delve, save_to)(**writers_args)
         else:
             raise ValueError(

@@ -8,7 +8,6 @@ except ImportError:
 name = "delve"
 
 try:
-    from delve.writers import CSVandPlottingWriter as csvplot
     from delve.writers import CSVWriter as csv
     from delve.writers import NPYWriter as npy
     from delve.writers import PrintWriter as console
