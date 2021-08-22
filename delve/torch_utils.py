@@ -2,7 +2,7 @@ import torch
 
 
 class TorchCovarianceMatrix(object):
-
+    """Computes covariance matrix"""
     def __init__(self, bias=False, device='cuda:0', save_data=False):
         self.device = device
         self._input_dim = None  # will be set in _init_internals
@@ -75,6 +75,6 @@ class TorchCovarianceMatrix(object):
         avg = self._avg / tlen
         cov_mtx = cov_mtx / tlen
         if center:
-            avg_mtx = torch.ger(avg, avg)
+            avg_mtx = torch.outer(avg, avg)
             cov_mtx -= avg_mtx
         return cov_mtx
