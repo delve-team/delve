@@ -1,19 +1,21 @@
 import logging
-from typing import List, Dict, Any, Optional, Union
-import torch
+import warnings
 from collections import OrderedDict
 from itertools import product
+from typing import Any, Dict, List, Optional, Union
+
+import torch
+from torch.nn.functional import interpolate
+from torch.nn.modules import LSTM
 from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
-from torch.nn.modules import LSTM
-from torch.nn.functional import interpolate
+
+import delve
+from delve.metrics import *
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import CompositWriter, NPYWriter, STATMAP
-from delve.metrics import *
-import delve
-import warnings
+from delve.writers import STATMAP, CompositWriter, NPYWriter
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)

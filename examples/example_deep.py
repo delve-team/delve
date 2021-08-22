@@ -1,17 +1,15 @@
 import torch
-from delve import CheckLayerSat
-from delve.writers import CSVandPlottingWriter
 from torch.cuda import is_available
 from torch.nn import CrossEntropyLoss
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor, Compose
-from torch.utils.data.dataloader import DataLoader
 from torch.optim import Adam
+from torch.utils.data.dataloader import DataLoader
+from torchvision.datasets import CIFAR10
 from torchvision.models.vgg import vgg11
-
+from torchvision.transforms import Compose, ToTensor
 # setup compute device
 from tqdm import tqdm
 
+from delve import CheckLayerSat
 from delve.writers import CSVandPlottingWriter
 
 if __name__ == "__main__":

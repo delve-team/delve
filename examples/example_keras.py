@@ -1,8 +1,8 @@
 import keras
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation
-from keras.optimizers import SGD
 import numpy as np
+from keras.layers import Activation, Dense, Dropout
+from keras.models import Model, Sequential
+from keras.optimizers import SGD
 
 from delve.kerascallback import CustomTensorBoard, SaturationLogger
 

@@ -1,12 +1,14 @@
-from typing import Optional, List, Dict, Tuple
-import pandas as pd
-import numpy as np
 import warnings
-from delve.writers import STATMAP
-from delve.metrics import compute_intrinsic_dimensionality, compute_saturation
-from os.path import join, basename, dirname, curdir, splitext
+from os.path import basename, curdir, dirname, join, splitext
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 import torch
+
+from delve.metrics import compute_intrinsic_dimensionality, compute_saturation
+from delve.writers import STATMAP
 
 
 def _get_files(path: str, filext: str) -> List[str]:

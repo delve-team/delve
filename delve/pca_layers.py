@@ -1,8 +1,8 @@
 from typing import Tuple
 
+import numpy as np
 import torch
 from torch.nn import Module
-import numpy as np
 from torch.nn.functional import interpolate
 
 global num

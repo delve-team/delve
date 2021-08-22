@@ -1,9 +1,11 @@
 import os
 import sys
-from delve import CheckLayerSat
-from delve.writers import CSVandPlottingWriter
+
 import torch
 import torch.nn
+
+from delve import CheckLayerSat
+from delve.writers import CSVandPlottingWriter
 
 
 def test_dense_saturation_runs():

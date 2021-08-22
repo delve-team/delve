@@ -1,11 +1,9 @@
 import datetime
 
 import keras
-import tensorflow as tf
-
-from keras import backend as K
-
 import numpy as np
+import tensorflow as tf
+from keras import backend as K
 from numpy.linalg import LinAlgError
 
 

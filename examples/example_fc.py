@@ -1,8 +1,9 @@
+import os
+
 import torch
+from tqdm import trange
 
 from delve.torchcallback import CheckLayerSat
-from tqdm import trange
-import os
 
 
 class LayerCake(torch.nn.Module):

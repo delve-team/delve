@@ -1,16 +1,18 @@
 """
 This file contains alternative file writers
 """
+import os
+import pathlib
+import pickle as pkl
+import warnings
 from abc import ABC, abstractmethod
-from matplotlib import pyplot as plt
 from shutil import make_archive
 from typing import Callable, List, Tuple
-import pathlib
-import pandas as pd
+
+import matplotlib
 import numpy as np
-import os
-import warnings
-import pickle as pkl
+import pandas as pd
+from matplotlib import pyplot as plt
 
 try:
     from tensorboardX import SummaryWriter

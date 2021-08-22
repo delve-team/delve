@@ -1,17 +1,19 @@
 import os
+import pdb
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from torchvision.models import resnet18
-from tqdm import tqdm, trange
-import pdb
-from delve import CheckLayerSat
-from torchvision import datasets
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
+from torchvision import datasets
+from torchvision.models import resnet18
+from tqdm import tqdm, trange
+
+from delve import CheckLayerSat
 
 batch_size,bs = 128,128  # TODO: Duplicate var names to avoid conflicts: Refactor req
 
