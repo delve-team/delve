@@ -110,4 +110,4 @@ docs/build/
 .idea/
 .vscode/
 
-.pickle
+*.pickle
