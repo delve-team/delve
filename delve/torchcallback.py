@@ -13,6 +13,7 @@ from torch.nn.modules.linear import Linear
 
 import delve
 from delve.metrics import *
+from delve.writers import CSVandPlottingWriter
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, CompositWriter, NPYWriter
@@ -20,6 +21,7 @@ from delve.writers import STATMAP, CompositWriter, NPYWriter
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
 
+WRITERS = ["csvplot", "plot", "plotcsv"]
 
 class CheckLayerSat(object):
     """Takes PyTorch module and records layer saturation,
@@ -369,7 +371,7 @@ class CheckLayerSat(object):
 
     def _get_writer(self, save_to, writers_args) -> \
             delve.writers.AbstractWriter:
-        """Create a writer to log history to `writer_dir`."""
+        """Create a writer to log history to `writer_dir`."""        
         if issubclass(type(save_to), delve.writers.AbstractWriter):
             return save_to
         if isinstance(save_to, list):
@@ -378,8 +380,8 @@ class CheckLayerSat(object):
                 all_writers.append(
                     self._get_writer(save_to=saver, writers_args=writers_args))
             return CompositWriter(all_writers)
-        if hasattr(delve, save_to):
-            writer = getattr(delve, save_to)(**writers_args)
+        if save_to in WRITERS:
+            writer = CSVandPlottingWriter(**writers_args)
         else:
             raise ValueError(
                 'Illegal argument for save_to "{}"'.format(save_to))

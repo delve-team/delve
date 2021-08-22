@@ -1,4 +1,4 @@
-import datetime
+import logging
 
 import keras
 import numpy as np
@@ -169,11 +169,11 @@ class SaturationMetric(keras.callbacks.Callback):
         if epoch > 2:
             for layer in layers:
                 try:
-                    print("epoch = %4d  layer = %r  sat = %0.2f%%" \
+                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" \
                           % (epoch, layer, logs[layer]))
                     logs[layer] = self.preactivation_states[layer]
                 except Exception as e:
-                    print(e)
+                    logging.error(e)
 
 
 class SaturationLogger(keras.callbacks.Callback):
@@ -213,4 +213,4 @@ class SaturationLogger(keras.callbacks.Callback):
             print_str = ""
             for layer in layers:
                 print_str += "{:^10}: %{:4.2f} |".format(layer, logs[layer])
-            print(print_str)
+            logging.info(print_str)
