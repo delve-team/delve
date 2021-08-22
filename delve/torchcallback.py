@@ -13,6 +13,7 @@ from torch.nn.modules.linear import Linear
 
 import delve
 from delve.metrics import *
+from delve.writers import CSVandPlottingWriter
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, CompositWriter, NPYWriter
@@ -380,7 +381,7 @@ class CheckLayerSat(object):
                     self._get_writer(save_to=saver, writers_args=writers_args))
             return CompositWriter(all_writers)
         if save_to in WRITERS:
-            writer = getattr(delve, save_to)(**writers_args)
+            writer = CSVandPlottingWriter(**writers_args)
         else:
             raise ValueError(
                 'Illegal argument for save_to "{}"'.format(save_to))
