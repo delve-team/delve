@@ -262,7 +262,7 @@ class CSVandPlottingWriter(CSVWriter):
                  plot_manipulation_func: Callable[[plt.Axes], plt.Axes] = None,
                  **kwargs):
         super(CSVandPlottingWriter, self).__init__(savepath)
-        self.plot_man_func = plot_manipulation_func if plot_manipulation_func is not None else lambda x: x
+        self.plot_man_func = plot_manipulation_func if plot_manipulation_func != None else lambda x: x
         self.primary_metric = None if not 'primary_metric' in kwargs else kwargs[
             'primary_metric']
         self.fontsize = 16 if not 'fontsize' in kwargs else kwargs['fontsize']
@@ -458,7 +458,7 @@ def plot_stat(df,
     plt.close()
     if epoch == -1:
         epoch = df.index.values[-1]
-    if figsize is not None:
+    if figsize != None:
         print(figsize)
         plt.figure(figsize=figsize)
     ax = plt.gca()
@@ -490,7 +490,7 @@ def plot_stat(df,
                    rotation=90)
     if not ylim is None:
         ax.set_ylim(ylim)
-    if primary_metric is not None:
+    if primary_metric != None:
         ax.text(primary_metric_loc[0], primary_metric_loc[1],
                 f'{primary_metric}: {pm}')
     plt.yticks(fontsize=fontsize)
