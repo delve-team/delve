@@ -45,7 +45,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.intersphinx",
-    "sphinx_gallery.gen_gallery"
+    "sphinx_gallery.gen_gallery",
 ]
 
 # continue doc build and only print warnings/errors in examples
@@ -113,8 +113,9 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "pydata-sphinx-theme"
+html_theme = "sphinx_rtd_theme"
 
+html_logo = "../../images/delve_logo.png"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.

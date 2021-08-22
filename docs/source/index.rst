@@ -10,6 +10,11 @@ Welcome to Delve's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+.. automodule:: delve
+   :imported-members:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
 Indices and tables
