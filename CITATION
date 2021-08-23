@@ -1,0 +1,13 @@
+@software{delve,
+  author       = {Justin Shenk and
+                  Mats L. Richter and
+                  Wolf Byttner and
+                  Michał Marcinkiewicz},
+  title        = {delve-team/delve: v0.1.45},
+  month        = aug,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {v0.1.45},
+  doi          = {10.5281/zenodo.5233860},
+  url          = {https://doi.org/10.5281/zenodo.5233860}
+}
