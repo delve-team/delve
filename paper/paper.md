@@ -1,5 +1,5 @@
 ---
-title: 'Delve: Neural Network Layer Saturation Computation'
+title: 'Delve: Neural Network Eigenspace Computation and Visualization'
 tags:
   - Python
   - deep learning
@@ -27,8 +27,7 @@ bibliography: paper.bib
 
 # Summary
 Designing neural networks is a complex task.
-
-Several tools exist which allow analayzing neural networks after and during training.
+Several tools exist which allow analyzing neural networks after and during training.
 Tools such as ... allow ...
 
 [Limitation of these methods]
@@ -50,7 +49,7 @@ Subclassing the TensorBoardX `SummaryWriter` [@tensorflow2015-whitepaper]...
 
 ## Eigendecomposition of the feature covariance matrix
 
-Saturation is a measure of the rank of the layer feature eigenspace introduced by [@Shenk:Thesis:2018] and extended for ... by [@feature-space].
+Saturation is a measure of the rank of the layer feature eigenspace introduced by [@Shenk:Thesis:2018;@spectral-analysis] and extended for ... [@feature-space].
 Covariance matrix of features is computed online as described in [@feature-space]...
 
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
