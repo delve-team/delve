@@ -29,9 +29,17 @@ bibliography: paper.bib
 Designing neural networks is a complex task.
 
 Several tools exist which allow analayzing neural networks after and during training.
+# Generalization mesured by keskar and this one google paper
+# Similarity of features measured by SVVCA 
+# This one meta reviewer paper from BMVCA
+# of course logistic regression probes
 Tools such as ... allow ...
 
 [Limitation of these methods]
+# Super expensive
+# Cumbersome
+# No seemless intergration
+# Adds additional steps to experiment workflow
 
 Delve is a Python package for statistical analysis of neural network layer eigenspaces.
 Delve hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers. 
