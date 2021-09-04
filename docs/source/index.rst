@@ -3,8 +3,29 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Delve's documentation!
-=================================
+Delve Documentation
+===================
+
+Delve is library for analyzing eigenspaces of neural networks.
+
+Delve was developed to help the researcher identify information through a layer.
+Specifically, it computes layer `saturation`, a measure of the covariance of features in a layer.
+
+If you use Delve in your publication, please cite:
+
+.. code-block:: txt
+
+
+
+.. note::
+
+    Cit
+
+.. note::
+
+    
+
+Layer eigenspace computation
 
 .. toctree::
    :maxdepth: 2
