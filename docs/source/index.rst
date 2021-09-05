@@ -28,13 +28,6 @@ If you use Delve in your publication, please cite:
    doi          = {10.5281/zenodo.5233860},
    url          = {https://doi.org/10.5281/zenodo.5233860}
    }
-
-.. note::
-
-    Cit
-
-.. note::
-
     
 
 Layer eigenspace computation
