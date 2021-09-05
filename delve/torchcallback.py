@@ -125,6 +125,7 @@ class CheckLayerSat(object):
             supported methods are:
                 timestepwise    : stacks each sample timestep-by-timestep
                 last_timestep   : selects the last timestep's output
+        nosave (bool)      : If True, disables saving artifacts (images), default is False
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -187,16 +188,17 @@ class CheckLayerSat(object):
                  conv_method: str = 'channelwise',
                  timeseries_method: str = 'last_timestep',
                  sat_threshold: str = .99,
+                 nosave = False,
                  verbose: bool = False,
                  device='cuda:0',
                  initial_epoch: int = 0,
                  interpolation_strategy: Optional[str] = None,
                  interpolation_downsampling: int = 32):
+        self.nosave = nosave
         self.verbose = verbose
         # self.disable_compute: bool = False
         self.include_conv = include_conv
-        self.conv_method = conv_method
-        self.nosave = False
+        self.conv_method = conv_method        
 
         self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
