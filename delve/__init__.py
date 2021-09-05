@@ -15,4 +15,6 @@ try:
 except ImportError:
     pass
 
+import delve.logger
+
 __version__ = "0.1.45"

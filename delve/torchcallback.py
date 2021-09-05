@@ -13,13 +13,12 @@ from torch.nn.modules.linear import Linear
 
 import delve
 from delve.metrics import *
+from delve.logger import log
 from delve.writers import CSVandPlottingWriter
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, CompositWriter, NPYWriter
 
-logging.basicConfig(format='%(levelname)s:delve:%(message)s',
-                    level=logging.INFO)
 
 WRITERS = ["csvplot", "plot", "plotcsv"]
 
@@ -262,7 +261,7 @@ class CheckLayerSat(object):
             else:
 
                 def noop(*args, **kwargs):
-                    print(f'Logging disabled, not logging: {args}, {kwargs}')
+                    log.info(f'Logging disabled, not logging: {args}, {kwargs}')
                     pass
 
                 return noop
@@ -348,12 +347,12 @@ class CheckLayerSat(object):
             if not isinstance(submodule, Conv2d) and not \
                     isinstance(submodule, Linear) and not \
                     isinstance(submodule, LSTM):
-                print(f"Skipping {layer_type}")
+                log.info(f"Skipping {layer_type}")
                 return layers
             if isinstance(submodule, Conv2d) and self.include_conv:
                 self._add_conv_layer(submodule)
             layers[layer_name] = submodule
-            print('added layer {}'.format(layer_name))
+            log.info('added layer {}'.format(layer_name))
             return layers
 
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
@@ -495,7 +494,7 @@ class CheckLayerSat(object):
                 activations_batch = output.data[:num_samples]
                 self.seen_samples[training_state][layer.name] += num_samples
                 if self.verbose:
-                    print("seen {} samples on layer {}".format(
+                    log.info("seen {} samples on layer {}".format(
                         self.seen_samples[training_state][layer.name],
                         layer.name))
 
