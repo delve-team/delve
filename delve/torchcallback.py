@@ -82,8 +82,6 @@ class CheckLayerSat(object):
                 dtrc        : the trace of the diagonalmatrix, another way of measuring the dispersion of the data.
                 lsat        : layer saturation (intrinsic dimensionality
                               divided by feature space dimensionality)
-                cov         : the covariance-matrix (only saveable using
-                              the 'npy' save strategy)
                 embed       : samples embedded in the eigenspace of dimension 2
 
         layerwise_sat (bool): whether or not to include
