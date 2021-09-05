@@ -12,7 +12,7 @@ def compute_intrinsic_dimensionality(cov: torch.Tensor,
     :param thresh: delta value; the explained variance of the covariance matrix
     :return: The intrinsic dimensionality; an integer value greater than zero
     """
-    eig_vals, eigen_space = cov.symeig(True)
+    eig_vals, eigen_space = torch.linalg.eigh(cov, UPLO='U')    
     eig_vals, idx = eig_vals.sort(descending=True)
     eig_vals[eig_vals < 0] = 0
     percentages = eig_vals.cumsum(0) / eig_vals.sum()
@@ -61,6 +61,6 @@ def compute_diag_trace(cov: torch.Tensor) -> float:
     :param cov: the covariannce matrix as torch tensor
     :return: the trace
     """
-    eig_vals, eigen_space = cov.symeig(True)
+    eig_vals, eigen_space = torch.linalg.eigh(cov, UPLO='U')
     eig_vals[eig_vals < 0] = 0
     return eig_vals.sum().unsqueeze(dim=0).cpu().numpy()[0]
