@@ -232,3 +232,1212 @@ url = {http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-perf
   school       = "University of Osnabrück",
   address      = "Osnabrück, Germany",
 }
+
+@article{Dean,
+abstract = {Recent work in unsupervised feature learning and deep learning has shown that being able to train large models can dramatically improve performance. In this paper, we consider the problem of training a deep network with billions of parameters using tens of thousands of CPU cores. We have developed a software framework called DistBelief that can utilize computing clusters with thousands of machines to train large models. Within this framework, we have developed two algorithms for large-scale distributed training: (i) Downpour SGD, an asynchronous stochastic gradient descent procedure supporting a large number of model replicas, and (ii) Sandblaster, a framework that supports a variety of distributed batch optimization procedures, including a distributed implementation of L-BFGS. Downpour SGD and Sandblaster L-BFGS both increase the scale and speed of deep network training. We have successfully used our system to train a deep network 30x larger than previously reported in the literature, and achieves state-of-the-art performance on ImageNet, a visual object recognition task with 16 million images and 21k categories. We show that these same techniques dramatically accelerate the training of a more modestly-sized deep network for a commercial speech recognition service. Although we focus on and report performance of these methods as applied to training large neural networks, the underlying algorithms are applicable to any gradient-based machine learning algorithm.},
+author = {Dean, Jeffrey and Corrado, Greg S and Monga, Rajat and Chen, Kai and Devin, Matthieu and Le, Quoc V and Mao, Mark Z and Ranzato, Aurelio and Senior, Andrew and Tucker, Paul and Yang, Ke and Ng, Andrew Y},
+title = {{Large Scale Distributed Deep Networks}},
+%url = {https://static.googleusercontent.com/media/research.google.com/en//archive/large{\_}deep{\_}networks{\_}nips2012.pdf},
+year={2012}
+}
+
+@inproceedings{Tamura,
+author = {Tamura, S. and Tateishi, M. and Matumoto, M. and Akita, S.},
+booktitle = {Proceedings of 1993 International Conference on Neural Networks (IJCNN-93-Nagoya, Japan)},
+doi = {10.1109/IJCNN.1993.713925},
+isbn = {0-7803-1421-2},
+pages = {335--338},
+year = {1993},
+publisher = {IEEE},
+title = {{Determination of the number of redundant hidden units in a three-layered feedforward neural network}},
+%url = {http://ieeexplore.ieee.org/document/713925/},
+volume = {1}
+}
+
+@incollection{Moody1994,
+address = {Berlin, Heidelberg},
+author = {Moody, John},
+booktitle = {From Statistics to Neural Networks},
+doi = {10.1007/978-3-642-79119-2_7},
+pages = {147--165},
+publisher = {Springer Berlin Heidelberg},
+title = {{Prediction Risk and Architecture Selection for Neural Networks}},
+%url = {http://www.springerlink.com/index/10.1007/978-3-642-79119-2{\_}7},
+year = {1994}
+}
+
+@article{Levin,
+abstract = {We present a new algorithm for eliminating excess parameters and improving network generalization after supervised training. The method, "Principal Components Pruning (PCP)", is based on principal component analysis of the node activations of successive layers of the network. It is simple, cheap to implement, and effective. It requires no network retraining, and does not involve calculating the full Hessian of the cost function. Only the weight and the node activity correlation matrices for each layer of nodes are required. We demonstrate the efficacy of the method on a regression problem using polynomial basis functions, and on an economic time series prediction problem using a two-layer, feedforward network.},
+author = {Levin, Asriel U and Leen, Todd K and Moody, John E},
+title = {{Fast Pruning Using Principal Components}},
+}
+@article{Levina,
+abstract = {We present a new algorithm for eliminating excess parameters and improving network generalization after supervised training. The method, "Principal Components Pruning (PCP)", is based on principal component analysis of the node activations of successive layers of the network. It is simple, cheap to implement, and effective. It requires no network retraining, and does not involve calculating the full Hessian of the cost function. Only the weight and the node activity correlation matrices for each layer of nodes are required. We demonstrate the efficacy of the method on a regression problem using polynomial basis functions, and on an economic time series prediction problem using a two-layer, feedforward network.},
+author = {Levin, Asriel U and Leen, Todd K and Moody, John E},
+title = {{Fast Pruning Using Principal Components}},
+year = {1994}
+}
+@article{Snoek2012,
+abstract = {While unsupervised learning has long been useful for density modeling, exploratory data analysis and visualization, it has become increasingly important for discovering features that will later be used for discriminative tasks. Discriminative algorithms often work best with highly-informative features; remarkably, such features can often be learned without the labels. One particularly ef-fective way to perform such unsupervised learning has been to use autoencoder neural networks, which find latent representations that are constrained but nevertheless informative for reconstruc-tion. However, pure unsupervised learning with autoencoders can find representations that may or may not be useful for the ultimate discriminative task. It is a continuing challenge to guide the training of an autoencoder so that it finds features which will be useful for predicting labels. Similarly, we often have a priori information regarding what statistical variation will be irrelevant to the ultimate discriminative task, and we would like to be able to use this for guidance as well. Although a typical strategy would be to include a parametric discriminative model as part of the autoencoder training, here we propose a nonparametric approach that uses a Gaussian process to guide the representation. By using a nonparametric model, we can ensure that a useful discrimina-tive function exists for a given set of features, without explicitly instantiating it. We demonstrate the superiority of this guidance mechanism on four data sets, including a real-world application to rehabilitation research. We also show how our proposed approach can learn to explicitly ignore sta-tistically significant covariate information that is label-irrelevant, by evaluating on the small NORB image recognition problem in which pose and lighting labels are available.},
+author = {Snoek, Jasper and {Adams RPA}, Ryan P and {Larochelle HUGOLAROCHELLE}, Hugo},
+journal = {Journal of Machine Learning Research},
+keywords = {autoencoder,gaussian process,gaussian process latent variable model,representation learning,unsupervised learning},
+pages = {2567--2588},
+title = {{Nonparametric Guidance of Autoencoder Representations using Label Information}},
+%url = {http://www.jmlr.org/papers/volume13/snoek12a/snoek12a.pdf},
+volume = {13},
+year = {2012}
+}
+@article{Rosen2016,
+abstract = {The dynamics of contact processes on networks is often determined by the spectral radius of the networks adjacency matrices. A decrease of the spectral radius can prevent the outbreak of an epidemic, or impact the synchronization among systems of coupled oscillators. The spectral radius is thus tightly linked to network dynamics and function. As such, finding the minimal change in network structure necessary to reach the intended spectral radius is important theoretically and practically. Given contemporary big data resources such as large scale communication or social networks, this problem should be solved with a low runtime complexity. We introduce a novel method for the minimal decrease in weights of edges required to reach a given spectral radius. The problem is formulated as a convex optimization problem, where a global optimum is guaranteed. The method can be easily adjusted to an efficient discrete removal of edges. We introduce a variant of the method which finds optimal decrease with a focus on weights of vertices. The proposed algorithm is exceptionally scalable, solving the problem for real networks of tens of millions of edges in a short time.},
+author = {Rosen, Yonatan and Kirsch, Lior and Louzoun, Yoram},
+journal = {New Journal of Physics},
+number = {9},
+pages = {93039},
+title = {{Optimal network modification for spectral radius dependent phase transitions}},
+volume = {18},
+year = {2016}
+}
+
+@article{Reference1,
+	Abstract = {We have developed an enhanced Littrow configuration extended cavity diode laser (ECDL) that can be tuned without changing the direction of the output beam. The output of a conventional Littrow ECDL is reflected from a plane mirror fixed parallel to the tuning diffraction grating. Using a free-space Michelson wavemeter to measure the laser wavelength, we can tune the laser over a range greater than 10 nm without any alteration of alignment.},
+	Author = {C. J. Hawthorn and K. P. Weber and R. E. Scholten},
+	Journal = {Review of Scientific Instruments},
+	Month = {12},
+	Number = {12},
+	Numpages = {3},
+	Pages = {4477--4479},
+	Title = {Littrow Configuration Tunable External Cavity Diode Laser with Fixed Direction Output Beam},
+	Volume = {72},
+	%url = {http://link.aip.org/link/?RSI/72/4477/1},
+	Year = {2001}}
+
+@article{Reference3,
+	Abstract = {Operating a laser diode in an extended cavity which provides frequency-selective feedback is a very effective method of reducing the laser's linewidth and improving its tunability. We have developed an extremely simple laser of this type, built from inexpensive commercial components with only a few minor modifications. A 780~nm laser built to this design has an output power of 80~mW, a linewidth of 350~kHz, and it has been continuously locked to a Doppler-free rubidium transition for several days.},
+	Author = {A. S. Arnold and J. S. Wilson and M. G. Boshier and J. Smith},
+	Journal = {Review of Scientific Instruments},
+	Month = {3},
+	Number = {3},
+	Numpages = {4},
+	Pages = {1236--1239},
+	Title = {A Simple Extended-Cavity Diode Laser},
+	Volume = {69},
+	%url = {http://link.aip.org/link/?RSI/69/1236/1},
+	Year = {1998}}
+
+@article{Reference2,
+	Abstract = {We present a review of the use of diode lasers in atomic physics with an extensive list of references. We discuss the relevant characteristics of diode lasers and explain how to purchase and use them. We also review the various techniques that have been used to control and narrow the spectral outputs of diode lasers. Finally we present a number of examples illustrating the use of diode lasers in atomic physics experiments. Review of Scientific Instruments is copyrighted by The American Institute of Physics.},
+	Author = {Carl E. Wieman and Leo Hollberg},
+	Journal = {Review of Scientific Instruments},
+	Keywords = {Diode Laser},
+	Month = {1},
+	Number = {1},
+	Numpages = {20},
+	Pages = {1--20},
+	Title = {Using Diode Lasers for Atomic Physics},
+	Volume = {62},
+	%url = {http://link.aip.org/link/?RSI/62/1/1},
+	Year = {1991}}
+@inproceedings{Krizhevsky:2012:ICD:2999134.2999257,
+address = {USA},
+author = {Krizhevsky, Alex and Sutskever, Ilya and Hinton, Geoffrey E},
+booktitle = {Proceedings of the 25th International Conference on Neural Information Processing Systems - Volume 1},
+pages = {1097--1105},
+publisher = {Curran Associates Inc.},
+series = {NIPS'12},
+title = {{ImageNet Classification with Deep Convolutional Neural Networks}},
+%url = {http://dl.acm.org/citation.cfm?id=2999134.2999257},
+year = {2012}
+}
+@article{Wu2016,
+abstract = {Neural Machine Translation (NMT) is an end-to-end learning approach for automated translation, with the potential to overcome many of the weaknesses of conventional phrase-based translation systems. Unfortunately, NMT systems are known to be computationally expensive both in training and in translation inference. Also, most NMT systems have difficulty with rare words. These issues have hindered NMT's use in practical deployments and services, where both accuracy and speed are essential. In this work, we present GNMT, Google's Neural Machine Translation system, which attempts to address many of these issues. Our model consists of a deep LSTM network with 8 encoder and 8 decoder layers using attention and residual connections. To improve parallelism and therefore decrease training time, our attention mechanism connects the bottom layer of the decoder to the top layer of the encoder. To accelerate the final translation speed, we employ low-precision arithmetic during inference computations. To improve handling of rare words, we divide words into a limited set of common sub-word units ("wordpieces") for both input and output. This method provides a good balance between the flexibility of "character"-delimited models and the efficiency of "word"-delimited models, naturally handles translation of rare words, and ultimately improves the overall accuracy of the system. Our beam search technique employs a length-normalization procedure and uses a coverage penalty, which encourages generation of an output sentence that is most likely to cover all the words in the source sentence. On the WMT'14 English-to-French and English-to-German benchmarks, GNMT achieves competitive results to state-of-the-art. Using a human side-by-side evaluation on a set of isolated simple sentences, it reduces translation errors by an average of 60{\%} compared to Google's phrase-based production system.},
+archivePrefix = {arXiv},
+arxivId = {1609.08144},
+author = {Wu, Yonghui and Schuster, Mike and Chen, Zhifeng and Le, Quoc V. and Norouzi, Mohammad and Macherey, Wolfgang and Krikun, Maxim and Cao, Yuan and Gao, Qin and Macherey, Klaus and Klingner, Jeff and Shah, Apurva and Johnson, Melvin and Liu, Xiaobing and Kaiser, {\L}ukasz and Gouws, Stephan and Kato, Yoshikiyo and Kudo, Taku and Kazawa, Hideto and Stevens, Keith and Kurian, George and Patil, Nishant and Wang, Wei and Young, Cliff and Smith, Jason and Riesa, Jason and Rudnick, Alex and Vinyals, Oriol and Corrado, Greg and Hughes, Macduff and Dean, Jeffrey},
+eprint = {1609.08144},
+month = {September},
+title = {{Google's Neural Machine Translation System: Bridging the Gap between Human and Machine Translation}},
+%url = {http://arxiv.org/abs/1609.08144},
+year = {2016}
+}
+
+@article{deep-neural-networks-for-acoustic-modeling-in-speech-recognition,
+  abstract = {
+  Most current speech recognition systems use hidden Markov models (HMMs) to deal with the temporal variability of speech and Gaussian mixture models (GMMs) to determine how well each state of each HMM fits a frame or a short window of frames of coefficients that represents the acoustic input. An alternative way to evaluate the fit is to use a feed-forward neural network that takes several frames of coefficients as input and produces posterior probabilities over HMM states as output. Deep neural networks (DNNs) that have many hidden layers and are trained using new methods have been shown to outperform GMMs on a variety of speech recognition benchmarks, sometimes by a large margin. This article provides an overview of this progress and represents the shared views of four research groups that have had recent successes in using DNNs for acoustic modeling in speech recognition.
+  },
+  author = {Hinton, Geoffrey and Deng, Li and Yu, Dong and Dahl, George and Mohamed, Abdel-rahman and Jaitly, Navdeep and Senior, Andrew and Vanhoucke, Vincent and Nguyen, Patrick and Kingsbury, Brian and Sainath, Tara},
+  journal = {IEEE Signal Processing Magazine},
+  month = {nov},
+  pages = {82--97},
+  title = {{Deep Neural Networks for Acoustic Modeling in Speech Recognition}},
+  %url = {https://www.microsoft.com/en-us/research/publication/deep-neural-networks-for-acoustic-modeling-in-speech-recognition/},
+  volume = {29},
+  year = {2012}
+}
+@article{Lenc2014,
+abstract = {Despite the importance of image representations such as histograms of oriented gradients and deep Convolutional Neural Networks (CNN), our theoretical understanding of them remains limited. Aiming at filling this gap, we investigate three key mathematical properties of representations: equivariance, invariance, and equivalence. Equivariance studies how transformations of the input image are encoded by the representation, invariance being a special case where a transformation has no effect. Equivalence studies whether two representations, for example two different parametrisations of a CNN, capture the same visual information or not. A number of methods to establish these properties empirically are proposed, including introducing transformation and stitching layers in CNNs. These methods are then applied to popular representations to reveal insightful aspects of their structure, including clarifying at which layers in a CNN certain geometric invariances are achieved. While the focus of the paper is theoretical, direct applications to structured-output regression are demonstrated too.},
+archivePrefix = {arXiv},
+arxivId = {1411.5908},
+author = {Lenc, Karel and Vedaldi, Andrea},
+eprint = {1411.5908},
+month = {nov},
+title = {{Understanding image representations by measuring their equivariance and equivalence}},
+%url = {http://arxiv.org/abs/1411.5908},
+year = {2014}
+}
+@article{Eigen2013,
+abstract = {A key challenge in designing convolutional network models is sizing them appropriately. Many factors are involved in these decisions, including number of layers, feature maps, kernel sizes, etc. Complicating this further is the fact that each of these influence not only the numbers and dimensions of the activation units, but also the total number of parameters. In this paper we focus on assessing the independent contributions of three of these linked variables: The numbers of layers, feature maps, and parameters. To accomplish this, we employ a recursive convolutional network whose weights are tied between layers; this allows us to vary each of the three factors in a controlled setting. We find that while increasing the numbers of layers and parameters each have clear benefit, the number of feature maps (and hence dimensionality of the representation) appears ancillary, and finds most of its benefit through the introduction of more weights. Our results (i) empirically confirm the notion that adding layers alone increases computational power, within the context of convolutional layers, and (ii) suggest that precise sizing of convolutional feature map dimensions is itself of little concern; more attention should be paid to the number of parameters in these layers instead.},
+archivePrefix = {arXiv},
+arxivId = {1312.1847},
+author = {Eigen, David and Rolfe, Jason and Fergus, Rob and LeCun, Yann},
+eprint = {1312.1847},
+month = {dec},
+title = {{Understanding Deep Architectures using a Recursive Convolutional Network}},
+%url = {http://arxiv.org/abs/1312.1847},
+year = {2013}
+}
+
+@MISC{weathermodel,
+    author = {{Peltarion.com}},
+    title = {Deep Weather},
+    year = {2018},
+    note = {[Online; accessed April 27, 2018]},
+    %url = {https://peltarion.com/case-stories/balancing-energy-grids-using-real-time-ai-weather-predictions},
+    year={2018}
+}
+
+@MISC{convolution,
+    author = {{deeplearning.net}},
+    title = {Convolutional arithmetic},
+    year = {2018},
+    note = {[Online; accessed April 27, 2018]},
+    %url = {http://deeplearning.net/software/theano/tutorial/conv_arithmetic.html}
+}
+
+@inproceedings{Kohavi:1995:SCB:1643031.1643047,
+ author = {Kohavi, Ron},
+ title = {A Study of Cross-validation and Bootstrap for Accuracy Estimation and Model Selection},
+ booktitle = {Proceedings of the 14th International Joint Conference on Artificial Intelligence - Volume 2},
+ series = {IJCAI'95},
+ year = {1995},
+ isbn = {1-55860-363-8},
+ location = {Montreal, Quebec, Canada},
+ pages = {1137--1143},
+ numpages = {7},
+ %url = {http://dl.acm.org/citation.cfm?id=1643031.1643047},
+ acmid = {1643047},
+ publisher = {Morgan Kaufmann Publishers Inc.},
+ address = {San Francisco, CA, USA},
+} 
+
+@article{Movshon1978,
+abstract = {1. We have examined the responses of simple cells in the cat's atriate cortex to visual patterns that were designed to reveal the extent to which these cells may be considered to sum light-evoked influences linearly across their receptive fields. We used one-dimensional luminance-modulated bars and grating as stimuli; their orientation was always the same as the preferred orientation of the neurone under study. The stimuli were presented on an oscilloscope screen by a digital computer, which also accumulated neuronal responses and controlled a randomized sequence of stimulus presentations. 2. The majority of simple cells respond to sinusoidal gratings that are moving or whose contrast is modulated in time in a manner consistent with the hypothesis that they have linear spatial summation. Their responses to moving gratings of all spatial frequencies are modulated in synchrony with the passage of the gratings' bars across their receptive fields, and they do not produce unmodulated responses even at the highest spatial frequencies. Many of these cells respond to temporally modulated stationary gratings simply by changing their response amplitude sinusoidally as the spatial phase of the grating the grating is varied. Nonetheless, their behavior appears to indicate linear spatial summation, since we show in an Appendix that the absence of a 'null' phase in a visual neurone need not indicate non-linear spatial summation, and further that a linear neurone lacking a 'null' phase should give responses of the form that we have observed in this type of simple cell. 3. A minority of simple cells appears to have significant non-linearities of spatial summation. These neurones respond to moving gratings of high spatial frequency with a partially or totally unmodulated elevation of firing rate. They have no 'null' phases when tested with stationary gratings, and reveal their non-linearity by giving responses to gratings of some spatial phases that are composed partly or wholly of even harmonics of the stimulus frequency ('on-off' responses). 4. We compared simple receptive fields with their sensitivity to sinusoidal gratings of different spatial frequencies. Qualitatively, the most sensitive subregions of simple cells' receptive fields are roughly the same width as the individual bars of the gratings to which they are most sensitive. Quantitatively, their receptive field profiles measured with thin stationary lines, agree well with predicted profiles derived by Fourier synthesis of their spatial frequency tuning curves.},
+author = {Movshon, J A and Thompson, I D and Tolhurst, D J},
+issn = {0022-3751},
+journal = {The Journal of physiology},
+month = {oct},
+pages = {53--77},
+pmid = {722589},
+publisher = {Wiley-Blackwell},
+title = {{Spatial summation in the receptive fields of simple cells in the cat's striate cortex.}},
+%url = {http://www.ncbi.nlm.nih.gov/pubmed/722589 http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC1282765},
+volume = {283},
+year = {1978}
+}
+@article{HUBEL1962,
+author = {Hubel, D H and Wiesel, T N},
+issn = {0022-3751},
+journal = {The Journal of {p}hysiology},
+keywords = {CEREBRAL CORTEX/physiology},
+month = {jan},
+number = {1},
+pages = {106--54},
+pmid = {14449617},
+publisher = {Wiley-Blackwell},
+title = {{Receptive fields, binocular interaction and functional architecture in the cat's visual cortex.}},
+%url = {http://www.ncbi.nlm.nih.gov/pubmed/14449617 http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC1359523},
+volume = {160},
+year = {1962}
+}
+@article{Cheng,
+abstract = {Deep convolutional neural networks (CNNs) have recently achieved great success in many visual recognition tasks. However, existing deep convolutional neural network models are computationally expensive and memory intensive, hindering their deployment in devices with low memory resources or in applications with strict latency requirements. Therefore, a natural thought is to perform model compression and acceleration in deep networks without significantly decreasing the model performance. During the past few years, tremendous progresses have been made in this area. In this paper, we survey the recent advanced techniques for compacting and accelerating CNNs model developed. These techniques are roughly categorized into four schemes: parameter pruning and sharing, low-rank factor-ization, transfered/compact convolutional filters and knowledge distillation. Methods of parameter pruning and sharing will be described at the beginning, after that the other techniques will be introduced. For each scheme, we provide insightful analysis regarding the performance, related applications, advantages and drawbacks etc. Then we will go through a few very recent additional successful methods, for example, dynamic networks and stochastic depths networks. After that, we survey the evaluation matrix, main datasets used for evaluating the model performance and recent benchmarking efforts. Finally we conclude this paper, discuss remaining challenges and possible directions in this topic.},
+archivePrefix = {arXiv},
+arxivId = {arXiv:1710.09282v5},
+author = {Cheng, Yu and Wang, Duo and Zhou, Pan and Zhang, Tao},
+eprint = {arXiv:1710.09282v5},
+keywords = {Convolutional Neural Networks,Index Terms-Deep Learning,Model Compression and Acceleration},
+title = {{IEEE Signal Processing Magazine, Special Issue on Deep Learning for Image Understanding (arXiv Extended Vesion) 1 A Survey of Model Compression and Acceleration for Deep Neural Networks}},
+%url = {https://arxiv.org/pdf/1710.09282.pdf},
+year={2017}
+}
+
+@Book{Bishop,
+  author =       "Bishop, Christopher M.",
+  title =        "Pattern Recognition and Machine Learning",
+  publisher =    "Springer",
+  year =         "2006",
+  ISBN =         "978-0387-31073-2",
+  %url = "http://research.microsoft.com/en-us/um/people/cmbishop/prml/",
+  bib2html_rescat = "General ML",
+}
+
+@book{Mitchell,
+ author = {Mitchell, Thomas M.},
+ title = {Machine Learning},
+ year = {1997},
+ isbn = {0070428077, 9780070428072},
+ edition = {1},
+ publisher = {McGraw-Hill, Inc.},
+ address = {New York, NY, USA},
+} 
+
+
+@article{VGG,
+  author    = {Karen Simonyan and
+               Andrew Zisserman},
+  title     = {Very Deep Convolutional Networks for Large-Scale Image Recognition},
+  journal   = {CoRR},
+  volume    = {abs/1409.1556},
+  year      = {2014},
+  %url       = {http://arxiv.org/abs/1409.1556},
+  archivePrefix = {arXiv},
+  eprint    = {1409.1556},
+  timestamp = {Wed, 07 Jun 2017 14:41:51 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/SimonyanZ14a},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{lecun-mnisthandwrittendigit-2010,
+  added-at = {2010-06-28T21:16:30.000+0200},
+  author = {LeCun, Yann and Cortes, Corinna},
+  bib%url = {https://www.bibsonomy.org/bibtex/2935bad99fa1f65e03c25b315aa3c1032/mhwombat},
+  groups = {public},
+  howpublished = {http://yann.lecun.com/exdb/mnist/},
+  interhash = {21b9d0558bd66279df9452562df6e6f3},
+  intrahash = {935bad99fa1f65e03c25b315aa3c1032},
+  keywords = {MSc _checked character_recognition mnist network neural},
+  lastchecked = {2016-01-14 14:24:11},
+  timestamp = {2016-07-12T19:25:30.000+0200},
+  title = {{MNIST} handwritten digit database},
+  %url = {http://yann.lecun.com/exdb/mnist/},
+  username = {mhwombat},
+  year = 2010
+}
+
+
+@article{CIFAR-10,
+title= {{CIFAR}-10 ({Canadian Institute for Advanced Research})},
+author= {Alex Krizhevsky and Vinod Nair and Geoffrey Hinton},
+year= {2010},
+%url= {http://www.cs.toronto.edu/~kriz/cifar.html},
+abstract= {The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images. 
+
+The dataset is divided into five training batches and one test batch, each with 10000 images. The test batch contains exactly 1000 randomly-selected images from each class. The training batches contain the remaining images in random order, but some training batches may contain more images from one class than another. Between them, the training batches contain exactly 5000 images from each class. },
+keywords= {Dataset},
+terms= {}
+}
+
+@article{DBLP:journals/corr/ZophVSL17,
+  author    = {Barret Zoph and
+               Vijay Vasudevan and
+               Jonathon Shlens and
+               Quoc V. Le},
+  title     = {Learning Transferable Architectures for Scalable Image Recognition},
+  journal   = {CoRR},
+  volume    = {abs/1707.07012},
+  year      = {2017},
+  %url       = {http://arxiv.org/abs/1707.07012},
+  archivePrefix = {arXiv},
+  eprint    = {1707.07012},
+  timestamp = {Mon, 13 Aug 2018 16:48:00 +0200},
+  bib%url    = {https://dblp.org/rec/journals/corr/ZophVSL17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{DBLP:journals/corr/abs-1905-11946,
+  author    = {Mingxing Tan and
+               Quoc V. Le},
+  title     = {EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks},
+  journal   = {CoRR},
+  volume    = {abs/1905.11946},
+  year      = {2019},
+  %url       = {http://arxiv.org/abs/1905.11946},
+  archivePrefix = {arXiv},
+  eprint    = {1905.11946},
+  timestamp = {Mon, 03 Jun 2019 13:42:33 +0200},
+  bib%url    = {https://dblp.org/rec/journals/corr/abs-1905-11946.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{Szegedy2016RethinkingTI,
+  title={Rethinking the Inception Architecture for Computer Vision},
+  author={Christian Szegedy and Vincent Vanhoucke and Sergey Ioffe and Jonathon Shlens and Zbigniew Wojna},
+  journal={2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2016},
+  pages={2818-2826}
+}
+
+@article{Ribeiro,
+  author    = {Marco T{\'{u}}lio Ribeiro and
+               Sameer Singh and
+               Carlos Guestrin},
+  title     = {"{W}hy Should {I} Trust You?": Explaining the Predictions of Any Classifier},
+  journal   = {CoRR},
+  volume    = {abs/1602.04938},
+  year      = {2016},
+  %url       = {http://arxiv.org/abs/1602.04938},
+  archivePrefix = {arXiv},
+  eprint    = {1602.04938},
+  timestamp = {Wed, 07 Jun 2017 14:41:19 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/RibeiroSG16},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@book{Jolliffe:1986,
+  abstract = {seems like a great book on PCA -
+it shows the connection between PCA and SVD;
+talks about how to choose the number of eigenvectors to keep;
+discusses outlier detection;
+uses PCA for stock prices (Dow Jones)},
+  added-at = {2007-12-09T20:51:37.000+0100},
+  author = {Jolliffe, I.T.},
+  bib%url = {https://www.bibsonomy.org/bibtex/21b71c6fb66b439679c9e0974777a8677/marymcglo},
+  contents = {(not listed)},
+  interhash = {2d412ce0d00e97ad8c2bdbeb053a4977},
+  intrahash = {1b71c6fb66b439679c9e0974777a8677},
+  keywords = {imported},
+  publisher = {Springer Verlag},
+  timestamp = {2007-12-09T20:51:38.000+0100},
+  title = {Principal Component  Analysis},
+  year = 1986
+}
+
+@article{Tishby,
+  author    = {Naftali Tishby and
+               Noga Zaslavsky},
+  title     = {Deep Learning and the Information Bottleneck Principle},
+  journal   = {CoRR},
+  volume    = {abs/1503.02406},
+  year      = {2015},
+  %url       = {http://arxiv.org/abs/1503.02406},
+  archivePrefix = {arXiv},
+  eprint    = {1503.02406},
+  timestamp = {Wed, 07 Jun 2017 14:41:46 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/TishbyZ15},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{bergstra2012random,
+  added-at = {2018-04-19T22:01:43.000+0200},
+  author = {Bergstra, James and Bengio, Yoshua},
+  bib%url = {https://www.bibsonomy.org/bibtex/24b04570e1ce62a7575bb56cdb1a5828b/nosebrain},
+  description = {Random Search for Hyper-Parameter Optimization - Semantic Scholar},
+  interhash = {43621a41bae9d8c8c45c9a0e4b12f1a0},
+  intrahash = {4b04570e1ce62a7575bb56cdb1a5828b},
+  journal = {Journal of Machine Learning Research},
+  keywords = {deep_learning grid manual optimization random search},
+  pages = {281-305},
+  timestamp = {2018-04-19T22:01:43.000+0200},
+  title = {Random Search for Hyper-Parameter Optimization},
+  volume = 13,
+  year = 2012
+}
+
+
+@incollection{bayesopt,
+title = {Practical Bayesian Optimization of Machine Learning Algorithms},
+author = {Snoek, Jasper and Larochelle, Hugo and Adams, Ryan P},
+booktitle = {Advances in Neural Information Processing Systems 25},
+editor = {F. Pereira and C. J. C. Burges and L. Bottou and K. Q. Weinberger},
+pages = {2951--2959},
+year = {2012},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/4522-practical-bayesian-optimization-of-machine-learning-algorithms.pdf}
+}
+
+@inproceedings{zeiler,
+author={Zeiler, Matthew D. and Fergus, Rob},
+editor="Fleet, David
+and Pajdla, Tomas
+and Schiele, Bernt
+and Tuytelaars, Tinne",
+title="Visualizing and Understanding Convolutional Networks",
+booktitle="Computer Vision -- ECCV 2014",
+year=2014,
+publisher="Springer International Publishing",
+address="Cham",
+pages="818--833",
+abstract="Large Convolutional Network models have recently demonstrated impressive classification performance on the ImageNet benchmark Krizhevsky et al. [18]. However there is no clear understanding of why they perform so well, or how they might be improved. In this paper we explore both issues. We introduce a novel visualization technique that gives insight into the function of intermediate feature layers and the operation of the classifier. Used in a diagnostic role, these visualizations allow us to find model architectures that outperform Krizhevsky et al on the ImageNet classification benchmark. We also perform an ablation study to discover the performance contribution from different model layers. We show our ImageNet model generalizes well to other datasets: when the softmax classifier is retrained, it convincingly beats the current state-of-the-art results on Caltech-101 and Caltech-256 datasets.",
+isbn="978-3-319-10590-1"
+}
+
+
+@article{yosinski15,
+  author    = {Jason Yosinski and
+               Jeff Clune and
+               Anh Mai Nguyen and
+               Thomas J. Fuchs and
+               Hod Lipson},
+  title     = {Understanding Neural Networks Through Deep Visualization},
+  journal   = {CoRR},
+  volume    = {abs/1506.06579},
+  year      = {2015},
+  %url       = {http://arxiv.org/abs/1506.06579},
+  archivePrefix = {arXiv},
+  eprint    = {1506.06579},
+  timestamp = {Wed, 07 Jun 2017 14:41:50 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/YosinskiCNFL15},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Weigend94,
+  added-at = {2008-09-16T23:39:07.000+0200},
+  address = {Hillsdale, NJ},
+  author = {Weigend, A.},
+  bib%url = {https://www.bibsonomy.org/bibtex/2ae8adece927e44fe1629626854e5ea25/brian.mingus},
+  booktitle = {Proceedings of the 1993 Connectionist Models Summer School},
+  description = {CCNLab BibTeX},
+  editor = {Mozer, M. C. and Smolensky, P. and Weigend, A. S.},
+  interhash = {be9421a9f0a8174a0f12f1e4c867bf0c},
+  intrahash = {ae8adece927e44fe1629626854e5ea25},
+  keywords = {nnets},
+  pages = {335-342},
+  publisher = {Lawrence Erlbaum Associates},
+  timestamp = {2008-09-16T23:41:25.000+0200},
+  title = {On overfitting and the effective number of hidden units.},
+  year = 1994
+}
+
+@article{Weigend1990,
+author = {S. Weigend, Andreas and Huberman, Bernardo and E. Rumelhart, David},
+year = {1990},
+month = {January},
+pages = {193-209},
+title = {Predicting the Future: A Connectionist Approach},
+volume = {1},
+booktitle = {Int. J. Neural Syst.}
+}
+
+@inproceedings{restructuring-of-deep-neural-network-acoustic-models-with-singular-value-decomposition,
+author = {Xue, Jian and Li, Jinyu and Gong, Yifan},
+title = {Restructuring of Deep Neural Network Acoustic Models with Singular Value Decomposition},
+booktitle = {},
+year = {2013},
+month = {January},
+abstract = {
+Recently proposed deep neural network (DNN) obtains significant accuracy improvements in many large vocabulary continuous speech recognition (LVCSR) tasks. However, DNN requires much more parameters than traditional systems, which brings huge cost during online evaluation, and also limits the application of DNN in a lot of scenarios. In this paper we present our new effort on DNN aiming at reducing the model size while keeping the accuracy improvements. We apply singular value decomposition (SVD) on the weight matrices in DNN, and then restructure the model based on the inherent sparseness of the original matrices. After restructuring we can reduce the DNN model size significantly with negligible accuracy loss. We also fine-tune the restructured model using the regular back-propagation method to get the accuracy back when reducing the DNN model size heavily. The proposed method has been evaluated on two LVCSR tasks, with context-dependent DNN hidden Markov model (CD-DNN-HMM). Experimental results show that the proposed approach dramatically reduces the DNN model size by more than 80% without losing any accuracy.
+},
+publisher = {Microsoft Research},
+%url = {https://www.microsoft.com/en-us/research/publication/restructuring-of-deep-neural-network-acoustic-models-with-singular-value-decomposition/},
+address = {},
+pages = {},
+journal = {},
+volume = {},
+chapter = {},
+isbn = {},
+}
+
+@article{DBLP:journals/corr/GaoBZD15,
+  author    = {Yang Gao and
+               Oscar Beijbom and
+               Ning Zhang and
+               Trevor Darrell},
+  title     = {Compact Bilinear Pooling},
+  journal   = {CoRR},
+  volume    = {abs/1511.06062},
+  year      = {2015},
+  %url       = {http://arxiv.org/abs/1511.06062},
+  archivePrefix = {arXiv},
+  eprint    = {1511.06062},
+  timestamp = {Thu, 25 Jan 2018 15:04:28 +0100},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/GaoBZD15},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{statistically-motivated,
+  author    = {Kaicheng Yu and
+               Mathieu Salzmann},
+  title     = {Statistically Motivated Second Order Pooling},
+  journal   = {CoRR},
+  volume    = {abs/1801.07492},
+  year      = {2018},
+  %url       = {http://arxiv.org/abs/1801.07492},
+  archivePrefix = {arXiv},
+  eprint    = {1801.07492},
+  timestamp = {Fri, 02 Feb 2018 14:20:25 +0100},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/abs-1801-07492},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{Cimpoi:2016:DFB:2935007.2935085,
+ author = {Cimpoi, Mircea and Maji, Subhransu and Kokkinos, Iasonas and Vedaldi, Andrea},
+ title = {Deep Filter Banks for Texture Recognition, Description, and Segmentation},
+ journal = {Int. J. Comput. Vision},
+ issue_date = {May       2016},
+ volume = {118},
+ number = {1},
+ month = may,
+ year = {2016},
+ issn = {0920-5691},
+ pages = {65--94},
+ numpages = {30},
+ %url = {http://dx.doi.org/10.1007/s11263-015-0872-3},
+ doi = {10.1007/s11263-015-0872-3},
+ acmid = {2935085},
+ publisher = {Kluwer Academic Publishers},
+ address = {Hingham, MA, USA},
+ keywords = {Convolutional neural networks, Datasets and benchmarks, Filter banks, Fisher vectors, Texture and material recognition, Visual attributes},
+} 
+
+@article{Miyato,
+  author    = {Takeru Miyato and
+               Toshiki Kataoka and
+               Masanori Koyama and
+               Yuichi Yoshida},
+  title     = {Spectral Normalization for Generative Adversarial Networks},
+  journal   = {CoRR},
+  volume    = {abs/1802.05957},
+  year      = {2018},
+  %url       = {http://arxiv.org/abs/1802.05957},
+  archivePrefix = {arXiv},
+  eprint    = {1802.05957},
+  timestamp = {Thu, 01 Mar 2018 19:20:48 +0100},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/abs-1802-05957},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Schumacher,
+author="Schumacher, Johannes
+and Toutounji, Hazem
+and Pipa, Gordon",
+editor="Koprinkova-Hristova, Petia
+and Mladenov, Valeri
+and Kasabov, Nikola K.",
+title="An Introduction to Delay-Coupled Reservoir Computing",
+booktitle="Artificial Neural Networks",
+year="2015",
+publisher="Springer International Publishing",
+address="Cham",
+pages="63--90",
+abstract="Reservoir computing has been successfully applied in difficult time series prediction tasks by injecting an input signal into a spatially extended reservoir of nonlinear subunits to perform history-dependent nonlinear computation. Recently, the network was replaced by a single nonlinear node, delay-coupled to itself. Instead of a spatial topology, subunits are arrayed in time along one delay span of the system. As a result, the reservoir exists only implicitly in a single delay differential equation, the numerical solving of which is costly.We give here a brief introduction to the general topic of delay-coupled reservoir computing and derive approximate analytical equations for the reservoir by solving the underlying system explicitly. The analytical approximation represents the system accurately and yields comparable performance in reservoir benchmark tasks, while reducing computational costs practically by several orders of magnitude. This has important implications with respect to electronic realizations of the reservoir and opens up new possibilities for optimization and theoretical investigation.",
+isbn="978-3-319-09903-3"
+}
+
+@article{Sedghi,
+author = {Sedghi, Hanie and Anandkumar, Animashree},
+year = {2016},
+month = {03},
+pages = {},
+title = {Training Input-Output Recurrent Neural Networks through Spectral Methods}
+}
+
+@article         { lecun-kanter-solla-91,
+original =    "orig/lecun-kanter-solla-91.tiff",
+author  =       "LeCun, Y. and Kanter, I. and Solla, S.",
+title   =        "Eigenvalues of covariance matrices: application to neural-network learning",
+journal =        "Physical Review Letters",
+year    =        "1991",
+month   =        "May",
+volume  =	 "66",
+number	=	 "18",
+pages	=	 "2396-2399"
+}
+
+@article{Savitzky,
+    author = {Savitzky, Abraham and Golay, M. J. E.},
+    booktitle = {Analytical Chemistry},
+    citeulike-article-id = {4226570},
+    citeulike-linkout-0 = {http://dx.doi.org/10.1021/ac60214a047},
+    citeulike-linkout-1 = {http://pubs.acs.org/doi/abs/10.1021/ac60214a047},
+    day = {1},
+    doi = {10.1021/ac60214a047},
+    journal = {Anal. Chem.},
+    month = jul,
+    number = {8},
+    pages = {1627--1639},
+    posted-at = {2009-10-27 12:59:45},
+    priority = {2},
+    publisher = {American Chemical Society},
+    title = {{Smoothing and Differentiation of Data by Simplified Least Squares Procedures.}},
+    %url = {http://dx.doi.org/10.1021/ac60214a047},
+    volume = {36},
+    year = {1964}
+}
+
+@article{DBLP:journals/corr/IandolaMAHDK16,
+  author    = {Forrest N. Iandola and
+               Matthew W. Moskewicz and
+               Khalid Ashraf and
+               Song Han and
+               William J. Dally and
+               Kurt Keutzer},
+  title     = {SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and {\textless}1MB
+               model size},
+  journal   = {CoRR},
+  volume    = {abs/1602.07360},
+  year      = {2016},
+  %url       = {http://arxiv.org/abs/1602.07360},
+  archivePrefix = {arXiv},
+  eprint    = {1602.07360},
+  timestamp = {Mon, 13 Aug 2018 16:46:12 +0200},
+  bib%url    = {https://dblp.org/rec/journals/corr/IandolaMAHDK16.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@incollection{NIPS2016_6096,
+title = {Learning a Probabilistic Latent Space of Object Shapes via 3D Generative-Adversarial Modeling},
+author = {Wu, Jiajun and Zhang, Chengkai and Xue, Tianfan and Freeman, Bill and Tenenbaum, Josh},
+booktitle = {Advances in Neural Information Processing Systems 29},
+editor = {D. D. Lee and M. Sugiyama and U. V. Luxburg and I. Guyon and R. Garnett},
+pages = {82--90},
+year = {2016},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/6096-learning-a-probabilistic-latent-space-of-object-shapes-via-3d-generative-adversarial-modeling.pdf}
+}
+
+
+@article{DBLP:journals/corr/SutskeverVL14,
+  author    = {Ilya Sutskever and
+               Oriol Vinyals and
+               Quoc V. Le},
+  title     = {Sequence to Sequence Learning with Neural Networks},
+  journal   = {CoRR},
+  volume    = {abs/1409.3215},
+  year      = {2014},
+  %url       = {http://arxiv.org/abs/1409.3215},
+  archivePrefix = {arXiv},
+  eprint    = {1409.3215},
+  timestamp = {Mon, 13 Aug 2018 16:48:06 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/SutskeverVL14},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{conf/nips/BergstraBBK11,
+  added-at = {2014-12-10T00:00:00.000+0100},
+  author = {Bergstra, James and Bardenet, Rémi and Bengio, Yoshua and Kégl, Balázs},
+%   bib%url = {https://www.bibsonomy.org/bibtex/28b02e2807e3fc920dc093d512a783ca1/dblp},
+  booktitle = {NIPS},
+  editor = {Shawe-Taylor, John and Zemel, Richard S. and Bartlett, Peter L. and Pereira, Fernando C. N. and Weinberger, Kilian Q.},
+  ee = {http://papers.nips.cc/paper/4443-algorithms-for-hyper-parameter-optimization},
+  interhash = {cdeda6f0b2c71a54e1319af6980e7c94},
+  intrahash = {8b02e2807e3fc920dc093d512a783ca1},
+  keywords = {dblp},
+  pages = {2546-2554},
+  timestamp = {2015-06-19T08:11:38.000+0200},
+  title = {Algorithms for Hyper-Parameter Optimization.},
+  %url = {http://dblp.uni-trier.de/db/conf/nips/nips2011.html#BergstraBBK11},
+  year = 2011
+}
+
+@inproceedings{bayesian_opt,
+  title = 	 {Scalable Bayesian Optimization Using Deep Neural Networks},
+  author = 	 {Jasper Snoek and Oren Rippel and Kevin Swersky and Ryan Kiros and Nadathur Satish and Narayanan Sundaram and Mostofa Patwary and Mr Prabhat and Ryan Adams},
+  booktitle = 	 {Proceedings of the 32nd International Conference on Machine Learning},
+  pages = 	 {2171--2180},
+  year = 	 {2015},
+  editor = 	 {Francis Bach and David Blei},
+  volume = 	 {37},
+  series = 	 {Proceedings of Machine Learning Research},
+  address = 	 {Lille, France},
+  month = 	 {07--09 Jul},
+  publisher = 	 {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v37/snoek15.pdf},
+  %url = 	 {http://proceedings.mlr.press/v37/snoek15.html},
+  abstract = 	 {Bayesian optimization is an effective methodology for the global optimization of functions with expensive evaluations. It relies on querying a distribution over functions defined by a relatively cheap surrogate model. An accurate model for this distribution over functions is critical to the effectiveness of the approach, and is typically fit using Gaussian processes (GPs). However, since GPs scale cubically with the number of observations, it has been challenging to handle objectives whose optimization requires many evaluations, and as such, massively parallelizing the optimization. In this work, we explore the use of neural networks as an alternative to GPs to model distributions over functions. We show that performing adaptive basis function regression with a neural network as the parametric form performs competitively with state-of-the-art GP-based approaches, but scales linearly with the number of data rather than cubically. This allows us to achieve a previously intractable degree of parallelism, which we apply to large scale hyperparameter optimization, rapidly finding competitive models on benchmark object recognition tasks using convolutional networks, and image caption generation using neural language models.}
+}
+
+@article{resnet,
+  author    = {Kaiming He and
+               Xiangyu Zhang and
+               Shaoqing Ren and
+               Jian Sun},
+  title     = {Deep Residual Learning for Image Recognition},
+  journal   = {CoRR},
+  volume    = {abs/1512.03385},
+  year      = {2015},
+  %url       = {http://arxiv.org/abs/1512.03385},
+  archivePrefix = {arXiv},
+  eprint    = {1512.03385},
+  timestamp = {Wed, 17 Apr 2019 17:23:45 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/HeZRS15},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{inceptionv3,
+  author    = {Christian Szegedy and
+               Vincent Vanhoucke and
+               Sergey Ioffe and
+               Jonathon Shlens and
+               Zbigniew Wojna},
+  title     = {Rethinking the Inception Architecture for Computer Vision},
+  journal   = {CoRR},
+  volume    = {abs/1512.00567},
+  year      = {2015},
+  %url       = {http://arxiv.org/abs/1512.00567},
+  archivePrefix = {arXiv},
+  eprint    = {1512.00567},
+  timestamp = {Mon, 13 Aug 2018 16:49:07 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/SzegedyVISW15},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{googlanas,
+  author    = {Barret Zoph and
+               Vijay Vasudevan and
+               Jonathon Shlens and
+               Quoc V. Le},
+  title     = {Learning Transferable Architectures for Scalable Image Recognition},
+  journal   = {CoRR},
+  volume    = {abs/1707.07012},
+  year      = {2017},
+  %url       = {http://arxiv.org/abs/1707.07012},
+  archivePrefix = {arXiv},
+  eprint    = {1707.07012},
+  timestamp = {Mon, 13 Aug 2018 16:48:00 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/ZophVSL17},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{rcnn,
+  author    = {Ross B. Girshick and
+               Jeff Donahue and
+               Trevor Darrell and
+               Jitendra Malik},
+  title     = {Rich feature hierarchies for accurate object detection and semantic
+               segmentation},
+  journal   = {CoRR},
+  volume    = {abs/1311.2524},
+  year      = {2013},
+  %url       = {http://arxiv.org/abs/1311.2524},
+  archivePrefix = {arXiv},
+  eprint    = {1311.2524},
+  timestamp = {Mon, 13 Aug 2018 16:48:09 +0200},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/GirshickDDM13},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{siamese,
+  added-at = {2017-03-27T16:51:39.000+0200},
+  author = {Koch, Gregory and Zemel, Richard and Salakhutdinov, Ruslan},
+%   bib%url = {https://www.bibsonomy.org/bibtex/26f83b8c4cf316e77e6f6ce1e97411b30/bsc},
+  interhash = {a2596c72ef39240b7c4f86e6038d9344},
+  intrahash = {6f83b8c4cf316e77e6f6ce1e97411b30},
+  keywords = {neural-networks one-shot-learning},
+  timestamp = {2017-03-27T16:51:39.000+0200},
+  title = {Siamese Neural Networks for One-shot Image Recognition},
+  year = 2015
+}
+
+@article{rsiebay,
+  author    = {Fan Yang and
+               Ajinkya Kale and
+               Yury Bubnov and
+               Leon Stein and
+               Qiaosong Wang and
+               M. Hadi Kiapour and
+               Robinson Piramuthu},
+  title     = {Visual Search at eBay},
+  journal   = {CoRR},
+  volume    = {abs/1706.03154},
+  year      = {2017}
+}
+
+@article{nin,
+  title={Network In Network},
+  author={Min Lin and Qiang Chen and Shuicheng Yan},
+  journal={CoRR},
+  year={2014},
+  volume={abs/1312.4400}
+}
+
+@article{widenets,
+  author    = {Quynh Nguyen and
+               Mahesh Chandra Mukkamala and
+               Matthias Hein},
+  title     = {Neural Networks Should Be Wide Enough to Learn Disconnected Decision
+               Regions},
+  journal   = {CoRR},
+  volume    = {abs/1803.00094},
+  year      = {2018}
+}
+
+@article{wideresnet,
+  author    = {Sergey Zagoruyko and
+               Nikos Komodakis},
+  title     = {Wide Residual Networks},
+  journal   = {CoRR},
+  volume    = {abs/1605.07146},
+  year      = {2016}
+}
+
+@incollection{errorsurface,
+title = {Visualizing the Loss Landscape of Neural Nets},
+author = {Li, Hao and Xu, Zheng and Taylor, Gavin and Studer, Christoph and Goldstein, Tom},
+booktitle = {Advances in Neural Information Processing Systems 31},
+editor = {S. Bengio and H. Wallach and H. Larochelle and K. Grauman and N. Cesa-Bianchi and R. Garnett},
+pages = {6389--6399},
+year = {2018},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/7875-visualizing-the-loss-landscape-of-neural-nets.pdf}
+}
+
+@article{keskar,
+  author    = {Nitish Shirish Keskar and
+               Dheevatsa Mudigere and
+               Jorge Nocedal and
+               Mikhail Smelyanskiy and
+               Ping Tak Peter Tang},
+  title     = {On Large-Batch Training for Deep Learning: Generalization Gap and
+               Sharp Minima},
+  journal   = {CoRR},
+  volume    = {abs/1609.04836},
+  year      = {2016}
+}
+
+@inproceedings{
+sensitivitygoogle,
+title={Sensitivity and Generalization in Neural Networks: an Empirical Study},
+author={Roman Novak and Yasaman Bahri and Daniel A. Abolafia and Jeffrey Pennington and Jascha Sohl-Dickstein},
+booktitle={International Conference on Learning Representations},
+year={2018},
+%url={https://openreview.net/forum?id=HJC2SzZCW},
+}
+
+
+@incollection{alexnet,
+title = {ImageNet Classification with Deep Convolutional Neural Networks},
+author = {Alex Krizhevsky and Sutskever, Ilya and Hinton, Geoffrey E},
+booktitle = {Advances in Neural Information Processing Systems 25},
+editor = {F. Pereira and C. J. C. Burges and L. Bottou and K. Q. Weinberger},
+pages = {1097--1105},
+year = {2012},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf}
+}
+
+@article{zfnet,
+  author    = {Matthew D. Zeiler and
+               Rob Fergus},
+  title     = {Visualizing and Understanding Convolutional Networks},
+  journal   = {CoRR},
+  volume    = {abs/1311.2901},
+  year      = {2013}
+}
+
+@article{ENAS,
+  author    = {Hieu Pham and
+               Melody Y. Guan and
+               Barret Zoph and
+               Quoc V. Le and
+               Jeff Dean},
+  title     = {Efficient Neural Architecture Search via Parameter Sharing},
+  journal   = {CoRR},
+  volume    = {abs/1802.03268},
+  year      = {2018},
+  %url       = {http://arxiv.org/abs/1802.03268},
+  archivePrefix = {arXiv},
+  eprint    = {1802.03268},
+  timestamp = {Mon, 13 Aug 2018 16:47:58 +0200},
+%   bib%url    = {https://dblp.org/rec/bib/journals/corr/abs-1802-03268},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{foolDNNs,
+author = {Biggio, Battista and Corona, Igino and Maiorca, Davide and Nelson, Blaine and \v{S}rndi\'{c}, Nedim and Laskov, Pavel and Giacinto, Giorgio and Roli, Fabio},
+title = {Evasion Attacks against Machine Learning at Test Time},
+year = {2013},
+isbn = {9783642409936},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+%url = {https://doi.org/10.1007/978-3-642-40994-3_25},
+doi = {10.1007/978-3-642-40994-3_25},
+booktitle = {Proceedings of the 2013th European Conference on Machine Learning and Knowledge Discovery in Databases - Volume Part III},
+pages = {387–402},
+numpages = {16},
+keywords = {adversarial machine learning, neural networks, support vector machines, evasion attacks},
+location = {Prague, Czech Republic},
+series = {ECMLPKDD’13}
+}
+
+
+
+
+
+@article{belkin-double-descent,
+  abstract = {Breakthroughs in machine learning are rapidly changing science and society, yet our fundamental understanding of this technology has lagged far behind. Indeed, one of the central tenets of the field, the bias-variance trade-off, appears to be at odds with the observed behavior of methods used in the modern machine learning practice. The bias-variance trade-off implies that a model should balance under-fitting and over-fitting: rich enough to express underlying structure in data, simple enough to avoid fitting spurious patterns. However, in the modern practice, very rich models such as neural networks are trained to exactly fit (i.e., interpolate) the data. Classically, such models would be considered over-fit, and yet they often obtain high accuracy on test data. This apparent contradiction has raised questions about the mathematical foundations of machine learning and their relevance to practitioners.
+In this paper, we reconcile the classical understanding and the modern practice within a unified performance curve. This "double descent" curve subsumes the textbook U-shaped bias-variance trade-off curve by showing how increasing model capacity beyond the point of interpolation results in improved performance. We provide evidence for the existence and ubiquity of double descent for a wide spectrum of models and datasets, and we posit a mechanism for its emergence. This connection between the performance and the structure of machine learning models delineates the limits of classical analyses, and has implications for both the theory and practice of machine learning.},
+  archivePrefix = {arXiv},
+  arxivId = {1812.11118},
+  author    = {Mikhail Belkin and
+               Daniel Hsu and
+               Siyuan Ma and
+               Soumik Mandala},
+  eprint    = {1812.11118},
+  month     = {dec},
+  title     = {Reconciling modern machine learning practice and the bias-variance trade-of},
+  year      = {2018},
+  %url       = {https://arxiv.org/abs/1812.11118},
+  eprint    = {1802.03268},
+  timestamp = {Tue, 10 Sep 2019 19:51:04 UTC},
+}
+
+
+% A book covering the topic of Information Geometry. The book is
+% very theoretical but it gives good insight in
+% how information geometry formulates problems,
+% as well as insightful proofs.
+
+@book{Amari2016,
+address = {Saitama, Wako},
+author = {Amari, Shun-ichi},
+publisher = {Springer Japan},
+title = {{Information Geometry and its applications}},
+year = {2016}
+}
+
+
+@misc{Zhou:Lan:Liu:Yosinski:2019,
+ author = {Hattie Zhou and Janice Lan and Rosanne Liu and Jason Yosinski},
+ title = {Deconstructing Lottery Tickets: Zeros, Signs, and the Supermask},
+ year = {2019},
+ howpublished = {arXiv:1905.01067},
+ month = {May},
+ %url = {https://arxiv.org/abs/1905.01067}
+}
+
+@misc{Frankle:Dziugaite:Roy:Carbin:2019,
+  author = {Jonathan Frankle and Gintare Karolina Dziugaite and Daniel M. Roy and Michael
+ Carbin},
+  title = {Stabilizing the Lottery Ticket Hypothesis},
+  year = {2019},
+  howpublished = {arXiv:1903.01611},
+  month = {March},
+  %url = {https://arxiv.org/abs/1903.01611}
+}
+
+@inproceedings{Frankle:Carbin:2019,
+  author = {Jonathan Frankle and Michael Carbin},
+  title = {The Lottery Ticket Hypothesis: Finding Sparse, Trainable Neural Networks},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year = {2019},
+  %url = {https://openreview.net/forum?id=rJl-b3RcF7}
+}
+
+@inproceedings{food101,
+  title = {Food-101 -- Mining Discriminative Components with Random Forests},
+  author = {Bossard, Lukas and Guillaumin, Matthieu and Van Gool, Luc},
+  booktitle = {European Conference on Computer Vision},
+  year = {2014}
+}
+
+@article{Preactivation:2016,
+  abstract = {Deep residual networks have emerged as a family of extremely deep architectures showing compelling accuracy and nice convergence behaviors. In this paper, we analyze the propagation formulations behind the residual building blocks, which suggest that the forward and backward signals can be directly propagated from one block to any other block, when using identity mappings as the skip connections and after-addition activation. A series of ablation experiments support the importance of these identity mappings. This motivates us to propose a new residual unit, which makes training easier and improves generalization. We report improved results using a 1001-layer ResNet on CIFAR-10 (4.62\% error) and CIFAR-100, and a 200-layer ResNet on ImageNet.},
+  archivePrefix = {arXiv},
+  arxivId = {1603.05027},
+  author = {Kaiming He and Xiangyu Zhang and Shaoqing Ren and Jian Sun},
+  eprint    = {1603.05027},
+  month     = {mar},
+  title     = {Identity Mappings in Deep Residual Networks},
+  year      = {2016},
+  %url       = {https://arxiv.org/abs/1603.05027},
+  eprint    = {1603.05027},
+  timestamp = {Mon, 25 Jul 2016 15:18:32 UTC},
+
+}
+
+@article{sat_pruning1,
+  author    = {Isha Garg and
+               Priyadarshini Panda and
+               Kaushik Roy},
+  title     = {A Low Effort Approach to Structured {CNN} Design Using {PCA}},
+  journal   = {CoRR},
+  volume    = {abs/1812.06224},
+  year      = {2018},
+  %url       = {http://arxiv.org/abs/1812.06224},
+  archivePrefix = {arXiv},
+  eprint    = {1812.06224},
+  timestamp = {Tue, 01 Jan 2019 15:01:25 +0100},
+  bib%url    = {https://dblp.org/rec/bib/journals/corr/abs-1812-06224},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{antognini2018pca,
+    title={PCA of high dimensional random walks with comparison to neural network training},
+    author={Joseph M. Antognini and Jascha Sohl-Dickstein},
+    year={2018},
+    eprint={1806.08805},
+    archivePrefix={arXiv},
+    primaryClass={stat.ML}
+}
+@article{sat_pruning2,
+  title={{PCA}-driven Hybrid network design for enabling Intelligence at the Edge},
+  author={Indranil Chakraborty and Deboleena Roy and Isha Garg and Aayush Ankit and Kaushik Roy},
+  journal={ArXiv},
+  year={2019},
+  volume={abs/1906.01493}
+}
+
+
+@article{uber_intrinsic_dimensionality,
+  title={Measuring the Intrinsic Dimension of Objective Landscapes},
+  author={Chunyuan Li and Heerad Farkhoor and Rosanne Liu and Jason Yosinski},
+  journal={ArXiv},
+  year={2018},
+  volume={abs/1804.08838}
+}
+
+
+@phdthesis{Moyse2018,
+  title={A mathematical approach to identifying antibody affinity with modern biosensors, for pharmaceutical and clinical settings},
+  author={Harold Arthur James Moyse},
+  school={MOAC Doctoral Training Centre, University of Warwick},
+  year=2018
+}
+
+@book{bolzano1817,
+  address = {Prague, Czechia},
+  title={Rein analytischer Beweis des Lehrsatzes dass zwischen je zwey Werthen, die ein entgegengesetztes Resultat gewaehren, wenigstens eine reele Wurzel der Gleichung liege},
+  author={Bernard Bolzano},
+  publisher={Gottlieb Haase},
+  year=1817
+}
+
+
+@article{zachary2019,
+  title={Troubling Trends in Machine-learning Scholarship},
+  author={Zachary C. Lipton and Jacob Steinhardt},
+  journal={ACM Queue},
+  year={2019},
+  volume={17},
+  issue={1},
+  %url={https://dl.acm.org/doi/pdf/10.1145/3317287.3328534?download=true}
+}
+
+@book{information_geometry,
+author = {Amari, {Shun-ichi}},
+title = {Information Geometry and Its Applications},
+year = {2016},
+isbn = {4431559779},
+publisher = {Springer Publishing Company, Incorporated},
+edition = {1st}
+}
+
+@article{alain2016,
+  author = {Guillaume Alain and Yoshua Bengio},
+  title = {Understanding intermediate layers using linear classifier probes},
+  journal={ArXiv},
+  year={2016},
+  volume={abs/1610.01644}
+}
+
+@article{Ashraf2016,
+  author = {Khalid Ashraf and Bichen Wu and Forrest N. Iandola and Mattthew W. Moskewicz and Kurt Keutzer},
+  title = {Shallow Networks for High-Accuracy Road Object-Detection},
+  journal={ArXiv},
+  year={2016},
+  volume={abs/1606.01561}
+}
+
+@article{understandingCNNs,
+  author    = {Matthew D. Zeiler and
+               Rob Fergus},
+  title     = {Visualizing and Understanding Convolutional Networks},
+  journal   = {CoRR},
+  volume    = {abs/1311.2901},
+  year      = {2013},
+  %url       = {http://arxiv.org/abs/1311.2901},
+  archivePrefix = {arXiv},
+  eprint    = {1311.2901},
+  timestamp = {Mon, 13 Aug 2018 16:48:37 +0200},
+%   bib%url    = {https://dblp.org/rec/journals/corr/ZeilerF13.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@incollection{transferrable,
+title = {How transferable are features in deep neural networks?},
+author = {Yosinski, Jason and Clune, Jeff and Bengio, Yoshua and Lipson, Hod},
+booktitle = {Advances in Neural Information Processing Systems 27},
+editor = {Z. Ghahramani and M. Welling and C. Cortes and N. D. Lawrence and K. Q. Weinberger},
+pages = {3320--3328},
+year = {2014},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/5347-how-transferable-are-features-in-deep-neural-networks.pdf}
+}
+
+@article{rethinkGeneralization,
+  author    = {Chiyuan Zhang and
+               Samy Bengio and
+               Moritz Hardt and
+               Benjamin Recht and
+               Oriol Vinyals},
+  title     = {Understanding deep learning requires rethinking generalization},
+  journal   = {CoRR},
+  volume    = {abs/1611.03530},
+  year      = {2016},
+  %url       = {http://arxiv.org/abs/1611.03530},
+  archivePrefix = {arXiv},
+  eprint    = {1611.03530},
+  timestamp = {Mon, 13 Aug 2018 16:47:02 +0200},
+  bib%url    = {https://dblp.org/rec/journals/corr/ZhangBHRV16.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{efficentNet,
+  author    = {Mingxing Tan and
+               Quoc V. Le},
+  title     = {EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks},
+  journal   = {CoRR},
+  volume    = {abs/1905.11946},
+  year      = {2019},
+  %url       = {http://arxiv.org/abs/1905.11946},
+  archivePrefix = {arXiv},
+  eprint    = {1905.11946},
+  timestamp = {Mon, 03 Jun 2019 13:42:33 +0200},
+%   bib%url    = {https://dblp.org/rec/journals/corr/abs-1905-11946.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{featureAttribution,
+  author={B. {Zhou} and A. {Khosla} and A. {Lapedriza} and A. {Oliva} and A. {Torralba}},
+  booktitle={2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, 
+  title={Learning Deep Features for Discriminative Localization}, 
+  year={2016},
+  volume={},
+  number={},
+  pages={2921-2929},}
+  
+@incollection{kernelPCA,
+title = {Layer-wise analysis of deep networks with Gaussian kernels},
+author = {Montavon, Gr\'{e}goire and M\"{u}ller, Klaus-Robert and Mikio L. Braun},
+booktitle = {Advances in Neural Information Processing Systems 23},
+editor = {J. D. Lafferty and C. K. I. Williams and J. Shawe-Taylor and R. S. Zemel and A. Culotta},
+pages = {1678--1686},
+year = {2010},
+publisher = {Curran Associates, Inc.},
+%url = {http://papers.nips.cc/paper/4061-layer-wise-analysis-of-deep-networks-with-gaussian-kernels.pdf}
+}
+
+@inproceedings{tinyimnet,
+  title={Tiny {ImageNet} {V}isual {R}ecognition {C}hallenge},
+  author={Ya Le and Xuan Yang},
+  year={2015}
+}
+
+
+@article{spectral-analysis,
+  author    = {Justin Shenk and
+               Mats L. Richter and
+               Anders Arpteg and
+               Mikael Huss},
+  title     = {Spectral Analysis of Latent Representations},
+  journal   = {CoRR},
+  volume    = {abs/1907.08589},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1907.08589},
+  archivePrefix = {arXiv},
+  eprint    = {1907.08589},
+  timestamp = {Tue, 23 Jul 2019 10:54:22 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1907-08589.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+>>>>>>> fdd5da6 ([Paper] Update title,content)
+>>>>>>> 3f43e46ea3f9f48c201ea42e98adcc619cf63653
