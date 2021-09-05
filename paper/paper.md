@@ -68,15 +68,33 @@ Furthermore, researchers who are interested in developing novel algorithms must 
 By packaging a library that is particularly useful for extracting statistics from neuarl network training, future researchers can benefit from access to a high-level interface and clearly documented methods for their work.
 
 ## Overview of the Library
-The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>. The ... module provides ...
+The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>.
 
-Subclassing the TensorBoardX `SummaryWriter` [@tensorflow2015-whitepaper]...
+The TensorBoardX `SummaryWriter` [@tensorflow2015-whitepaper] is used to efficiently save artifacts like images or statistics during training with minimal interruption.
+A variety of statistics can be observed:
 
+| Identifier | Statistic |
+|------------|----------------------------------------------------------------------------------|
+| idim | intrinsic dimensionality                                                               |
+| lsat | layer saturation (intrinsic dimensionality divided by feature space dimensionalit      |
+| cov  | the covariance-matrix (only saveable using the 'npy' save strategy)                    |
+| det  | the determinant of the covariance matrix (also known as generalized variance)          |
+| trc  | the trace of the covariance matrix, a measure of variance of the data                  |
+| dtrc | the trace of the diagonal matrix, another way of measuring the dispersion of the data. |
+| lsat | layer saturation (intrinsic dimensionality divided by feature space dimensionality)    |
+
+
+Several layers are supported:
+
+* Convolutional
+* Linear
+* LSTM
+  
 ## Eigendecomposition of the feature covariance matrix
 
-Saturation is a measure of the rank of the layer feature eigenspace introduced by [@Shenk:Thesis:2018;@spectral-analysis] and extended for ... [@feature-space].
+Saturation is a measure of the rank of the layer feature eigenspace introduced by [@Shenk:Thesis:2018;@spectral-analysis] and further explored in[@feature-space].
 
-Covariance matrix of features is computed online as described in [@feature-space]...
+Covariance matrix of features is computed online as described in [@feature-space]:
 
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
 
