@@ -1,3 +1,151 @@
+@inproceedings{svcca,
+  author    = {Maithra Raghu and
+               Justin Gilmer and
+               Jason Yosinski and
+               Jascha Sohl{-}Dickstein},
+  editor    = {Isabelle Guyon and
+               Ulrike von Luxburg and
+               Samy Bengio and
+               Hanna M. Wallach and
+               Rob Fergus and
+               S. V. N. Vishwanathan and
+               Roman Garnett},
+  title     = {{SVCCA:} Singular Vector Canonical Correlation Analysis for Deep Learning
+               Dynamics and Interpretability},
+  booktitle = {Advances in Neural Information Processing Systems 30: Annual Conference
+               on Neural Information Processing Systems 2017, December 4-9, 2017,
+               Long Beach, CA, {USA}},
+  pages     = {6076--6085},
+  year      = {2017},
+  url       = {https://proceedings.neurips.cc/paper/2017/hash/dc6a7e655d7e5840e66733e9ee67cc69-Abstract.html},
+  timestamp = {Thu, 21 Jan 2021 15:15:21 +0100},
+  biburl    = {https://dblp.org/rec/conf/nips/RaghuGYS17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{alain2016,
+  author    = {Guillaume Alain and
+               Yoshua Bengio},
+  title     = {Understanding intermediate layers using linear classifier probes},
+  booktitle = {5th International Conference on Learning Representations, {ICLR} 2017,
+               Toulon, France, April 24-26, 2017, Workshop Track Proceedings},
+  publisher = {OpenReview.net},
+  year      = {2017},
+  url       = {https://openreview.net/forum?id=HJ4-rAVtl},
+  timestamp = {Thu, 04 Apr 2019 13:20:09 +0200},
+  biburl    = {https://dblp.org/rec/conf/iclr/AlainB17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@InProceedings{gradcam,
+author = {Selvaraju, Ramprasaath R. and Cogswell, Michael and Das, Abhishek and Vedantam, Ramakrishna and Parikh, Devi and Batra, Dhruv},
+title = {Grad-CAM: Visual Explanations From Deep Networks via Gradient-Based Localization},
+booktitle = {Proceedings of the IEEE International Conference on Computer Vision (ICCV)},
+month = {Oct},
+year = {2017}
+}
+
+@article{gradcamplusplus,
+  title={Grad-CAM++: Generalized Gradient-Based Visual Explanations for Deep Convolutional Networks},
+  author={Aditya Chattopadhyay and Anirban Sarkar and Prantik Howlader and V. Balasubramanian},
+  journal={2018 IEEE Winter Conference on Applications of Computer Vision (WACV)},
+  year={2018},
+  pages={839-847}
+}
+
+@incollection{svcca2,
+title = {Insights on representational similarity in neural networks with canonical correlation},
+author = {Morcos, Ari and Raghu, Maithra and Bengio, Samy},
+booktitle = {Advances in Neural Information Processing Systems 31},
+editor = {S. Bengio and H. Wallach and H. Larochelle and K. Grauman and N. Cesa-Bianchi and R. Garnett},
+pages = {5732--5741},
+year = {2018},
+publisher = {Curran Associates, Inc.},
+url = {http://papers.nips.cc/paper/7815-insights-on-representational-similarity-in-neural-networks-with-canonical-correlation.pdf}
+}
+
+@misc{iranconf,
+      title={Exploring the Properties and Evolution of Neural Network Eigenspaces during Training},
+      author={Mats L. Richter and Leila Malihi and Anne-Kathrin Patricia Windler and Ulf Krumnack},
+      year={2021},
+      eprint={2106.09526},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+
+
+@inproceedings{sizematters,
+author = {Mats L. Richter and
+               Wolf Byttner and
+               Ulf Krumnack and
+               Ludwig Schallner and
+               Justin Shenk (in press)},
+title = {{(Input) Size Matters for Convolutional Neural Network Classifiers}},
+year = {2021},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+abstract = {Fully convolutional neural networks (CNNs) can process
+input of arbitrary size by applying a combination of downsampling and
+pooling. However, we find that fully convolutional image classifiers are
+not agnostic to the input size but rather show significant differences in
+performance: presenting the same image at different scales can result in
+different outcomes. A closer look reveals that there is no simple relationship between input size and model performance (no ‘bigger is better’),
+but that each network has a preferred input size, for which it shows
+best results. We investigate this phenomenon by applying different methods, including spectral analysis of layer activations and probe classifiers,
+showing that there are characteristic features depending on the network
+architecture. From this, we find that the size of discriminatory features
+is critically influencing how the inference process is distributed among
+the layers. Based on these findings we are able to derive basic design
+guidelines for optimizing neural architectures on specific datasets.},
+BOOKTITLE = {Proceedings of the 30th International Conference on Artificial Neural Networks - Volume Part II},
+pages = {1–12},
+numpages = {12},
+keywords = {Convolutional neural networks, Input size, Resolution, Scale},
+location = {Bratislava,  Czech Republic},
+series = {ICANN'21}
+}
+
+@article{keskar,
+  author    = {Nitish Shirish Keskar and
+               Dheevatsa Mudigere and
+               Jorge Nocedal and
+               Mikhail Smelyanskiy and
+               Ping Tak Peter Tang},
+  title     = {On Large-Batch Training for Deep Learning: Generalization Gap and
+               Sharp Minima},
+  journal   = {CoRR},
+  volume    = {abs/1609.04836},
+  year      = {2016}
+}
+
+@inproceedings{
+sensitivitygoogle,
+title={Sensitivity and Generalization in Neural Networks: an Empirical Study},
+author={Roman Novak and Yasaman Bahri and Daniel A. Abolafia and Jeffrey Pennington and Jascha Sohl-Dickstein},
+booktitle={International Conference on Learning Representations},
+year={2018},
+url={https://openreview.net/forum?id=HJC2SzZCW},
+}
+
+@incollection{kernelPCA,
+title = {Layer-wise analysis of deep networks with Gaussian kernels},
+author = {Montavon, Gr\'{e}goire and M\"{u}ller, Klaus-Robert and Mikio L. Braun},
+booktitle = {Advances in Neural Information Processing Systems 23},
+editor = {J. D. Lafferty and C. K. I. Williams and J. Shawe-Taylor and R. S. Zemel and A. Culotta},
+pages = {1678--1686},
+year = {2010},
+publisher = {Curran Associates, Inc.},
+url = {http://papers.nips.cc/paper/4061-layer-wise-analysis-of-deep-networks-with-gaussian-kernels.pdf}
+}
+
+@inproceedings{featureAttribution,
+  author={B. {Zhou} and A. {Khosla} and A. {Lapedriza} and A. {Oliva} and A. {Torralba}},
+  booktitle={2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title={Learning Deep Features for Discriminative Localization},
+  year={2016},
+  pages={2921-2929},}
+
+
 @misc{tensorflow2015-whitepaper,
 title={ {TensorFlow}: Large-Scale Machine Learning on Heterogeneous Systems},
 url={https://www.tensorflow.org/},

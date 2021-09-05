@@ -29,25 +29,45 @@ bibliography: paper.bib
 Designing neural networks is a complex task.
 
 Several tools exist which allow analayzing neural networks after and during training.
-# Generalization mesured by keskar and this one google paper
-# Similarity of features measured by SVVCA 
-# This one meta reviewer paper from BMVCA
-# of course logistic regression probes
-Tools such as ... allow ...
+These techniques can be characterized by their focus on either data or model as well as their general abstractness.
+Examples for abstract model oriented techniques are tools proposed by Keskar et al. [@keskar] and Novak et al. [@sensitivitygoogle] allow for analyzing the sharpness of local
+optima, which can be an indicator for the generalizing capeabilities of the trained models.
+In these scenarios the complex of dataset and model is reduced to the error surface, allowing for insights into the differences between different setups.
+A less abstract data-centric technique GradCam by Selvaraju et al. [@gradcam] [@gradcamplusplus], which reduce the model to a set of class-activation maps
+that can be overlayed over individual data points to get an intuitive understanding of the inference process.
+SVCCA by Raghu et al. [@svcca] [@svcca2] can be considered model centric and a middle ground in terms of abstractness, since it allows the comparative analysis 
+on the features extracted by specific layers.
+SVCCA is also relevant from a functional perspective for this work, since it uses singular value decomposition as a core technique to obtain the analysis results.
+Another model centric tool that allows for a layer by layer analysis are logistic regression probes by Alain and Bengio [@alain2016], which utilize logistic regressions trained on the output
+of a hidden layer to measure the linear seperability of the data and thus the quality of the intermediate solution quality of a classifier model.
 
-[Limitation of these methods]
-# Super expensive
-# Cumbersome
-# No seemless intergration
-# Adds additional steps to experiment workflow
+The latter is of great importance for this work, since Logistic Regression Probes are used in the works of Shenk et al. and Richter et al. [@feature-space] [@sizematters] [@goingdeeper]
+to demonstrate that the saturation metric can is capeable of showing parameter-inefficienies in neural netwoork architectures.
 
+However, the aforementioned  tools have significant limitation in terms of their usefulness in practical application scenarios, where these tools 
+are to be used to improve the performance of a given model.
+In case of data centric tools like GradCam the solution propagates back to the data, which makes it hard to derive decisions regarding the neural architecture.
+However, the biggest concern in all aforementioned tools are the cost in computational resources and the integration of the analysis into the workflow
+of a deep learning practicioner.
+Tools like SVCCA and Logistic Regression Probes require complex and computationally expensive procedures that need to be conducted after training.
+This naturally limits these techniques to small benchmarks and primarily academic datasets like Cifar10 [@feature-space].
+A analysis tool that is to be used during the development of a deep learning based model needs to be able to be used with little computational and workflow overhead as possible.
+Ideally the analysis can be done life while the training is in progress, allowing the researcher to interupt potentially long running training session to improve the model.
+Saturation initially proposed by Shenk [@Shenk:Thesis:2018] and refined by Shenk et al. [@feature-space] is the only known analysis technique known to the authors 
+that has this capability while also allowing to identify parameter-inefficiencies in the setup [@feature-space] [@sizematters] [@goingdeeper].
+In order to make saturation usable an application scenario, it is necessary to provide a easy-to-use framework that allows for an integration of the tool into the 
+normal training and inference code with only minimaly invasive changes.
+It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seemless as possible.
+
+With the Python package Delve we aim to deliver a framework that allows for such a seemless and little overhead integration for saturation and 
+other statistical analysis of neural network layer eigenspaces.
 Delve is a Python package for statistical analysis of neural network layer eigenspaces.
 Delve hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers. 
 A comprehensive source of documentation is provided on the home page
 ([http://delve-docs.readthedocs.io](delve-docs.readthedocs.io)).
 
 ## Statement of Need
-Research on changes in neural network representations has exploded in the past years. [add citations]
+Research on changes in neural network representations has exploded in the past years [@svcca] [@svcca2] [@gradcam] [@kernelPCA] [@alain2016] [@featureAttribution]. [add citations]
 Furthermore, researchers who are interested in developing novel algorithms must implement from scratch much of the computational and algorithmic infrastructure for analysis and visualization.
 By packaging a library that is particularly useful for extracting statistics from neuarl network training, future researchers can benefit from access to a high-level interface and clearly documented methods for their work.
 
