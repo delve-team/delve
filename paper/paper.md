@@ -28,13 +28,12 @@ bibliography: paper.bib
 # Summary
 Designing neural networks is a complex task.
 
-Several tools exist which allow analayzing neural networks after and during training.
+Several tools exist which allow analyzing neural networks after and during training.
 These techniques can be characterized by their focus on either data or model as well as their general abstractness.
 Examples for abstract model oriented techniques are tools for analyzing the sharpness of local
 optima [@keskar;@sensitivitygoogle], which can be an indicator for the generalizing capeabilities of the trained models.
 In these scenarios the complex of dataset and model is reduced to the error surface, allowing for insights into the differences between different setups.
-A less abstract data-centric technique GradCam by Selvaraju et al. [@gradcam;@gradcamplusplus], which reduce the model to a set of class-activation maps
-that can be overlayed over individual data points to get an intuitive understanding of the inference process.
+A less abstract data-centric technique GradCam by Selvaraju et al. [@gradcam;@gradcamplusplus], which reduce the model to a set of class-activation maps that can be overlayed over individual data points to get an intuitive understanding of the inference process.
 SVCCA [@svcca;@svcca2] can be considered model centric and a middle ground in terms of abstractness, since it allows the comparative analysis 
 on the features extracted by specific layers.
 SVCCA is also relevant from a functional perspective for this work, since it uses singular value decomposition as a core technique to obtain the analysis results.
@@ -54,8 +53,7 @@ A analysis tool that is to be used during the development of a deep learning bas
 Ideally the analysis can be done life while the training is in progress, allowing the researcher to interupt potentially long running training session to improve the model.
 Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only known analysis technique known to the authors 
 that has this capability while also allowing to identify parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
-In order to make saturation usable an application scenario, it is necessary to provide a easy-to-use framework that allows for an integration of the tool into the 
-normal training and inference code with only minimaly invasive changes.
+In order to make saturation usable an application scenario, it is necessary to provide a easy-to-use framework that allows for an integration of the tool into the normal training and inference code with only minimaly invasive changes.
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seemless as possible.
 
 The Python package Delve provides a framework for allowing a seemless and minimal overhead integration for saturation and 
