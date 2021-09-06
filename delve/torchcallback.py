@@ -35,7 +35,7 @@ class CheckLayerSat(object):
                 the AbstractWriter in order to implement your
                 own preferred saving strategy.
 
-            preixisting saving strategies are:
+            pre-existing saving strategies are:
                 csv         : stores all stats in a csv-file with one
                               row for each epoch.
                 plot        : produces plots from intrinsic dimensionality
@@ -83,11 +83,9 @@ class CheckLayerSat(object):
                 dtrc        : the trace of the diagonalmatrix, another way of measuring the dispersion of the data.
                 lsat        : layer saturation (intrinsic dimensionality
                               divided by feature space dimensionality)
-                cov         : the covariance-matrix (only saveable using
-                              the 'npy' save strategy)
                 embed       : samples embedded in the eigenspace of dimension 2
 
-        layerwise_sat (bool): weather or not to include
+        layerwise_sat (bool): whether or not to include
                               layerwise saturation when saving
         reset_covariance (bool): True by default, resets the covariance
                                  every time the stats are computed. Disabling
@@ -160,7 +158,7 @@ class CheckLayerSat(object):
                                than actually recorded the behavior of the
                                writers is undefined and may result in crashes,
                                loss of data or corrupted data.
-        interpolation_strategy (str) : Defaul is None (disabled). If set to a
+        interpolation_strategy (str) : Default is None (disabled). If set to a
                                        string key accepted by the
                                        model-argument of
                                        torch.nn.functional.interpolate, the
