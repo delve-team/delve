@@ -467,8 +467,12 @@ def plot_stat(df,
         plt.figure(figsize=figsize)
     ax = plt.gca()
     col_names = [i for i in df.columns]
-    if np.all(np.isnan(df.values[0])):
-        return ax
+    try:
+        if np.all(np.isnan(df.values[0])):
+            return ax
+    except TypeError:
+        warnings.warn("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
     if line:
         if samples:
             pass
