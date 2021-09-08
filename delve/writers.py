@@ -13,6 +13,7 @@ from typing import Callable, List, Tuple
 import matplotlib
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
 
 try:
@@ -467,10 +468,14 @@ def plot_stat(df,
     ax = plt.gca()
     col_names = [i for i in df.columns]
     try:
-        if np.all(np.isnan(df.values[0])):
+        if len(df.values[0]) == 0 or (isinstance(df.values[0][0], list) and isinstance(df.values[0][0][0], tuple)):
+            pass
+        elif np.all(np.isnan(df.values[0])):
             return ax
     except TypeError:
         warnings.warn("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
+        logging.exception("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
                       "Plotting non np.ndarray may lead to crashes or inconsistent results")
     if line:
         if samples:
