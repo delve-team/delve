@@ -7,7 +7,7 @@ import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Dict
 
 import matplotlib
 import numpy as np
@@ -382,6 +382,18 @@ class CSVandPlottingWriter(CSVWriter):
     def close(self):
         pass
 
+
+WRITERS: Dict[str, AbstractWriter] = {
+    "csv": CSVWriter,
+    "npy": NPYWriter,
+    "print": PrintWriter,
+    "tb": TensorBoardWriter,
+    "tensorboard": TensorBoardWriter,
+    "csvplotting": CSVandPlottingWriter,
+    "csvplot": CSVandPlottingWriter,
+    "plot": CSVandPlottingWriter,
+    "plotcsv": CSVandPlottingWriter
+}
 
 def extract_layer_stat(df,
                        epoch=19,
