@@ -15,8 +15,7 @@ from delve.metrics import *
 from delve.logger import log
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import STATMAP, CompositWriter, NPYWriter
-from writers import WRITERS
+from delve.writers import STATMAP, CompositWriter, NPYWriter, WRITERS
 
 
 

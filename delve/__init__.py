@@ -1,10 +1,8 @@
-try:
-    import torch
+import torch
 
-    from delve.tools import reconstruct_csv_from_npy_data
-    from delve.torchcallback import CheckLayerSat
-except ImportError:
-    pass
+from delve.tools import reconstruct_csv_from_npy_data
+from delve.torchcallback import CheckLayerSat
+
 name = "delve"
 
 try:    
