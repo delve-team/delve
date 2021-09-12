@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 from torch.nn.functional import interpolate
 from torch.nn.modules import LSTM
-from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
