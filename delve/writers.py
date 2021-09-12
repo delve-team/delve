@@ -12,7 +12,6 @@ from typing import Callable, List, Tuple, Dict
 import matplotlib
 import numpy as np
 import pandas as pd
-import torch
 from matplotlib import pyplot as plt
 
 from delve.logger import log
