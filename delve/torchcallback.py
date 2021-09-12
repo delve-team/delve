@@ -13,7 +13,6 @@ from torch.nn.modules.linear import Linear
 import delve
 from delve.metrics import *
 from delve.logger import log
-from delve.writers import CSVandPlottingWriter
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, CompositWriter, NPYWriter
