@@ -7,7 +7,7 @@ import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple, Dict
+from typing import Callable, Dict, List, Tuple
 
 import matplotlib
 import numpy as np

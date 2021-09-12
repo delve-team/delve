@@ -10,12 +10,11 @@ from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
 import delve
-from delve.metrics import *
 from delve.logger import log
+from delve.metrics import *
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import STATMAP, CompositWriter, NPYWriter, WRITERS
-
+from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
 
 class CheckLayerSat(object):

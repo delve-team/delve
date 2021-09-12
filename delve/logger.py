@@ -1,5 +1,7 @@
 import logging
+
 import tqdm
+
 
 class TqdmLoggingHandler(logging.Handler):
     def __init__(self, level=logging.NOTSET):
