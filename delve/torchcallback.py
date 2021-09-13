@@ -16,6 +16,9 @@ from delve.metrics import *
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
+logging.basicConfig(format='%(levelname)s:delve:%(message)s',
+                    level=logging.INFO)
+
 
 class CheckLayerSat(object):
     """Takes PyTorch module and records layer saturation,
