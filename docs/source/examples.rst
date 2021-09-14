@@ -9,13 +9,13 @@ Plotting
 Delve allows plotting results every epoch using ``save_to="csvplot"``, which will create automated plots from the metrics
 recorded in the ``stats`` argument. The plots depict the layers generally in order of the forward pass.
 
-.. image:: gallery/images/VGG16-Cifar10-r32-bs256-e90idim_epoch_88.png
+.. figure:: gallery/images/VGG16-Cifar10-r32-bs256-e90idim_epoch_88.png
   :width: 400
-  :alt: Automatically generated plot of intrinsic dimensionality computed on the training set of Cifar10 on  VGG16 at the 90th epoch of training.
+Automatically generated plot of intrinsic dimensionality computed on the training set of Cifar10 on  VGG16 at the 88th epoch of a 90 epoch of training.
 
-.. image:: gallery/images/VGG16-Cifar10-r32-bs256-e90lsat_epoch_88.png
+.. figure:: gallery/images/VGG16-Cifar10-r32-bs256-e90lsat_epoch_88.png
   :width: 400
-  :alt: Automatically generated plot of saturation computed on the training set of Cifar10 on  VGG16 at the 90th epoch of training.
+Automatically generated plot of saturation computed on the training set of Cifar10 on  VGG16 at the 88th epoch of a 90 epoch training.
 
 
 Logging
