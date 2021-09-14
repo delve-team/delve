@@ -13,6 +13,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import torch
+import logging
 from matplotlib import pyplot as plt
 
 from delve.logger import log
