@@ -1,4 +1,3 @@
-import logging
 import warnings
 from collections import OrderedDict
 from itertools import product
@@ -7,17 +6,15 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 from torch.nn.functional import interpolate
 from torch.nn.modules import LSTM
-from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
 import delve
+from delve.logger import log
 from delve.metrics import *
-from delve.writers import CSVandPlottingWriter
 # from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import STATMAP, CompositWriter, NPYWriter
-from writers import WRITERS
+from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
 logging.basicConfig(format='%(levelname)s:delve:%(message)s',
                     level=logging.INFO)
@@ -124,6 +121,7 @@ class CheckLayerSat(object):
             supported methods are:
                 timestepwise    : stacks each sample timestep-by-timestep
                 last_timestep   : selects the last timestep's output
+        nosave (bool)      : If True, disables saving artifacts (images), default is False
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -186,16 +184,17 @@ class CheckLayerSat(object):
                  conv_method: str = 'channelwise',
                  timeseries_method: str = 'last_timestep',
                  sat_threshold: str = .99,
+                 nosave = False,
                  verbose: bool = False,
                  device='cuda:0',
                  initial_epoch: int = 0,
                  interpolation_strategy: Optional[str] = None,
                  interpolation_downsampling: int = 32):
+        self.nosave = nosave
         self.verbose = verbose
         # self.disable_compute: bool = False
         self.include_conv = include_conv
-        self.conv_method = conv_method
-        self.nosave = False
+        self.conv_method = conv_method        
 
         self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
@@ -260,7 +259,7 @@ class CheckLayerSat(object):
             else:
 
                 def noop(*args, **kwargs):
-                    print(f'Logging disabled, not logging: {args}, {kwargs}')
+                    log.info(f'Logging disabled, not logging: {args}, {kwargs}')
                     pass
 
                 return noop
@@ -346,12 +345,12 @@ class CheckLayerSat(object):
             if not isinstance(submodule, Conv2d) and not \
                     isinstance(submodule, Linear) and not \
                     isinstance(submodule, LSTM):
-                print(f"Skipping {layer_type}")
+                log.info(f"Skipping {layer_type}")
                 return layers
             if isinstance(submodule, Conv2d) and self.include_conv:
                 self._add_conv_layer(submodule)
             layers[layer_name] = submodule
-            print('added layer {}'.format(layer_name))
+            log.info('added layer {}'.format(layer_name))
             return layers
 
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
@@ -493,7 +492,7 @@ class CheckLayerSat(object):
                 activations_batch = output.data[:num_samples]
                 self.seen_samples[training_state][layer.name] += num_samples
                 if self.verbose:
-                    print("seen {} samples on layer {}".format(
+                    log.info("seen {} samples on layer {}".format(
                         self.seen_samples[training_state][layer.name],
                         layer.name))
 

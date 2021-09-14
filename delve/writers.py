@@ -2,19 +2,20 @@
 This file contains alternative file writers
 """
 import os
-import logging
 import pathlib
 import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple, Dict
+from typing import Callable, Dict, List, Tuple
 
 import matplotlib
 import numpy as np
 import pandas as pd
 import torch
 from matplotlib import pyplot as plt
+
+from delve.logger import log
 
 try:
     from tensorboardX import SummaryWriter
@@ -533,7 +534,7 @@ def plot_stat(df,
     if save:
         final_savepath = savepath.replace(
             '.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
-        logging.info(final_savepath)
+        log.info(final_savepath)
         plt.savefig(final_savepath)
     return ax
 
