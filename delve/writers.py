@@ -2,18 +2,20 @@
 This file contains alternative file writers
 """
 import os
-import logging
 import pathlib
 import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import matplotlib
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
+
+from delve.logger import log
 
 try:
     from tensorboardX import SummaryWriter
@@ -381,6 +383,18 @@ class CSVandPlottingWriter(CSVWriter):
         pass
 
 
+WRITERS: Dict[str, AbstractWriter] = {
+    "csv": CSVWriter,
+    "npy": NPYWriter,
+    "print": PrintWriter,
+    "tb": TensorBoardWriter,
+    "tensorboard": TensorBoardWriter,
+    "csvplotting": CSVandPlottingWriter,
+    "csvplot": CSVandPlottingWriter,
+    "plot": CSVandPlottingWriter,
+    "plotcsv": CSVandPlottingWriter
+}
+
 def extract_layer_stat(df,
                        epoch=19,
                        primary_metric=None,
@@ -466,8 +480,16 @@ def plot_stat(df,
         plt.figure(figsize=figsize)
     ax = plt.gca()
     col_names = [i for i in df.columns]
-    if np.all(np.isnan(df.values[0])):
-        return ax
+    try:
+        if len(df.values[0]) == 0 or (isinstance(df.values[0][0], list) and isinstance(df.values[0][0][0], tuple)):
+            pass
+        elif np.all(np.isnan(df.values[0])):
+            return ax
+    except TypeError:
+        warnings.warn("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
+        logging.exception("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
     if line:
         if samples:
             pass
@@ -512,7 +534,7 @@ def plot_stat(df,
     if save:
         final_savepath = savepath.replace(
             '.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
-        logging.info(final_savepath)
+        log.info(final_savepath)
         plt.savefig(final_savepath)
     return ax
 

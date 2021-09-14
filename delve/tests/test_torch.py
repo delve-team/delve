@@ -1,6 +1,6 @@
-import pytest
 import tempfile
 
+import pytest
 import torch
 import torch.nn
 
