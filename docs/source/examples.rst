@@ -22,3 +22,7 @@ Logging
 -------
 
 Delve logs results with the ``logging`` package and shows progress with ``tqdm``.
+
+.. figure:: gallery/images/logging.PNG
+  :width: 400
+A simple example generated from a two-layer network trained on randomly generated data.
