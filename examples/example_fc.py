@@ -57,7 +57,7 @@ for h in [10, 100, 300]:
         os.mkdir('regression')
     stats = CheckLayerSat('regression/h{}'.format(h), 'csv', model, device=device, reset_covariance=True,)
 
-    loss_fn = torch.nn.MSELoss(size_average=False)
+    loss_fn = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
     steps_iter.write("{:^80}".format(

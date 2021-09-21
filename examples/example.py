@@ -25,7 +25,7 @@ if not exists("regression/"):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
-for h in [3, 32, 128]:
+for h in [3]:
     # N is batch size; D_in is input dimension;
     # H is hidden dimension; D_out is output dimension.
     N, D_in, H, D_out = 64, 1000, h, 10
@@ -39,11 +39,11 @@ for h in [3, 32, 128]:
     x, y, model = x.to(device), y.to(device), model.to(device)
 
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
+    stats = CheckLayerSat('regression/h{}'.format(h), save_to="csvplot", modules=layers, device=device, stats=["lsat", "lsat_eval"])
 
-    loss_fn = torch.nn.MSELoss(size_average=False)
+    loss_fn = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
-    steps_iter = trange(2000, desc='steps', leave=True, position=0)
+    steps_iter = trange(20, desc='steps', leave=True, position=0)
     steps_iter.write("{:^80}".format(
         "Regression - TwoLayerNet - Hidden layer size {}".format(h)))
     for _ in steps_iter:

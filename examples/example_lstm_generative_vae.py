@@ -132,7 +132,7 @@ if __name__ == '__main__':
     #net = nn.DataParallel(net, device_ids=['cuda:0', 'cuda:1'])
     eps = torch.Tensor([1e-10]).cuda()
     def loss_fn(recon_x, x, mu, logvar,eps):
-        BCE = F.binary_cross_entropy(recon_x + eps, x, size_average=False)
+        BCE = F.binary_cross_entropy(recon_x + eps, x, reduction='sum')
         KLD = -0.5 * torch.sum(1 + logvar - mu**2 -  logvar.exp())
         return (BCE + KLD)/x.size(0)
 

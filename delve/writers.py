@@ -2,18 +2,21 @@
 This file contains alternative file writers
 """
 import os
-import logging
 import pathlib
 import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import matplotlib
 import numpy as np
 import pandas as pd
+import torch
+import logging
 from matplotlib import pyplot as plt
+
+from delve.logger import log
 
 try:
     from tensorboardX import SummaryWriter
@@ -35,8 +38,9 @@ class AbstractWriter(ABC):
     def _check_savestate_ok(self, savepath: str) -> bool:
         """
         Checks if a savestate from a writer is okay; raises a warning if not
-        :param savepath: the path to the savestate
-        :return:
+
+        Args:
+            savepath: the path to the savestate
         """
         if not os.path.exists(savepath):
             warnings.warn(
@@ -71,7 +75,9 @@ class CompositWriter(AbstractWriter):
     def __init__(self, writers: List[AbstractWriter]):
         """
         This writer combines multiple writers.
-        :param writers: List of writers. Each writer is called when the CompositeWriter is invoked.
+
+        Args:
+            writers: List of writers. Each writer is called when the CompositeWriter is invoked.
         """
         super(CompositWriter, self).__init__()
         self.writers = writers
@@ -107,7 +113,9 @@ class CSVWriter(AbstractWriter):
     This writer produces a csv file with all saturation values.
     The csv-file is overwritten with
     an updated version every time save() is called.
-    :param savepath: CSV file path
+
+    Args:
+        savepath: CSV file path
     """
     def __init__(self, savepath: str, **kwargs):
         super(CSVWriter, self).__init__()
@@ -149,8 +157,10 @@ class NPYWriter(AbstractWriter):
         Each subfolder contains a npy-file with the saturation value for each epoch.
         This writer saves non-scalar values and can thus be used to save
         the covariance-matrix.
-        :param savepath: The root folder to save the folder structure to
-        :param zip: Whether to zip the output folder after every invocation
+
+        Args:
+            savepath:   The root folder to save the folder structure to
+            zip:        Whether to zip the output folder after every invocation
         """
         super(NPYWriter, self).__init__()
         self.savepath = savepath
@@ -226,7 +236,9 @@ class PrintWriter(AbstractWriter):
 class TensorBoardWriter(AbstractWriter):
     """
     Writes output to tensorflow logs
-    :param savepath: the path for result logging
+
+    Args:
+        savepath: the path for result logging
     """
     def __init__(self, savepath: str, **kwargs):
         super(TensorBoardWriter, self).__init__()
@@ -255,10 +267,11 @@ class TensorBoardWriter(AbstractWriter):
 class CSVandPlottingWriter(CSVWriter):
     """
     This writer produces CSV files and plots.
-    :param savepath: Path to store plots and CSV files
-    :param plot_manipulation_func: A function mapping an axis object to an axis object by
-                                    using pyplot code.
-    :param kwargs:
+
+    Args:
+        avepath: Path to store plots and CSV files
+        plot_manipulation_func: A function mapping an axis object to an axis object by
+        using pyplot code.
     """
     def __init__(self,
                  savepath: str,
@@ -381,19 +394,36 @@ class CSVandPlottingWriter(CSVWriter):
         pass
 
 
+WRITERS: Dict[str, AbstractWriter] = {
+    "csv": CSVWriter,
+    "npy": NPYWriter,
+    "print": PrintWriter,
+    "tb": TensorBoardWriter,
+    "tensorboard": TensorBoardWriter,
+    "csvplotting": CSVandPlottingWriter,
+    "csvplot": CSVandPlottingWriter,
+    "plot": CSVandPlottingWriter,
+    "plotcsv": CSVandPlottingWriter
+}
+
+
 def extract_layer_stat(df,
                        epoch=19,
                        primary_metric=None,
                        stat='saturation',
                        state_mode="train") -> Tuple[pd.DataFrame, float]:
     """
-    Extracts a specific statistic for a single epoch from a result dataframe as produced by the CSV-writer
-    :param df: The dataframe produced by a CSVWriter
-    :param epoch: Epoch to filter by
-    :param primary_metric: Primary metric for performance evaluation (optional)
-    :param stat: The statistic to match. Must be a substring matching all columns belonging to stat statistic like "saturation"
-    :return: A dataframe with a single row, corresponding to the epoch containing only the columns that contain the substring
-    described in the stat-parameter in their name. Second return value is the primary metric value
+    Extracts a specific statistic for a single epoch from a result dataframe as produced by the CSV-writer.
+
+    Args:
+        df:             The dataframe produced by a CSVWriter
+        epoch:          Epoch to filter by
+        primary_metric: Primary metric for performance evaluation (optional)
+        stat:           The statistic to match. Must be a substring matching all columns belonging to stat statistic like "saturation"
+
+    Returns:
+        A dataframe with a single row, corresponding to the epoch containing only the columns that contain the substring
+        described in the stat-parameter in their name. Second return value is the primary metric value
     """
     cols = list(df.columns)
     train_cols = [
@@ -432,29 +462,35 @@ def plot_stat(df,
               save=True,
               samples=False,
               stat_mode="train") -> matplotlib.axes.Axes:
-    """Plot statistics
+    """Plot a statistic on a layber by layer basis in order of the forward pass.
+    This function utilized matplotlib to visualize the statistics.
 
-    :param df:
-    :param stat:
-    :param pm:
-    :param savepath:
-    :param epoch:
-    :param primary_metric:
-    :param fontsize:
-    :param figsize:
-    :param line:
-    :param scatter:
-    :param ylim:
-    :param alpha_line:
-    :param alpha_scatter:
-    :param color_line:
-    :param color_scatter:
-    :param primary_metric_loc:
-    :param show_col_label_x:
-    :param show_col_label_y:
-    :param show_grid:
-    :param save:
-    :return:
+    Args:
+        df:                 the dataframe containing the statistics, this is equivalent to the CSV-file produced by delve.
+        stat:               the statistic to print. The function will filters for this stat. For example "idim" (intrinsic dimensionality) or "lsat" (layer saturation).
+        pm:                 the value of the primary metric, the primary metric is some (numerical) information that shall be depicted as an annotation on the plot (for example the test-accuracy)
+        savepath:           path for storing the plot. Optionally, this path may be the path leading the CSV-file created from the CSVPlot-Writer, which will result in this function auto-generating a new savepath for
+                            a png-version of the plot containing the stat, epoch and training state depicted in this plot.
+        epoch:              the epoch from which to generate the plot. An epoch is defined as a row in the dataframe, therefore the "ith"-epoch is defined as the ith-row in
+                            the dataframe.
+        primary_metric:     the name of the primary metric, desplayed in the annotation alongside the value specified by "pm"
+        fontsize:           the fontsize in the plot
+        figsize:            the size of the figure
+        line:               if true a line is plotted connecting the individual measurements
+        scatter:            if true a dot is plotted for every layer in order of the forward pass.
+        ylim:               boundaries of y-axis
+        alpha_line:         the transperancy of the line connected the individual measurements. Does nothing if line-plotting is disabled.
+        alpha_scatter:      the transperancy of the dots for the individual measurements. Does nothing if scatter-plotting is disabled.
+        color_line:         set the color of the line plot. Does nothing if line-plotting is disabled.
+        color_scatter:      srt the color of the scatter plot. Does nothing if scatter-plotting is disabled.
+        primary_metric_loc: the location of the annotation depicting the primary metric.
+        show_col_label_x:   toggles showing the label of the x-axis
+        show_col_label_y:   toggles showing the label of the y-axis
+        show_grid:          toggles showing a background grid
+        save:               toggles saving the plot to disc using the specified savepath
+
+    Returns:
+        Axis object of the plot
     """
     plt.clf()
     plt.cla()
@@ -466,8 +502,16 @@ def plot_stat(df,
         plt.figure(figsize=figsize)
     ax = plt.gca()
     col_names = [i for i in df.columns]
-    if np.all(np.isnan(df.values[0])):
-        return ax
+    try:
+        if len(df.values[0]) == 0 or (isinstance(df.values[0][0], list) and isinstance(df.values[0][0][0], tuple)):
+            pass
+        elif np.all(np.isnan(df.values[0])):
+            return ax
+    except TypeError:
+        warnings.warn("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
+        logging.exception("Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+                      "Plotting non np.ndarray may lead to crashes or inconsistent results")
     if line:
         if samples:
             pass
@@ -512,7 +556,7 @@ def plot_stat(df,
     if save:
         final_savepath = savepath.replace(
             '.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
-        logging.info(final_savepath)
+        log.info(final_savepath)
         plt.savefig(final_savepath)
     return ax
 
@@ -536,6 +580,33 @@ def plot_stat_level_from_results(savepath,
                                  show_grid=True,
                                  save=True,
                                  stat_mode="train"):
+    """Plot a statistic on a layber by layer basis in order of the forward pass.
+    This function utilized matplotlib to visualize the statistics.
+
+    Args:
+        savepath:           path leading to the csv-file produced by CSVWriter or CSVandPlottingWriter.
+        stat:               the statistic to print. The function will filters for this stat. For example "idim" (intrinsic dimensionality) or "lsat" (layer saturation).
+        epoch:              the epoch from which to generate the plot. An epoch is defined as a row in the dataframe, therefore the "ith"-epoch is defined as the ith-row in
+                            the dataframe.
+        primary_metric:     the name of the primary metric, desplayed in the annotation, must be a column-name of the csv-file stored in "savepath"
+        fontsize:           the fontsize in the plot
+        figsize:            the size of the figure
+        line:               if true a line is plotted connecting the individual measurements
+        scatter:            if true a dot is plotted for every layer in order of the forward pass.
+        ylim:               boundaries of y-axis
+        alpha_line:         the transperancy of the line connected the individual measurements. Does nothing if line-plotting is disabled.
+        alpha_scatter:      the transperancy of the dots for the individual measurements. Does nothing if scatter-plotting is disabled.
+        color_line:         set the color of the line plot. Does nothing if line-plotting is disabled.
+        color_scatter:      srt the color of the scatter plot. Does nothing if scatter-plotting is disabled.
+        primary_metric_loc: the location of the annotation depicting the primary metric.
+        show_col_label_x:   toggles showing the label of the x-axis
+        show_col_label_y:   toggles showing the label of the y-axis
+        show_grid:          toggles showing a background grid
+        save:               toggles saving the plot to disc using the specified savepath
+
+    Returns:
+        Axis object of the plot
+    """
     df = pd.read_csv(savepath, sep=';')
     if "_" in stat:
         stat, stat_mode = stat.split("_")
