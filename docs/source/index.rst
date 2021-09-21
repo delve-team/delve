@@ -71,49 +71,11 @@ Several statistics are supported:
 To support researchers, it allows saving plots at various intervals through the :class:`~delve.torchcallback.CheckLayerSat` class.
 
 
-Getting Started
----------------
-
-Install with
-
-.. code::
-
-   pip install delve
-
-then instantiate the :class:`~delve.torchcallback.CheckLayerSat` class, as in the example::
-
-   model = nn.ModuleDict({
-                 'conv1': nn.Conv2d(1, 8, 3, padding=1),
-                 'linear1': nn.Linear(3, 1),
-   })
-
-
-   layers = [model.conv1, model.linear1]
-   stats = CheckLayerSat('regression/h{}'.format(h),
-      save_to="plotcsv",
-      modules=layers,      
-      stats=["lsat"]
-   )
-
-   ...
-
-   for _ in range(10):
-      y_pred = model(x)
-      loss = loss_fn(y_pred, y)
-      optimizer.zero_grad()
-      loss.backward()
-      optimizer.step()
-
-      stats.add_saturations()
-   
-   stats.close()
-
-This will hook into the layers in ``layers`` and log the statistics, in this case ``lsat`` (layer saturation).
-
 .. toctree::
    :maxdepth: 1
-   :caption: User Guide
+   :caption: Getting Started
    
+   Installation <install>
    Saturation <saturation>
    Example Plots <examples>
 
