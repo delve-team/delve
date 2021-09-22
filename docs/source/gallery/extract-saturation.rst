@@ -19,8 +19,8 @@
 
 
 Extract layer saturation
--------------------------------
-Extract layer saturation with delve.
+------------------------
+Extract layer saturation with Delve.
 
 .. GENERATED FROM PYTHON SOURCE LINES 6-64
 

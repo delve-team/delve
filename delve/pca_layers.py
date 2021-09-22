@@ -11,9 +11,9 @@ global num
 
 def rvs(dim=3) -> np.ndarray:
     """Create random orthonormal matrix of size ``dim``.
-    
-    .. note:: 
-    
+
+    .. note::
+
         Yanked from hpaulj's implementation of SciPy's :func:`scipy.stats.special_ortho_group` in Numpy at https://stackoverflow.com/questions/38426349/how-to-create-random-orthonormal-matrix-in-python-numpy which is from the paper:
 
         Stewart, G.W., "The efficient generation of random orthogonal
@@ -64,7 +64,8 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(
             names.append(f'Linear-{lc["lin"]}')
             lc["lin"] += 1
             if verbose:
-                logging.info(f'Changed threshold for layer {module} to {threshold}')
+                logging.info(
+                    f'Changed threshold for layer {module} to {threshold}')
         elif isinstance(module, Conv2DPCALayer):
             module.threshold = threshold
             in_dims.append(module.in_dim)
@@ -80,7 +81,8 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(
             names.append(f'Conv-{lc["conv"]}')
             lc['conv'] += 1
             if verbose:
-                logging.info(f'Changed threshold for layer {module} to {threshold}')
+                logging.info(
+                    f'Changed threshold for layer {module} to {threshold}')
     if include_names:
         return sat, in_dims, fs_dims, names
     return sat, in_dims, fs_dims
@@ -108,7 +110,8 @@ def change_all_pca_layer_thresholds(threshold: float,
                 names.append(f"Lin-{lc['lin']}")
                 lc["lin"] += 1
             if verbose:
-                logging.info(f'Changed threshold for layer {module} to {threshold}')
+                logging.info(
+                    f'Changed threshold for layer {module} to {threshold}')
     return sat, in_dims, fs_dims, names
 
 
@@ -130,13 +133,14 @@ def change_all_pca_layer_centering(centering: bool,
             fs_dims.append(module.fs_dim)
             sat.append(module.sat)
             if verbose:
-                logging.info(f'Changed threshold for layer {module} to {centering}')
+                logging.info(
+                    f'Changed threshold for layer {module} to {centering}')
     return sat, in_dims, fs_dims
 
 
 class LinearPCALayer(Module):
-    """Eigenspace of the covariance matrix generated in TorchCovarianceMatrix with 
-    equation :eq:`covariance`.    
+    """Eigenspace of the covariance matrix generated in TorchCovarianceMatrix with
+    equation :eq:`covariance`.
     """
     num = 0
 

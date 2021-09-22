@@ -1,8 +1,14 @@
+.. _Saturation Overview:
+
 Saturation
 ==========
 
 `Saturation` is a metric used for identifying the intrinsic dimensionality of
 features in a layer.
+
+A visualization of how saturation changes over training and can be used to optimize network topology is provided at https://github.com/justinshenk/playground:
+
+.. image:: _static/saturation_demo.gif
 
 Covariance matrix of features is computed online:
 

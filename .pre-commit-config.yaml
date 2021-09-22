@@ -6,21 +6,23 @@ repos:
     -   id: check-yaml
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
-    -   id: check-added-large-files
     -   id: requirements-txt-fixer
 -   repo: https://github.com/pre-commit/mirrors-yapf
-    rev: stable  # Use the sha / tag you want to point at
+    rev: 'v0.31.0'  # Use the sha / tag you want to point at
     hooks:
     -   id: yapf
 -   repo: local
     hooks:
       - id: flake8
         name: flake8
-        entry: python -m pflake8
+        entry: python -m flake8
         language: system
+        args:
+        - --ignore=E129,E2,E203,E266,E501,W503,F403,F401,E731,B007,W504,F405,E123,E126,E402,E125
+        - --max-line-length=150
         types: [python]
 -   repo: git://github.com/timothycrosley/isort
-    rev: 5.8.0
+    rev: 5.9.3
     hooks:
     - id: isort
       args: [ "--profile", "black" ]

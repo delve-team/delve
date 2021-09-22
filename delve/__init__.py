@@ -1,11 +1,8 @@
-import torch
-
 from delve.tools import reconstruct_csv_from_npy_data
+from delve.torch_utils import TorchCovarianceMatrix
 from delve.torchcallback import CheckLayerSat
 
-name = "delve"
-
-try:    
+try:
     from delve.writers import CSVWriter as csv
     from delve.writers import NPYWriter as npy
     from delve.writers import PrintWriter as console
@@ -15,4 +12,5 @@ except ImportError:
 
 import delve.logger
 
+name = "delve"
 __version__ = "0.1.45"

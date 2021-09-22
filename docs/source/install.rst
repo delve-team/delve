@@ -18,10 +18,25 @@ To install the latest development version, clone the `GitHub` repository and use
    cd delve
    pip install .
 
+Dependencies
+------------
+
+Installation with pip should also include all dependencies, but a complete list is
+
+- numpy_
+- matplotlib_
+- scipy_
+- pandas_
+
 Usage
 -----
 
-Instantiate the :class:`~delve.torchcallback.CheckLayerSat` class where you define you training loop, as in the example::
+Instantiate the :class:`~delve.torchcallback.CheckLayerSat` class where you define your PyTorch training loop, as in the example::
+
+   from torch import nn
+   from delve import CheckLayerSat
+
+   ...
 
    model = nn.ModuleDict({
                  'conv1': nn.Conv2d(1, 8, 3, padding=1),
@@ -32,7 +47,7 @@ Instantiate the :class:`~delve.torchcallback.CheckLayerSat` class where you defi
    layers = [model.conv1, model.linear1]
    stats = CheckLayerSat('regression/h{}'.format(h),
       save_to="plotcsv",
-      modules=layers,      
+      modules=layers,
       stats=["lsat"]
    )
 
@@ -46,7 +61,7 @@ Instantiate the :class:`~delve.torchcallback.CheckLayerSat` class where you defi
       optimizer.step()
 
       stats.add_saturations()
-   
+
    stats.close()
 
-This will hook into the layers in ``layers`` and log the statistics, in this case ``lsat`` (layer saturation).
+This will hook into the layers in ``layers`` and log the statistics, in this case ``lsat`` (layer saturation). It will save images to ``regression``.

@@ -5,4 +5,3 @@ delve
    :maxdepth: 4
 
    delve
-   setup

@@ -1,7 +1,7 @@
 """
 Extract layer saturation
--------------------------------
-Extract layer saturation with delve.
+------------------------
+Extract layer saturation with Delve.
 """
 from os import mkdir
 from os.path import exists
@@ -23,6 +23,7 @@ class TwoLayerNet(torch.nn.Module):
         y_pred = self.linear2(h_relu)
         return y_pred
 
+
 if not exists("regression/"):
     mkdir("regression/")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -42,7 +43,11 @@ for h in [3, 32]:
     x, y, model = x.to(device), y.to(device), model.to(device)
 
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
+    stats = CheckLayerSat('regression/h{}'.format(h),
+                          save_to="plotcsv",
+                          modules=layers,
+                          device=device,
+                          stats=["lsat", "lsat_eval"])
 
     loss_fn = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)

@@ -169,8 +169,8 @@ class SaturationMetric(keras.callbacks.Callback):
         if epoch > 2:
             for layer in layers:
                 try:
-                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" \
-                          % (epoch, layer, logs[layer]))
+                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" %
+                                 (epoch, layer, logs[layer]))
                     logs[layer] = self.preactivation_states[layer]
                 except Exception as e:
                     logging.error(e)

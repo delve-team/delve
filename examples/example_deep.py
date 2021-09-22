@@ -6,26 +6,35 @@ from torch.utils.data.dataloader import DataLoader
 from torchvision.datasets import CIFAR10
 from torchvision.models.vgg import vgg11
 from torchvision.transforms import Compose, ToTensor
+
 # setup compute device
 from tqdm import tqdm
 
 from delve import CheckLayerSat
-from delve.writers import CSVandPlottingWriter
 
 if __name__ == "__main__":
 
     device = "cuda:1" if is_available() else "cpu"
 
     # Get some data
-    train_data = CIFAR10(root="./tmp", train=True,
-                         download=True, transform=Compose([ToTensor()]))
-    test_data = CIFAR10(root="./tmp", train=False, download=True, transform=Compose([ToTensor()]))
+    train_data = CIFAR10(root="./tmp",
+                         train=True,
+                         download=True,
+                         transform=Compose([ToTensor()]))
+    test_data = CIFAR10(root="./tmp",
+                        train=False,
+                        download=True,
+                        transform=Compose([ToTensor()]))
 
-    train_loader = DataLoader(train_data, batch_size=1024,
-                              shuffle=True, num_workers=6,
+    train_loader = DataLoader(train_data,
+                              batch_size=1024,
+                              shuffle=True,
+                              num_workers=6,
                               pin_memory=True)
-    test_loader = DataLoader(test_data, batch_size=1024,
-                             shuffle=False, num_workers=6,
+    test_loader = DataLoader(test_data,
+                             batch_size=1024,
+                             shuffle=False,
+                             num_workers=6,
                              pin_memory=True)
 
     # instantiate model
@@ -36,12 +45,16 @@ if __name__ == "__main__":
     criterion = CrossEntropyLoss().to(device)
 
     # initialize delve
-    tracker = CheckLayerSat("experiment", save_to="plotcsv", stats=["lsat"], modules=model, device=device)
+    tracker = CheckLayerSat("experiment",
+                            save_to="plotcsv",
+                            stats=["lsat"],
+                            modules=model,
+                            device=device)
 
     # begin training
     for epoch in range(10):
         # only record saturation for uneven epochs
-        if epoch %2 == 1:
+        if epoch % 2 == 1:
             tracker.resume()
         else:
             tracker.stop()

@@ -15,7 +15,8 @@ class TqdmLoggingHandler(logging.Handler):
             tqdm.tqdm.write(msg)
             self.flush()
         except Exception:
-            self.handleError(record)  
+            self.handleError(record)
+
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)

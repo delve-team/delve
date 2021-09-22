@@ -9,7 +9,9 @@ Delve Documentation
 Delve is library for analyzing eigenspaces of neural networks.
 
 Delve was developed to help researchers identify information flow through a layer.
-Specifically, it computes layer `saturation`, a measure of the covariance of features in a layer.
+Specifically, it computes layer `saturation`, a measure of the covariance of features in a layer: :ref:`Saturation Overview`.
+
+It is useful for optimizing neural network topology, particularly identifying over or under-saturated layers.
 
 If you use Delve in your publication, please cite:
 
@@ -28,7 +30,7 @@ If you use Delve in your publication, please cite:
    doi          = {10.5281/zenodo.5233860},
    url          = {https://doi.org/10.5281/zenodo.5233860}
    }
-    
+
 Delve allows extracting features from neural network layers and computing the eigenspace of several layers.
 
 Supported Layers
@@ -44,7 +46,7 @@ Statistics
 Layer eigenspace computation allows computing information flow between layers, including:
 
 * feature variance
-* feature covariance 
+* feature covariance
 * layer feature instrinsic dimensionality
 
 Several statistics are supported:
@@ -74,10 +76,30 @@ To support researchers, it allows saving plots at various intervals through the 
 .. toctree::
    :maxdepth: 1
    :caption: Getting Started
-   
+
    Installation <install>
    Saturation <saturation>
+   Examples Gallery <gallery/index>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples
+
+   Academic Gallery <gallery>
    Example Plots <examples>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Reference Guide
+
+   Reference to All Attributes and Methods <reference>
+   Bugs and Support <support>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer
+
+   Contributing to Delve <contributing>
 
 Indices and tables
 ==================

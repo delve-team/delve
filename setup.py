@@ -9,17 +9,21 @@ from setuptools import find_packages, setup
 
 here = os.path.abspath(os.path.dirname(__file__))
 
+
 def read(*parts):
     with open(os.path.join(here, *parts), "r", encoding="utf8") as fp:
         return fp.read()
 
+
 # Get package version
 def find_version(*file_paths):
     version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
+
 
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
@@ -59,6 +63,7 @@ setup(
     python_requires='!= 3.0.*, != 3.1.*',
     packages=find_packages(),
     include_package_data=True,
-    keywords='deep learning layer saturation pruning spectral tensorboard network',
+    keywords=
+    'deep learning layer saturation pruning spectral tensorboard network',
     zip_safe=False,
 )
