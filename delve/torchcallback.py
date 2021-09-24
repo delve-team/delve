@@ -339,9 +339,7 @@ class CheckLayerSat(object):
         else:
             layer_name = name_prefix
             layer_type = layer_name
-            if not isinstance(submodule, Conv2d) and not \
-                    isinstance(submodule, Linear) and not \
-                    isinstance(submodule, LSTM):
+            if not self._check_is_is_supported_layer(submodule):
                 log.info(f"Skipping {layer_type}")
                 return layers
             if isinstance(submodule, Conv2d) and self.include_conv:
@@ -350,15 +348,21 @@ class CheckLayerSat(object):
             log.info('added layer {}'.format(layer_name))
             return layers
 
+    def _check_is_is_supported_layer(self, layer: torch.nn.Module) -> bool:
+        return isinstance(layer, Conv2d) or isinstance(layer, Linear) or isinstance(layer, LSTM)
+
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
         layers = {}
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
             # submodules = modules._modules  # OrderedDict
             layers = self.get_layer_from_submodule(modules, layers, '')
-        else:
+        elif self._check_is_is_supported_layer(modules):
             for module in modules:
-                layers = self.get_layer_from_submodule(module, layers, '')
+                layers = self.get_layer_from_submodule(module, layers, type(module))
+        else:
+            for i, module in enumerate(modules):
+                layers = self.get_layer_from_submodule(module, layers, '' if not self._check_is_is_supported_layer(module) else f'Module-{i}-{type(module).__name__}')
         return layers
 
     def _get_writer(self, save_to, writers_args) -> \
