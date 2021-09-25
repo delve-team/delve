@@ -222,8 +222,7 @@ class CheckLayerSat(object):
         self.device = device
         self.record = True
         for name, layer in self.layers.items():
-            if isinstance(layer, Conv2d) or isinstance(layer, Linear) \
-                    or isinstance(layer, LSTM):
+            if self._check_is_is_supported_layer(layer):
                 self._register_hooks(layer=layer,
                                      layer_name=name,
                                      interval=log_interval)
@@ -386,8 +385,7 @@ class CheckLayerSat(object):
     def _register_hooks(self, layer: torch.nn.Module, layer_name: str,
                         interval):
         layer.eval_layer_history = getattr(layer, 'eval_layer_history', list())
-        layer.train_layer_history = getattr(layer, 'train_layer_history',
-                                            list())
+        layer.train_layer_history = getattr(layer, 'train_layer_history', list())
         layer.layer_svd = getattr(layer, 'layer_svd', None)
         layer.forward_iter = getattr(layer, 'forward_iter', 0)
         layer.interval = getattr(layer, 'interval', interval)
