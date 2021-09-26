@@ -1,7 +1,7 @@
+import os
 import warnings
 from collections import OrderedDict
 from itertools import product
-from os.path import exists, mkdir
 from typing import Any, Dict, List, Optional, Union
 
 import torch
@@ -205,8 +205,8 @@ class CheckLayerSat(object):
 
         writer_args = writer_args or {}
         writer_args['savepath'] = savefile
-        if not exists(savefile):
-            mkdir(savefile)
+        if not os.path.exists(savefile):
+            os.mkdir(savefile)
 
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
