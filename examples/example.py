@@ -20,8 +20,6 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-if not exists("regression/"):
-    mkdir("regression/")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
@@ -44,7 +42,11 @@ for h in [3]:
     # You can  can watch specific layers by handing them to delve as a list.
     # Also, you can hand over the entire Module-object to delve and let delve search for recordable layers.
     layers = [model.linear1, model.linear2]
-    stats = CheckLayerSat('regression/h{}'.format(h), save_to="csvplot", modules=layers, device=device, stats=["lsat", "lsat_eval"])
+    stats = CheckLayerSat('regression/h{}'.format(h),
+                          save_to="csvplot",
+                          modules=layers,
+                          device=device,
+                          stats=["lsat", "lsat_eval"])
 
     loss_fn = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
@@ -65,7 +67,6 @@ for h in [3]:
         model.eval()
         y_pred = model(x_test)
         loss_test = loss_fn(y_pred, y_test)
-
 
         # update statistics
         steps_iter.set_description('loss=%g' % loss.item())
