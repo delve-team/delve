@@ -132,8 +132,6 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     torch.manual_seed(1)
-    if not os.path.exists('lstm'):
-        os.mkdir('lstm')
 
     epochs = 10
 
