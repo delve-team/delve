@@ -2,10 +2,10 @@ name: Tests
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
     tags: [v*]
   pull_request:
-    branches: [master]
+    branches: [master, develop]
 
 jobs:
   miniconda:
