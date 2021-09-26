@@ -24,8 +24,6 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-if not exists("regression/"):
-    mkdir("regression/")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
@@ -37,10 +35,15 @@ for h in [3, 32]:
     # Create random Tensors to hold inputs and outputs
     x = torch.randn(N, D_in)
     y = torch.randn(N, D_out)
+    x_test = torch.randn(N, D_in)
+    y_test = torch.randn(N, D_out)
 
+    # You can watch specific layers by handing them to delve as a list.
+    # Also, you can hand over the entire Module-object to delve and let delve search for recordable layers.
     model = TwoLayerNet(D_in, H, D_out)
 
     x, y, model = x.to(device), y.to(device), model.to(device)
+    x_test, y_test = x_test.to(device), y_test.to(device)
 
     layers = [model.linear1, model.linear2]
     stats = CheckLayerSat('regression/h{}'.format(h),
@@ -54,13 +57,24 @@ for h in [3, 32]:
     steps_iter = trange(2000, desc='steps', leave=True, position=0)
     steps_iter.write("{:^80}".format(
         "Regression - TwoLayerNet - Hidden layer size {}".format(h)))
-    for _ in steps_iter:
+    for step in steps_iter:
+        # training step
+        model.train()
         y_pred = model(x)
         loss = loss_fn(y_pred, y)
-        steps_iter.set_description('loss=%g' % loss.data)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        # test step
+        model.eval()
+        y_pred = model(x_test)
+        loss_test = loss_fn(y_pred, y_test)
+
+        # update statistics
+        steps_iter.set_description('loss=%g' % loss.item())
+        stats.add_scalar("train-loss", loss.item())
+        stats.add_scalar("test-loss", loss_test.item())
 
         stats.add_saturations()
     steps_iter.write('\n')

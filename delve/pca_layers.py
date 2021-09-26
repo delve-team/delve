@@ -1,10 +1,11 @@
-import logging
 from typing import Tuple
 
 import numpy as np
 import torch
 from torch.nn import Module
 from torch.nn.functional import interpolate
+
+from .logger import log
 
 global num
 
@@ -64,7 +65,7 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(
             names.append(f'Linear-{lc["lin"]}')
             lc["lin"] += 1
             if verbose:
-                logging.info(
+                log.info(
                     f'Changed threshold for layer {module} to {threshold}')
         elif isinstance(module, Conv2DPCALayer):
             module.threshold = threshold
@@ -81,7 +82,7 @@ def change_all_pca_layer_thresholds_and_inject_random_directions(
             names.append(f'Conv-{lc["conv"]}')
             lc['conv'] += 1
             if verbose:
-                logging.info(
+                log.info(
                     f'Changed threshold for layer {module} to {threshold}')
     if include_names:
         return sat, in_dims, fs_dims, names
@@ -110,7 +111,7 @@ def change_all_pca_layer_thresholds(threshold: float,
                 names.append(f"Lin-{lc['lin']}")
                 lc["lin"] += 1
             if verbose:
-                logging.info(
+                log.info(
                     f'Changed threshold for layer {module} to {threshold}')
     return sat, in_dims, fs_dims, names
 
@@ -127,13 +128,13 @@ def change_all_pca_layer_centering(centering: bool,
                 module, LinearPCALayer):
             module.centering = centering
             if isinstance(module, Conv2DPCALayer):
-                logging.info('Changed downsampling to ', downsampling)
+                log.info('Changed downsampling to ', downsampling)
                 module.downsampling = downsampling
             in_dims.append(module.in_dim)
             fs_dims.append(module.fs_dim)
             sat.append(module.sat)
             if verbose:
-                logging.info(
+                log.info(
                     f'Changed threshold for layer {module} to {centering}')
     return sat, in_dims, fs_dims
 
@@ -204,7 +205,7 @@ class LinearPCALayer(Module):
         if self.data_dtype is None:
             self.data_dtype = x.dtype
         x = x.type(torch.float64)
-        # logging.info(x.dtype)
+        # log.info(x.dtype)
         self.sum_squares.data += torch.matmul(x.transpose(0, 1), x)
         self.running_sum += x.sum(dim=0)
         self.seen_samples.data += x.shape[0]
@@ -240,18 +241,18 @@ class LinearPCALayer(Module):
 
     def _compute_pca_matrix(self):
         if self.verbose:
-            logging.info('computing autorcorrelation for Linear')
-            #logging.info('Mean pre-activation vector:', self.mean)
+            log.info('computing autorcorrelation for Linear')
+            #log.info('Mean pre-activation vector:', self.mean)
         percentages = self.eigenvalues.cumsum(0) / self.eigenvalues.sum()
         eigen_space = self.eigenvectors[:, percentages < self.threshold]
         if eigen_space.shape[1] == 0:
             eigen_space = self.eigenvectors[:, :1]
-            logging.info(
+            log.info(
                 f'Detected singularity defaulting to single dimension {eigen_space.shape}'
             )
         elif self.threshold - (
                 percentages[percentages < self.threshold][-1]) > 0.02:
-            logging.info(
+            log.info(
                 f'Highest cumvar99 is {percentages[percentages < self.threshold][-1]}, extending eigenspace by one dimension for eigenspace of {eigen_space.shape}'
             )
             eigen_space = self.eigenvectors[:, :eigen_space.shape[1] + 1]
@@ -261,7 +262,7 @@ class LinearPCALayer(Module):
         fs_dim = eigen_space.shape[0]
         in_dim = eigen_space.shape[1]
         if self.verbose:
-            logging.info(
+            log.info(
                 f'Saturation: {round(eigen_space.shape[1] / self.eigenvalues.shape[0], 4)}%',
                 'Eigenspace has shape', eigen_space.shape)
         self.transformation_matrix: torch.Tensor = eigen_space.matmul(
@@ -317,7 +318,7 @@ class Conv2DPCALayer(LinearPCALayer):
                              verbose=verbose,
                              gradient_epoch_start=gradient_epoch_start)
         if verbose:
-            logging.info('Added Conv2D PCA Layer')
+            log.info('Added Conv2D PCA Layer')
         self.convolution = torch.nn.Conv2d(in_channels=in_filters,
                                            out_channels=in_filters,
                                            kernel_size=1,
@@ -335,7 +336,7 @@ class Conv2DPCALayer(LinearPCALayer):
 
     def _compute_pca_matrix(self):
         if self.verbose:
-            logging.info('computing autorcorrelation for Conv2D')
+            log.info('computing autorcorrelation for Conv2D')
         super()._compute_pca_matrix()
         # unsequeeze the matrix into 1x1xDxD in order to make it behave like a 1x1 convolution
         weight = torch.nn.Parameter(

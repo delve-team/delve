@@ -1,6 +1,7 @@
 import warnings
 from collections import OrderedDict
 from itertools import product
+from os.path import exists, mkdir
 from typing import Any, Dict, List, Optional, Union
 
 import torch
@@ -202,9 +203,10 @@ class CheckLayerSat(object):
         self.interpolation_strategy = interpolation_strategy
         self.interpolation_downsampling = interpolation_downsampling
 
-        if writer_args is None:
-            writer_args = {}
+        writer_args = writer_args or {}
         writer_args['savepath'] = savefile
+        if not exists(savefile):
+            mkdir(savefile)
 
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
@@ -349,7 +351,8 @@ class CheckLayerSat(object):
             return layers
 
     def _check_is_supported_layer(self, layer: torch.nn.Module) -> bool:
-        return isinstance(layer, Conv2d) or isinstance(layer, Linear) or isinstance(layer, LSTM)
+        return isinstance(layer, Conv2d) or isinstance(
+            layer, Linear) or isinstance(layer, LSTM)
 
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
         layers = {}
@@ -359,10 +362,14 @@ class CheckLayerSat(object):
             layers = self.get_layer_from_submodule(modules, layers, '')
         elif self._check_is_supported_layer(modules):
             for module in modules:
-                layers = self.get_layer_from_submodule(module, layers, type(module))
+                layers = self.get_layer_from_submodule(module, layers,
+                                                       type(module))
         else:
             for i, module in enumerate(modules):
-                layers = self.get_layer_from_submodule(module, layers, '' if not self._check_is_supported_layer(module) else f'Module-{i}-{type(module).__name__}')
+                layers = self.get_layer_from_submodule(
+                    module, layers,
+                    '' if not self._check_is_supported_layer(module) else
+                    f'Module-{i}-{type(module).__name__}')
         return layers
 
     def _get_writer(self, save_to, writers_args) -> \
