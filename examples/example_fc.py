@@ -1,5 +1,3 @@
-import os
-
 import torch
 from tqdm import trange
 
@@ -53,9 +51,14 @@ for h in [10, 100, 300]:
     model = LayerCake(D_in, h, H2, H3, H4, H5, D_out)
 
     x, y, model = x.to(device), y.to(device), model.to(device)
-    if not os.path.exists('regression'):
-        os.mkdir('regression')
-    stats = CheckLayerSat('regression/h{}'.format(h), 'csv', model, device=device, reset_covariance=True,)
+
+    stats = CheckLayerSat(
+        'regression/h{}'.format(h),
+        'csv',
+        model,
+        device=device,
+        reset_covariance=True,
+    )
 
     loss_fn = torch.nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)

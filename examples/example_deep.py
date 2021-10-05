@@ -14,7 +14,7 @@ from delve import CheckLayerSat
 
 if __name__ == "__main__":
 
-    device = "cuda:1" if is_available() else "cpu"
+    device = "cuda:0" if is_available() else "cpu"
 
     # Get some data
     train_data = CIFAR10(root="./tmp",
@@ -29,12 +29,10 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_data,
                               batch_size=1024,
                               shuffle=True,
-                              num_workers=6,
                               pin_memory=True)
     test_loader = DataLoader(test_data,
                              batch_size=1024,
                              shuffle=False,
-                             num_workers=6,
                              pin_memory=True)
 
     # instantiate model

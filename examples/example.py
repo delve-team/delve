@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from os import mkdir
-from os.path import exists
-
 import torch
 from tqdm import trange
 

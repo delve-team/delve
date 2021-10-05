@@ -3,7 +3,6 @@ Extract layer saturation
 ------------------------
 Extract layer saturation with Delve.
 """
-from os import mkdir
 from os.path import exists
 
 import torch
@@ -24,8 +23,6 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
-if not exists("regression/"):
-    mkdir("regression/")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 

@@ -3,9 +3,6 @@ Extract layer saturation
 ------------------------
 Extract layer saturation with Delve.
 """
-from os import mkdir
-from os.path import exists
-
 import torch
 from tqdm import trange
 

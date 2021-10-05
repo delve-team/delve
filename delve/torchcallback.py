@@ -205,8 +205,7 @@ class CheckLayerSat(object):
 
         writer_args = writer_args or {}
         writer_args['savepath'] = savefile
-        if not os.path.exists(savefile):
-            os.mkdir(savefile)
+        os.makedirs(savefile, exist_ok=True)
 
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
@@ -497,10 +496,6 @@ class CheckLayerSat(object):
                 ) if self.max_samples is not None else output.data.shape[0]
                 activations_batch = output.data[:num_samples]
                 self.seen_samples[training_state][layer.name] += num_samples
-                if self.verbose:
-                    log.info("seen {} samples on layer {}".format(
-                        self.seen_samples[training_state][layer.name],
-                        layer.name))
 
                 self._record_stat(activations_batch, lstm_ae, layer,
                                   training_state, 'covariance-matrix')
