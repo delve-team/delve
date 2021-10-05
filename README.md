@@ -1,8 +1,6 @@
 # Delve: Deep Live Visualization and Evaluation ![logo](https://github.com/delve-team/delve/blob/master/images/delve_logo.png)
 
-[![Tests](https://github.com/delve-team/delve/actions/workflows/tests.yaml/badge.svg)](https://github.com/delve-team/delve/actions/workflows/tests.yaml)
-
-[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/delve-team/delve.svg?branch=master)](https://travis-ci.org/delve-team/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/136951823.svg)](https://zenodo.org/badge/latestdoi/136951823)
+[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Tests](https://github.com/delve-team/delve/actions/workflows/tests.yaml/badge.svg)] (https://github.com/delve-team/delve/actions/workflows/tests.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/136951823.svg)](https://zenodo.org/badge/latestdoi/136951823)
 
 Delve is a Python package for analyzing the inference dynamics of your model.
 
