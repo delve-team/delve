@@ -1,5 +1,7 @@
 # Delve: Deep Live Visualization and Evaluation ![logo](https://github.com/delve-team/delve/blob/master/images/delve_logo.png)
 
+[![Tests](https://github.com/delve-team/delve/actions/workflows/tests.yaml/badge.svg)](https://github.com/delve-team/delve/actions/workflows/tests.yaml)
+
 [![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Build Status](https://travis-ci.org/delve-team/delve.svg?branch=master)](https://travis-ci.org/delve-team/delve) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/136951823.svg)](https://zenodo.org/badge/latestdoi/136951823)
 
 Delve is a Python package for analyzing the inference dynamics of your model.
@@ -17,7 +19,7 @@ Use Delve if you need a lightweight PyTorch extension that:
 
 ## Motivation
 
-Designing a deep neural network is a trial and error heavy process that mostly revolves around comparing 
+Designing a deep neural network is a trial and error heavy process that mostly revolves around comparing
 performance metrics of different runs.
 One of the key issues with this development process is that the results of metrics not realy propagte back easily
 to concrete design improvements.
@@ -26,7 +28,7 @@ dynamic evolving in the model while training.
 This allows you to spot underutilized and unused layers. Missmatches between
 object size and neural architecture among other inefficiencies.
 These observations can be propagated back directly to design changes in the architecture even before
-the model has fully converged, allowing for a quicker and mor guided design process. 
+the model has fully converged, allowing for a quicker and mor guided design process.
 
 ## Installation
 
@@ -39,18 +41,18 @@ pip install delve
 The saturation metric is the core feature of delve. By default saturation is a value between 0 and 1.0 computed
 for any convolutional, lstm or dense layer in the network.
 The saturation describes the percentage of eigendirections required for explaining 99% of the variance.
-Simply speaking, it tells you how much your data is "filling up" the individual layers inside 
+Simply speaking, it tells you how much your data is "filling up" the individual layers inside
 your model.
 
 In the image below you can see how saturation portraits inefficiencies in your neural network.
-The depicted model is ResNet18 trained on 32 pixel images, which is way to small for 
+The depicted model is ResNet18 trained on 32 pixel images, which is way to small for
 a model with a receptive field exceeding 400 pixels in the final layers.
 
 ![resnet.PNG](./images/resnet.PNG)
 
-To visualize what this poorly chosen input resolution does to the inference, we trained logistic regressions on the output of 
+To visualize what this poorly chosen input resolution does to the inference, we trained logistic regressions on the output of
 every layer to solve the same task as the model.
-You can clearly see that only the first half of the model (at best) is improving 
+You can clearly see that only the first half of the model (at best) is improving
 the intermedia solutions of our logistic regression "probes".
 The layers following this are contributing nothing to the quality of the prediction!
 You also see that saturation is extremly low for this layers!
@@ -61,7 +63,7 @@ dataset.
 
 ![resnetBetter.PNG](./images/resnetBetter.PNG)
 
-We can do this by removing the first two downsampling layers, which quarters the growth 
+We can do this by removing the first two downsampling layers, which quarters the growth
 of the receptive field of your network, which reduced not only the number of
 parameters but also makes more use of the available parameters, by making more layers
 contribute effectivly!
@@ -143,7 +145,7 @@ if __name__ == "__main__":
             total += labels.size(0)
             correct += torch.sum((predicted == labels)).item()
             test_loss += loss.item()
-    
+
         # add some additional metrics we want to keep track of
         tracker.add_scalar("accuracy", correct / total)
         tracker.add_scalar("loss", test_loss / total)
