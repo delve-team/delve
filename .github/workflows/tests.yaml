@@ -38,6 +38,8 @@ jobs:
         shell: bash -l {0}
         run: |
             pip install --upgrade pip
+            pip install setuptools
+            pip install wheel
             pip install cython
             pip install pandas==1.1.4
             pip install --ignore-installed -r requirements/requirements.txt
