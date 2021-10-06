@@ -1,10 +1,11 @@
 import logging
+import warnings
 
-import keras
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
 from numpy.linalg import LinAlgError
+from tensorflow import keras
+from tensorflow.keras import backend as K
 
 
 def get_preactivation_tensors(layers):
@@ -147,6 +148,9 @@ class SaturationMetric(keras.callbacks.Callback):
             print_freq
     """
     def __init__(self, model, input_data, print_freq=1):
+        warnings.warn(
+            'Keras implementation of delve is in development and subject to change. It requires keras==2.3.1'
+        )
         self.model = model
         self.input_data = input_data
         self.print_freq = print_freq
@@ -169,8 +173,8 @@ class SaturationMetric(keras.callbacks.Callback):
         if epoch > 2:
             for layer in layers:
                 try:
-                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" \
-                          % (epoch, layer, logs[layer]))
+                    logging.info("epoch = %4d  layer = %r  sat = %0.2f%%" %
+                                 (epoch, layer, logs[layer]))
                     logs[layer] = self.preactivation_states[layer]
                 except Exception as e:
                     logging.error(e)
@@ -185,6 +189,7 @@ class SaturationLogger(keras.callbacks.Callback):
             print_freq
     """
     def __init__(self, model, input_data, print_freq=1):
+
         self.model = model
         self.input_data = input_data
         self.print_freq = print_freq

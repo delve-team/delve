@@ -1,4 +1,4 @@
-import logging
+import os
 import warnings
 from collections import OrderedDict
 from itertools import product
@@ -7,21 +7,15 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 from torch.nn.functional import interpolate
 from torch.nn.modules import LSTM
-from torch.nn.modules.activation import ReLU
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
 import delve
+from delve.logger import log
 from delve.metrics import *
-from delve.writers import CSVandPlottingWriter
-# from mdp.utils import CovarianceMatrix
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.writers import STATMAP, CompositWriter, NPYWriter
+from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
-logging.basicConfig(format='%(levelname)s:delve:%(message)s',
-                    level=logging.INFO)
-
-WRITERS = ["csvplot", "plot", "plotcsv"]
 
 class CheckLayerSat(object):
     """Takes PyTorch module and records layer saturation,
@@ -35,7 +29,7 @@ class CheckLayerSat(object):
                 the AbstractWriter in order to implement your
                 own preferred saving strategy.
 
-            preixisting saving strategies are:
+            pre-existing saving strategies are:
                 csv         : stores all stats in a csv-file with one
                               row for each epoch.
                 plot        : produces plots from intrinsic dimensionality
@@ -83,11 +77,9 @@ class CheckLayerSat(object):
                 dtrc        : the trace of the diagonalmatrix, another way of measuring the dispersion of the data.
                 lsat        : layer saturation (intrinsic dimensionality
                               divided by feature space dimensionality)
-                cov         : the covariance-matrix (only saveable using
-                              the 'npy' save strategy)
                 embed       : samples embedded in the eigenspace of dimension 2
 
-        layerwise_sat (bool): weather or not to include
+        layerwise_sat (bool): whether or not to include
                               layerwise saturation when saving
         reset_covariance (bool): True by default, resets the covariance
                                  every time the stats are computed. Disabling
@@ -126,6 +118,7 @@ class CheckLayerSat(object):
             supported methods are:
                 timestepwise    : stacks each sample timestep-by-timestep
                 last_timestep   : selects the last timestep's output
+        nosave (bool)      : If True, disables saving artifacts (images), default is False
         verbose (bool)     : print saturation for every layer during training
         sat_threshold (float): threshold used to determine the number of
                                eigendirections belonging to the latent space.
@@ -160,7 +153,7 @@ class CheckLayerSat(object):
                                than actually recorded the behavior of the
                                writers is undefined and may result in crashes,
                                loss of data or corrupted data.
-        interpolation_strategy (str) : Defaul is None (disabled). If set to a
+        interpolation_strategy (str) : Default is None (disabled). If set to a
                                        string key accepted by the
                                        model-argument of
                                        torch.nn.functional.interpolate, the
@@ -188,16 +181,17 @@ class CheckLayerSat(object):
                  conv_method: str = 'channelwise',
                  timeseries_method: str = 'last_timestep',
                  sat_threshold: str = .99,
+                 nosave=False,
                  verbose: bool = False,
                  device='cuda:0',
                  initial_epoch: int = 0,
                  interpolation_strategy: Optional[str] = None,
                  interpolation_downsampling: int = 32):
+        self.nosave = nosave
         self.verbose = verbose
         # self.disable_compute: bool = False
         self.include_conv = include_conv
         self.conv_method = conv_method
-        self.nosave = False
 
         self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
@@ -209,9 +203,9 @@ class CheckLayerSat(object):
         self.interpolation_strategy = interpolation_strategy
         self.interpolation_downsampling = interpolation_downsampling
 
-        if writer_args is None:
-            writer_args = {}
+        writer_args = writer_args or {}
         writer_args['savepath'] = savefile
+        os.makedirs(savefile, exist_ok=True)
 
         self.writer = self._get_writer(save_to, writer_args)
         self.interval = log_interval
@@ -262,7 +256,8 @@ class CheckLayerSat(object):
             else:
 
                 def noop(*args, **kwargs):
-                    print(f'Logging disabled, not logging: {args}, {kwargs}')
+                    log.info(
+                        f'Logging disabled, not logging: {args}, {kwargs}')
                     pass
 
                 return noop
@@ -270,7 +265,7 @@ class CheckLayerSat(object):
             try:
                 # Redirect to writer object
                 return self.writer.__getattribute__(name)
-            except:
+            except Exception:
                 # Default behaviour
                 return self.__getattribute__(name)
 
@@ -307,7 +302,7 @@ class CheckLayerSat(object):
         ]
         compatible = [
             stat in supported_stats
-            if not "_" in stat else stat.split("_")[0] in stats
+            if "_" not in stat else stat.split("_")[0] in stats
             for stat in stats
         ]
         incompatible = [i for i, x in enumerate(compatible) if not x]
@@ -345,33 +340,40 @@ class CheckLayerSat(object):
         else:
             layer_name = name_prefix
             layer_type = layer_name
-            if not isinstance(submodule, Conv2d) and not \
-                    isinstance(submodule, Linear) and not \
-                    isinstance(submodule, LSTM):
-                print(f"Skipping {layer_type}")
+            if not self._check_is_supported_layer(submodule):
+                log.info(f"Skipping {layer_type}")
                 return layers
             if isinstance(submodule, Conv2d) and self.include_conv:
                 self._add_conv_layer(submodule)
             layers[layer_name] = submodule
-            print('added layer {}'.format(layer_name))
+            log.info('added layer {}'.format(layer_name))
             return layers
+
+    def _check_is_supported_layer(self, layer: torch.nn.Module) -> bool:
+        return isinstance(layer, Conv2d) or isinstance(
+            layer, Linear) or isinstance(layer, LSTM)
 
     def get_layers_recursive(self, modules: Union[list, torch.nn.Module]):
         layers = {}
         if not isinstance(modules, list) and not hasattr(
                 modules, 'out_features'):
-            # is a model with layers
-            # check if submodule
-            submodules = modules._modules  # OrderedDict
+            # submodules = modules._modules  # OrderedDict
             layers = self.get_layer_from_submodule(modules, layers, '')
-        else:
+        elif self._check_is_supported_layer(modules):
             for module in modules:
-                layers = self.get_layer_from_submodule(module, layers, '')
+                layers = self.get_layer_from_submodule(module, layers,
+                                                       type(module))
+        else:
+            for i, module in enumerate(modules):
+                layers = self.get_layer_from_submodule(
+                    module, layers,
+                    '' if not self._check_is_supported_layer(module) else
+                    f'Module-{i}-{type(module).__name__}')
         return layers
 
     def _get_writer(self, save_to, writers_args) -> \
             delve.writers.AbstractWriter:
-        """Create a writer to log history to `writer_dir`."""        
+        """Create a writer to log history to `writer_dir`."""
         if issubclass(type(save_to), delve.writers.AbstractWriter):
             return save_to
         if isinstance(save_to, list):
@@ -381,7 +383,7 @@ class CheckLayerSat(object):
                     self._get_writer(save_to=saver, writers_args=writers_args))
             return CompositWriter(all_writers)
         if save_to in WRITERS:
-            writer = CSVandPlottingWriter(**writers_args)
+            writer = WRITERS[save_to](**writers_args)
         else:
             raise ValueError(
                 'Illegal argument for save_to "{}"'.format(save_to))
@@ -461,7 +463,7 @@ class CheckLayerSat(object):
             if not self.record:
                 if layer.name not in self.logs[
                         f'{"train" if layer.training else "eval"}-{"covariance-matrix"}']:
-                    save_data = 'embed' in self.stats
+                    # save_data = 'embed' in self.stats
                     self.logs[
                         f'{"train" if layer.training else "eval"}-{"covariance-matrix"}'][
                             layer.name] = np.nan
@@ -494,12 +496,6 @@ class CheckLayerSat(object):
                 ) if self.max_samples is not None else output.data.shape[0]
                 activations_batch = output.data[:num_samples]
                 self.seen_samples[training_state][layer.name] += num_samples
-                if self.verbose:
-                    print("seen {} samples on layer {}".format(
-                        self.seen_samples[training_state][layer.name],
-                        layer.name))
-
-                eig_vals = None
 
                 self._record_stat(activations_batch, lstm_ae, layer,
                                   training_state, 'covariance-matrix')
@@ -511,8 +507,6 @@ class CheckLayerSat(object):
         Computes saturation and saves all stats
         :return:
         """
-        #if not self.record:
-        #    return
         for key in self.logs:
             train_sats = []
             val_sats = []

@@ -2,18 +2,19 @@
 This file contains alternative file writers
 """
 import os
-import logging
 import pathlib
 import pickle as pkl
 import warnings
 from abc import ABC, abstractmethod
 from shutil import make_archive
-from typing import Callable, List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 import matplotlib
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+
+from delve.logger import log
 
 try:
     from tensorboardX import SummaryWriter
@@ -116,7 +117,7 @@ class CSVWriter(AbstractWriter):
 
     def resume_from_saved_state(self, initial_epoch: int):
         self.epoch_counter = initial_epoch
-        if self._check_savestate_ok(self.savepath + '.csv'):
+        if self._check_savestate_ok(self.savepath + '.csv') is True:
             self.value_dict = pd.read_csv(self.savepath + '.csv',
                                           sep=';',
                                           index_col=0).to_dict('list')
@@ -265,11 +266,11 @@ class CSVandPlottingWriter(CSVWriter):
                  plot_manipulation_func: Callable[[plt.Axes], plt.Axes] = None,
                  **kwargs):
         super(CSVandPlottingWriter, self).__init__(savepath)
-        self.plot_man_func = plot_manipulation_func if plot_manipulation_func != None else lambda x: x
-        self.primary_metric = None if not 'primary_metric' in kwargs else kwargs[
+        self.plot_man_func = plot_manipulation_func if plot_manipulation_func is not None else lambda x: x
+        self.primary_metric = None if 'primary_metric' not in kwargs else kwargs[
             'primary_metric']
-        self.fontsize = 16 if not 'fontsize' in kwargs else kwargs['fontsize']
-        self.figsize = None if not 'figsize' in kwargs else kwargs['figsize']
+        self.fontsize = 16 if 'fontsize' not in kwargs else kwargs['fontsize']
+        self.figsize = None if 'figsize' not in kwargs else kwargs['figsize']
         self.epoch_counter: int = 0
         self.stats = []
         self.sample_stats = list()
@@ -381,6 +382,19 @@ class CSVandPlottingWriter(CSVWriter):
         pass
 
 
+WRITERS: Dict[str, AbstractWriter] = {
+    "csv": CSVWriter,
+    "npy": NPYWriter,
+    "print": PrintWriter,
+    "tb": TensorBoardWriter,
+    "tensorboard": TensorBoardWriter,
+    "csvplotting": CSVandPlottingWriter,
+    "csvplot": CSVandPlottingWriter,
+    "plot": CSVandPlottingWriter,
+    "plotcsv": CSVandPlottingWriter
+}
+
+
 def extract_layer_stat(df,
                        epoch=19,
                        primary_metric=None,
@@ -398,7 +412,7 @@ def extract_layer_stat(df,
     cols = list(df.columns)
     train_cols = [
         col for col in cols
-        if state_mode in col and not 'accuracy' in col and stat in col
+        if state_mode in col and 'accuracy' not in col and stat in col
     ]
     if not np.any(epoch == df.index.values):
         raise ValueError(
@@ -461,13 +475,26 @@ def plot_stat(df,
     plt.close()
     if epoch == -1:
         epoch = df.index.values[-1]
-    if figsize != None:
+    if figsize is not None:
         print(figsize)
         plt.figure(figsize=figsize)
     ax = plt.gca()
     col_names = [i for i in df.columns]
-    if np.all(np.isnan(df.values[0])):
-        return ax
+    try:
+        if len(df.values[0]) == 0 or (isinstance(df.values[0][0], list) and
+                                      isinstance(df.values[0][0][0], tuple)):
+            pass
+        elif np.all(np.isnan(df.values[0])):
+            return ax
+    except TypeError:
+        warnings.warn(
+            "Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+            "Plotting non np.ndarray may lead to crashes or inconsistent results"
+        )
+        log.exception(
+            "Experienced a TypeError during checking for nan values in, likely caused by non float or int values. "
+            "Plotting non np.ndarray may lead to crashes or inconsistent results"
+        )
     if line:
         if samples:
             pass
@@ -491,9 +518,9 @@ def plot_stat(df,
         plt.xticks(list(range(len(col_names))),
                    [col_name.split('_', )[1] for col_name in col_names],
                    rotation=90)
-    if not ylim is None:
+    if ylim is not None:
         ax.set_ylim(ylim)
-    if primary_metric != None:
+    if primary_metric is not None:
         ax.text(primary_metric_loc[0], primary_metric_loc[1],
                 f'{primary_metric}: {pm}')
     plt.yticks(fontsize=fontsize)
@@ -503,7 +530,7 @@ def plot_stat(df,
         '.csv', f' epoch: {epoch}'),
               fontsize=fontsize)
     if show_col_label_y:
-        plt.ylabel(stat if not stat in STATMAP else STATMAP[stat],
+        plt.ylabel(stat if stat not in STATMAP else STATMAP[stat],
                    rotation='vertical',
                    fontsize=fontsize)
     if show_grid:
@@ -512,7 +539,7 @@ def plot_stat(df,
     if save:
         final_savepath = savepath.replace(
             '.csv', f'_{stat}_{stat_mode}_epoch_{epoch}.png')
-        logging.info(final_savepath)
+        log.info(final_savepath)
         plt.savefig(final_savepath)
     return ax
 

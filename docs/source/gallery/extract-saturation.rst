@@ -19,8 +19,8 @@
 
 
 Extract layer saturation
--------------------------------
-Extract layer saturation with delve.
+------------------------
+Extract layer saturation with Delve.
 
 .. GENERATED FROM PYTHON SOURCE LINES 6-64
 
@@ -67,7 +67,7 @@ Extract layer saturation with delve.
         layers = [model.linear1, model.linear2]
         stats = CheckLayerSat('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
 
-        loss_fn = torch.nn.MSELoss(size_average=False)
+        loss_fn = torch.nn.MSELoss(reduction='sum')
         optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
         steps_iter = trange(2000, desc='steps', leave=True, position=0)
         steps_iter.write("{:^80}".format(

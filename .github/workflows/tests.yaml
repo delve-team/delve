@@ -2,10 +2,10 @@ name: Tests
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
     tags: [v*]
   pull_request:
-    branches: [master]
+    branches: [master, develop]
   workflow_dispatch:
 
 jobs:
@@ -37,7 +37,12 @@ jobs:
       - name: Run pytest
         shell: bash -l {0}
         run: |
-            pip install -r requirements/dev.txt
+            pip install --upgrade pip
+            pip install setuptools
+            pip install wheel
+            pip install cython
+            pip install pandas==1.1.4
+            pip install -r requirements/requirements.txt
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx
             pip install scipy --force-reinstall # for https://github.com/conda/conda/issues/6396
