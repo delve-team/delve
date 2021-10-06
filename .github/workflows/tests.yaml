@@ -37,9 +37,9 @@ jobs:
       - name: Run pytest
         shell: bash -l {0}
         run: |
-            conda install pandas
             pip install --upgrade pip
             pip install cython
+            pip install pandas==1.1.4
             pip install --ignore-installed -r requirements/requirements.txt
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx
