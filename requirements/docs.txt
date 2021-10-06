@@ -1,6 +1,6 @@
 yapf
 tqdm
-pandas==0.23.4
+pandas
 matplotlib
 pytest
 pydata-sphinx-theme
