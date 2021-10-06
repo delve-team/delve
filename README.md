@@ -69,7 +69,9 @@ contribute effectivly!
 __For more details check our publication on this topics__
 - [Spectral Analysis of Latent Representations](https://arxiv.org/abs/1907.08589)
 - [Feature Space Saturation during Training](https://arxiv.org/abs/2006.08679)
-- Size Matters (soon)
+- [(Input) Size Matters for CNN Classifiers](https://link.springer.com/chapter/10.1007/978-3-030-86340-1_11)
+- [Should you go deeper? Optimizing Convolutional Neural Networks without training](https://arxiv.org/abs/2106.12307)
+- Go with the Flow: the distribution of information processing in multi-path networks (soon)
 
 
 ## Demo
