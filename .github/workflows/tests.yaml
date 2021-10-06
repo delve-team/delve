@@ -40,7 +40,7 @@ jobs:
             conda install pandas
             pip install --upgrade pip
             pip install cython
-            pip install -r requirements/requirements.txt
+            pip install --ignore-installed -r requirements/requirements.txt
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx
             pip install scipy --force-reinstall # for https://github.com/conda/conda/issues/6396
