@@ -36,10 +36,10 @@ jobs:
       - name: Run pytest
         shell: bash -l {0}
         run: |
+            pip install cython
             pip install -r requirements/requirements.txt
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx
-            pip install cython
             pip install scipy --force-reinstall # for https://github.com/conda/conda/issues/6396
             pip install .
             conda install pytest
