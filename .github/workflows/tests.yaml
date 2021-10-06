@@ -42,7 +42,7 @@ jobs:
             pip install wheel
             pip install cython
             pip install pandas==1.1.4
-            pip install --ignore-installed -r requirements/requirements.txt
+            pip install -r requirements/requirements.txt
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx
             pip install scipy --force-reinstall # for https://github.com/conda/conda/issues/6396
