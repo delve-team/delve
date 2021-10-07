@@ -13,4 +13,4 @@ except ImportError:
 import delve.logger
 
 name = "delve"
-__version__ = "0.1.47"
+__version__ = "0.1.48"
