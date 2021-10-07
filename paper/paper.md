@@ -29,7 +29,7 @@ bibliography: paper.bib
 # Summary
 Designing neural networks is a complex task.
 Deep neural networks are often refered to as "black box" models - little insight in the function they approximate is gained from looking at the structure of layer outputs.
-Delve is a tool for looking at how a neural network represents data, and how these representations, or features, change throughout training.
+``Delve`` is a tool for looking at how a neural network represents data, and how these representations, or features, change throughout training.
 This tool enables deep learning researchers to understand the limitations and suggest improvements for the design of their networks, such as removing or adding layers.
 
 Several tools exist which allow analyzing neural networks after and during training.
@@ -54,11 +54,12 @@ Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature
 In order to make saturation usable an application scenario, it is necessary to provide a easy-to-use framework that allows for an integration of the tool into the normal training and inference code with only minimaly invasive changes.
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seemless as possible.
 
-The Python package Delve provides a framework for allowing a seemless and minimal overhead integration for saturation and
+``Delve`` provides a framework for allowing a seemless and minimal overhead integration for saturation and
 other statistical analysis of neural network layer eigenspaces.
-Delve hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers.
+It hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers.
 A comprehensive source of documentation is provided on the home page
 ([http://delve-docs.readthedocs.io](delve-docs.readthedocs.io)).
+
 
 ## Statement of Need
 Research on changes in neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
