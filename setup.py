@@ -7,11 +7,11 @@ import re
 
 from setuptools import find_packages, setup
 
-here = os.path.abspath(os.path.dirname(__file__))
+_PATH_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
 def read(*parts):
-    with open(os.path.join(here, *parts), "r", encoding="utf8") as fp:
+    with open(os.path.join(_PATH_ROOT, *parts), "r", encoding="utf8") as fp:
         return fp.read()
 
 
@@ -28,7 +28,9 @@ def find_version(*file_paths):
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['tensorboardX', 'tqdm', 'matplotlib', 'pandas']
+requirements = [
+    'tensorboardX', 'tqdm', 'matplotlib', 'pandas', 'torch===1.9.0'
+]
 
 this_dir = path.abspath(path.dirname(__file__))
 with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
@@ -60,10 +62,17 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Software Development :: Libraries',
     ],
-    python_requires='!= 3.0.*, != 3.1.*',
+    python_requires='>=3.6',
     packages=find_packages(),
+    project_urls={
+        "Bug Tracker": "https://github.com/delve-team/delve/issues",
+        "Documentation": "https://delve-docs.readthedocs.io/en/latest/",
+        "Source Code": "https://github.com/delve-team/delve",
+    },
     include_package_data=True,
-    keywords=
-    'deep learning layer saturation pruning spectral tensorboard network',
+    keywords=[
+        'deep learning', 'machine learning', 'pytorch', 'saturation',
+        'pruning', 'saturation', 'AI'
+    ],
     zip_safe=False,
 )
