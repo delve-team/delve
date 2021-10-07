@@ -28,9 +28,7 @@ def find_version(*file_paths):
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'tensorboardX', 'tqdm', 'matplotlib', 'pandas', 'torch===1.9.0'
-]
+requirements = ['tensorboardX', 'tqdm', 'matplotlib', 'pandas', 'torch==1.9.0']
 
 this_dir = path.abspath(path.dirname(__file__))
 with open(os.path.join(this_dir, 'README.md'), encoding='utf-8') as f:
