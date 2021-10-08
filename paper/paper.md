@@ -1,10 +1,12 @@
 ---
-title: 'Delve: Neural Network Eigenspace Computation and Visualization'
+title: 'Delve: Neural Network Feature Variance Analysis'
 tags:
   - Python
   - deep learning
+  - machine learning
   - saturation
-  - PyTorch
+  - pytorch
+  - AI
 authors:
   - name: Justin Shenk^[co-first author]
     orcid: 0000-0002-0664-7337
@@ -65,6 +67,9 @@ A comprehensive source of documentation is provided on the home page
 Research on changes in neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
 Furthermore, researchers who are interested in developing novel algorithms must implement from scratch much of the computational and algorithmic infrastructure for analysis and visualization.
 By packaging a library that is particularly useful for extracting statistics from neural network training, future researchers can benefit from access to a high-level interface and clearly documented methods for their work.
+``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
+The combination of ease of usage and extensibility in ``Delve`` enables exciting scientific explorations for machine learning researchers and engineers.
+The source code for ``Delve`` has been archived to Zenodo with the linked DOI: [@zenodo]
 
 ## Overview of the Library
 The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>.
