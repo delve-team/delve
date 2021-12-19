@@ -52,7 +52,7 @@ Tools like SVCCA and logistic regression probes require complex and computationa
 This naturally limits these techniques to small benchmarks and primarily academic datasets like Cifar10 [@feature-space].
 An analysis tool that is to be used during the development of a deep learning-based model needs to be able to be used with little computational and workflow overhead as possible.
 Ideally, the analysis can be done live while the training is in progress, allowing the researcher to interrupt potentially long-running training sessions to improve the model.
-Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only known analysis technique known to the authors that have this capability while also allowing to identify of parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
+Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only known analysis technique known to the authors that has this capability while allowing to identify parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
 To make saturation usable in an application scenario, it is necessary to provide an easy-to-use framework that allows for an integration of the tool into the normal training and inference code with only minimally invasive changes.
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seamless as possible.
 
