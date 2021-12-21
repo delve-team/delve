@@ -55,6 +55,7 @@ Ideally, the analysis can be done live while the training is in progress, allowi
 Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only known analysis technique known to the authors that has this capability while allowing to identify parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
 To make saturation usable in an application scenario, it is necessary to provide an easy-to-use framework that allows for an integration of the tool into the normal training and inference code with only minimally invasive changes.
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seamless as possible.
+A numerical comparison of these various methods is a promising avenue for future research into model introspection.
 
 ``Delve`` provides a framework for allowing a seamless and minimal overhead integration for saturation and
 other statistical analysis of neural network layer eigenspaces.
