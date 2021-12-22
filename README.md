@@ -19,14 +19,14 @@ Use Delve if you need a lightweight PyTorch extension that:
 
 Designing a deep neural network is a trial and error heavy process that mostly revolves around comparing
 performance metrics of different runs.
-One of the key issues with this development process is that the results of metrics not realy propagte back easily
+One of the key issues with this development process is that the results of metrics not really propagate back easily
 to concrete design improvements.
 Delve provides you with spectral analysis tools that allow you to investigate the inference
 dynamic evolving in the model while training.
-This allows you to spot underutilized and unused layers. Missmatches between
+This allows you to spot underutilized and unused layers. Mismatches between
 object size and neural architecture among other inefficiencies.
 These observations can be propagated back directly to design changes in the architecture even before
-the model has fully converged, allowing for a quicker and mor guided design process.
+the model has fully converged, allowing for a quicker and more guided design process.
 
 ## Installation
 
