@@ -98,13 +98,33 @@ Several layers are currently supported:
 Additional layers such as PyTorch's ConvTranspose2D are planned for future development (see issue [#43](https://github.com/delve-team/delve/issues/43)).
 
 ## Eigendecomposition of the feature covariance matrix
+The computation of saturation and other related metrics like the intrinsic dimensionality require the covariance matrix
+of the layers output.
+Computing the covariance matrix of a layers output on the training or evaluation set is impractical to do naivly, since
+it would require to hold the entire dataset in memory.
+This would also contradict our goal of seamless integration in existing training loops, which commonly operate with
+mini-batches, which are substantially smaller than the entire dataset.
+Therefore, an batch-wise approximation algorithm is used in order to compute the covariance matrix life during training:
 
-Saturation is a measure of the rank of the layer feature eigenspace introduced by [@Shenk:Thesis:2018;@spectral-analysis] and further explored in[@feature-space].
 
-Covariance matrix of features is computed online as described in [@feature-space]:
-
+We compute the covariance matrix $Q(Z_l,Z_l)$, where $Z_l := \sum^{n}_{i=1}(z_{l,i})/n$, using the covariance approximation algorithm between two random variables $X$ and $Y$ with $n$ samples:
+$$Q(X, Y) = \frac{\sum^{n}_{i=1} x_i y_i}{n} - \frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$$
+We make this computation more efficient by exploiting the shape of the layer output matrix $A_l$:
+We compute $\sum^{n}_{i=1} x_i y_i$ for all feature combinations in layer $l$ by calculating the running squares $\sum^{B}_{b=0}A_{l,b}^T A_{l,b}$ of the batch output matrices $A_{l,b}$ where $b \in \{0,...,B-1\}$ for $B$ batches. We replace $\frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$ by the outer product $\bar{A}_l \bigotimes \bar{A}_l$ of the sample mean $\bar{A}_l$.
+This is the running sum of all outputs $z_{l,k}$, where $k \in \{0,...,n\}$ at training time, divided by the total number of training samples $n$.
+The final formula for covariance approximation is then:
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
+Since we only store the sum of squares, the running mean and the number of observed samples, we require constant memory and computation is done batch-wise.
+The algorithm requires roughly the same number of computations as the processing of a forward pass of the respective layer does; thus we compute saturation after every epoch. The variables are reset at the beginning of each epoch to minimize the bias induced by weight updates during training.
+Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows to update the covariance matrix asynchronous when the network is trained in a distributed manner.
 
-for $B$ batches of layer output matrix $A_l$ and $n$ number of samples.
+Another problem is the dimensionality of the data - especially for convolutional layers, where a simple flattening
+of the data vector would result in an extreme high dimensional vector and a very expensive singular value composition 
+as a direct consequence.
+
+In convolutional layers, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
+The advantage of this strategy is that no information is lost, while keeping $Q$ at a manageable size.
+
+This approximation method was described alongside the saturation metric in the works of [@Shenk:Thesis:2018;@spectral-analysis] and further refined by [@feature-space].
 
 # References
