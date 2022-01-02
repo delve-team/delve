@@ -110,7 +110,7 @@ We compute the covariance matrix $Q(Z_l,Z_l)$, where $Z_l$ is the output of a la
 $$Q(X, Y) = \frac{\sum^{n}_{i=1} x_i y_i}{n} - \frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$$
 The advantage of this method is that only the number of seen samples, the sum of squares and the sum of the variables need to be stored,
 making the memory consumption per layer constant with respect to the size of the dataset.
-By exploiting the shape of the layer output matrix $A_l$ of the layer $l$ we can compute the all covariances simultaniously:
+By exploiting the shape of the layer output matrix $A_l$ of the layer $l$ we can compute all covariances simultaniously:
 We can compute $\sum^{n}_{i=1} x_i y_i$ for all feature combinations in layer $l$ by calculating the running squares $\sum^{B}_{b=0}A_{l,b}^T A_{l,b}$ of the batch output matrices $A_{l,b}$ where $b \in \{0,...,B-1\}$ for $B$ batches. We replace $\frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$ by the outer product $\bar{A}_l \bigotimes \bar{A}_l$ of the sample mean $\bar{A}_l$.
 This is the running sum of all outputs $z_{l,k}$, where $k \in \{0,...,n\}$ at training time, divided by the total number of training samples $n$.
 Our formula for a batch-wise approximated covariance matrix can now be written like this:
@@ -118,14 +118,14 @@ $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes
 The batch-wise updating algorithm allows us to integrate the approximation of the covariance matrix as part of the 
 regular forward pass during training and evaluation.
 Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows to update the covariance matrix asynchronous when the network is trained in a distributed manner.
-To avoid problems that can be caused rounding errors and numeric instability our implementation of the algorithm exclusivly converts by default all data into 64-bit floating point values.
+To avoid problems that can be caused by rounding errors and numeric instability our implementation of the algorithm exclusivly converts by default all data into 64-bit floating point values.
 
 Another problem is the dimensionality of the data in convolutional layers, where a simple flattening
-of the data vector would result in a very high dimensional vector and a very expensive singular value composition 
+of the data vector would result in a very high dimensional vector and a very expensive singular value decomposition 
 as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
 The advantage of this strategy is that no information is lost, while keeping the dimensionality of $Q$ at a manageable size.
 Optionally, to reduce the computations required further, the feature map can be automatically reduced in size using linear interpolation to a constant maximum height and width. Since information is lost during this process,
-this is disabled by default. However, during experiments we did not observe noteworthy deviations in the intrinsic dimensionality or saturation, when downsampling feature map sizes to $4 \times 4$ on an input resolution of $224 \times 224$ pixels.
+this is disabled by default.
 
 This approximation method was described alongside the saturation metric in the works of [@Shenk:Thesis:2018;@spectral-analysis] and further refined by [@feature-space].
 
