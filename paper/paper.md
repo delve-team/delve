@@ -101,10 +101,10 @@ Additional layers such as PyTorch's ConvTranspose2D are planned for future devel
 The computation of saturation and other related metrics like the intrinsic dimensionality require the covariance matrix
 of the layers output.
 Computing the covariance matrix of a layers output on the training or evaluation set is impractical to do naivly, since
-it would require to hold the entire dataset in memory.
+it would require holding the entire dataset in memory.
 This would also contradict our goal of seamless integration in existing training loops, which commonly operate with
-mini-batches, which are substantially smaller than the entire dataset.
-Therefore, an batch-wise approximation algorithm is used in order to compute the covariance matrix life during training:
+mini-batches.
+Therefore, a batch-wise approximation algorithm is used in order to compute the covariance matrix life during training:
 
 We compute the covariance matrix $Q(Z_l,Z_l)$, where $Z_l$ is the output of a layer $l$ by using the covariance approximation algorithm for two random variables $X$ and $Y$ with $n$ samples:
 $$Q(X, Y) = \frac{\sum^{n}_{i=1} x_i y_i}{n} - \frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$$
@@ -120,7 +120,7 @@ regular forward pass during training and evaluation.
 Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows to update the covariance matrix asynchronous when the network is trained in a distributed manner.
 To avoid problems that can be caused by rounding errors and numeric instability our implementation of the algorithm exclusivly converts by default all data into 64-bit floating point values.
 
-Another problem is the dimensionality of the data in convolutional layers, where a simple flattening
+Another challange is the dimensionality of the data in convolutional layers, where a simple flattening
 of the data vector would result in a very high dimensional vector and a very expensive singular value decomposition 
 as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
 The advantage of this strategy is that no information is lost, while keeping the dimensionality of $Q$ at a manageable size.
