@@ -5,6 +5,8 @@ import torch
 import torch.nn
 
 from delve import CheckLayerSat
+from delve.pca_layers import LinearPCALayer, Conv2DPCALayer, \
+    change_all_pca_layer_thresholds_and_inject_random_directions, change_all_pca_layer_thresholds
 from delve.writers import CSVandPlottingWriter
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -27,6 +29,98 @@ def test_dense_saturation_runs():
     test_input = torch.randn(5, 10).to(device)
     _ = model(test_input)
     return True
+
+
+def test_dense_saturation_runs_with_pca():
+    save_path = TEMP_DIRNAME
+    model = torch.nn.Sequential(
+        torch.nn.Linear(10, 88),
+        LinearPCALayer(88)
+    ).to(device)
+
+    writer = CSVandPlottingWriter(save_path,
+                                  fontsize=16,
+                                  primary_metric='test_accuracy')
+    _ = CheckLayerSat(save_path, [writer],
+                      model,
+                      stats=['lsat', 'idim'],
+                      device=device)
+
+    test_input = torch.randn(5, 10).to(device)
+    _ = model(test_input)
+    model.eval()
+    _ = model(test_input)
+    return True
+
+
+def test_conv_saturation_runs_with_pca():
+    save_path = TEMP_DIRNAME
+    model = torch.nn.Sequential(
+        torch.nn.Conv2d(4, 88, (3, 3)),
+        Conv2DPCALayer(88)
+    ).to(device)
+
+    writer = CSVandPlottingWriter(save_path,
+                                  fontsize=16,
+                                  primary_metric='test_accuracy')
+    _ = CheckLayerSat(save_path, [writer],
+                      model,
+                      stats=['lsat', 'idim'],
+                      device=device)
+
+    test_input = torch.randn(32, 4, 10, 10).to(device)
+    _ = model(test_input)
+    model.eval()
+    _ = model(test_input)
+    return True
+
+
+def test_conv_saturation_runs_with_pca_injecting_random_directions():
+    save_path = TEMP_DIRNAME
+    model = torch.nn.Sequential(
+        torch.nn.Conv2d(4, 88, (3, 3)),
+        Conv2DPCALayer(88)
+    ).to(device)
+
+    writer = CSVandPlottingWriter(save_path,
+                                  fontsize=16,
+                                  primary_metric='test_accuracy')
+    _ = CheckLayerSat(save_path, [writer],
+                      model,
+                      stats=['lsat', 'idim'],
+                      device=device)
+
+    test_input = torch.randn(32, 4, 10, 10).to(device)
+    _ = model(test_input)
+    model.eval()
+    x = model(test_input)
+    change_all_pca_layer_thresholds_and_inject_random_directions(0.99, model)
+    y = model(test_input)
+    return x != y
+
+
+def test_conv_saturation_runs_with_pca_change_threshold():
+    save_path = TEMP_DIRNAME
+    model = torch.nn.Sequential(
+        torch.nn.Conv2d(4, 88, (3, 3)),
+        Conv2DPCALayer(88)
+    ).to(device)
+
+    writer = CSVandPlottingWriter(save_path,
+                                  fontsize=16,
+                                  primary_metric='test_accuracy')
+    _ = CheckLayerSat(save_path, [writer],
+                      model,
+                      stats=['lsat', 'idim'],
+                      device=device)
+
+    test_input = torch.randn(32, 4, 10, 10).to(device)
+    _ = model(test_input)
+    model.eval()
+    x = model(test_input)
+    change_all_pca_layer_thresholds(0.5, model)
+    z = model(test_input)
+    return x != z
 
 
 def test_lstm_saturation_runs():
