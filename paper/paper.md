@@ -57,20 +57,29 @@ To make saturation usable in an application scenario, it is necessary to provide
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seamless as possible.
 A numerical comparison of these various methods is a promising avenue for future research into model introspection.
 
-``Delve`` provides a framework for allowing a seamless and minimal overhead integration for saturation and
-other statistical analysis of neural network layer eigenspaces.
-It hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers.
+``Delve`` is a tool for extracting information based on the covariance matrix of the data like saturation and the intrinsic dimensionality from neural network layers.
+To emphasize practical usability, special attention is placed on a low overhead and minimally invasive integration of ``Delve`` into
+existing training and inference setups:
+``Delve`` is directly hooking into [@pytorch] models to extract necessary information with little computational and memory overhead, thanks to an efficient covariance approximation algorithm.
+We enable the user to store and analyze the extracted statistics without changing their current experiment workflow, by making ``Delve`` easy to integrate into monitoring systems and making this interface easy to expand.
+This allows the user to utilize their preferred way of monitoring experiments, from simple CSV-Files and folder structures to more sophisticated solutions like
+TensorBoard [@tensorflow2015-whitepaper].
 A comprehensive source of documentation is provided on the home page
 ([http://delve-docs.readthedocs.io](delve-docs.readthedocs.io)).
 
 
 ## Statement of Need
-Research on changes in neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
-Furthermore, researchers who are interested in developing novel algorithms must implement from scratch much of the computational and algorithmic infrastructure for analysis and visualization.
-By packaging a library that is particularly useful for extracting statistics from neural network training, future researchers can benefit from access to a high-level interface and clearly documented methods for their work.
-``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
+Research on spectral properties of neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
+Publication like [@svcca] and [@feature-space] demonstrate that useful and interesting information can be extracted from the spectral analysis of these latent representations.
+It has also been shown that metrics like saturation [@Shenk:Thesis:2018;@spectral-analysis] can be used to optimize neural network architectures by identifying pathological patterns hinting on inefficiencies of the neural network structure.
+
+
+The main purpose of ``Delve`` is to provide an easy and flexible access to these types of layer-based statistics.
 The combination of ease of usage and extensibility in ``Delve`` enables exciting scientific explorations for machine learning researchers and engineers.
+``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
 The source code for ``Delve`` has been archived to Zenodo with the linked DOI: [@zenodo]
+
+
 
 ## Overview of the Library
 The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>.
