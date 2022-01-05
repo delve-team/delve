@@ -78,7 +78,7 @@ __For more details check our publication on this topics__
 ````python
 
 import torch
-from delve import CheckLayerSat
+from delve import SaturationTracker
 from torch.cuda import is_available
 from torch.nn import CrossEntropyLoss
 from torchvision.datasets import CIFAR10
@@ -92,68 +92,68 @@ from tqdm import tqdm
 
 if __name__ == "__main__":
 
-    device = "cuda:0" if is_available() else "cpu"
+  device = "cuda:0" if is_available() else "cpu"
 
-    # Get some data
-    train_data = CIFAR10(root="./tmp", train=True,
-                         download=True, transform=Compose([ToTensor()]))
-    test_data = CIFAR10(root="./tmp", train=False, download=True, transform=Compose([ToTensor()]))
+  # Get some data
+  train_data = CIFAR10(root="./tmp", train=True,
+                       download=True, transform=Compose([ToTensor()]))
+  test_data = CIFAR10(root="./tmp", train=False, download=True, transform=Compose([ToTensor()]))
 
-    train_loader = DataLoader(train_data, batch_size=1024,
-                              shuffle=True, num_workers=6,
-                              pin_memory=True)
-    test_loader = DataLoader(test_data, batch_size=1024,
-                             shuffle=False, num_workers=6,
-                             pin_memory=True)
+  train_loader = DataLoader(train_data, batch_size=1024,
+                            shuffle=True, num_workers=6,
+                            pin_memory=True)
+  test_loader = DataLoader(test_data, batch_size=1024,
+                           shuffle=False, num_workers=6,
+                           pin_memory=True)
 
-    # instantiate model
-    model = vgg16(num_classes=10).to(device)
+  # instantiate model
+  model = vgg16(num_classes=10).to(device)
 
-    # instantiate optimizer and loss
-    optimizer = Adam(params=model.parameters())
-    criterion = CrossEntropyLoss().to(device)
+  # instantiate optimizer and loss
+  optimizer = Adam(params=model.parameters())
+  criterion = CrossEntropyLoss().to(device)
 
-    # initialize delve
-    tracker = CheckLayerSat("my_experiment", save_to="plotcsv", modules=model, device=device)
+  # initialize delve
+  tracker = SaturationTracker("my_experiment", save_to="plotcsv", modules=model, device=device)
 
-    # begin training
-    for epoch in range(10):
-        model.train()
-        for (images, labels) in tqdm(train_loader):
-            images, labels = images.to(device), labels.to(device)
-            prediction = model(images)
-            optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast():
-                outputs = model(images)
-                _, predicted = torch.max(outputs.data, 1)
+  # begin training
+  for epoch in range(10):
+    model.train()
+    for (images, labels) in tqdm(train_loader):
+      images, labels = images.to(device), labels.to(device)
+      prediction = model(images)
+      optimizer.zero_grad(set_to_none=True)
+      with torch.cuda.amp.autocast():
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
 
-                loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+        loss = criterion(outputs, labels)
+      loss.backward()
+      optimizer.step()
 
-        total = 0
-        test_loss = 0
-        correct = 0
-        model.eval()
-        for (images, labels) in tqdm(test_loader):
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            _, predicted = torch.max(outputs.data, 1)
+    total = 0
+    test_loss = 0
+    correct = 0
+    model.eval()
+    for (images, labels) in tqdm(test_loader):
+      images, labels = images.to(device), labels.to(device)
+      outputs = model(images)
+      loss = criterion(outputs, labels)
+      _, predicted = torch.max(outputs.data, 1)
 
-            total += labels.size(0)
-            correct += torch.sum((predicted == labels)).item()
-            test_loss += loss.item()
+      total += labels.size(0)
+      correct += torch.sum((predicted == labels)).item()
+      test_loss += loss.item()
 
-        # add some additional metrics we want to keep track of
-        tracker.add_scalar("accuracy", correct / total)
-        tracker.add_scalar("loss", test_loss / total)
+    # add some additional metrics we want to keep track of
+    tracker.add_scalar("accuracy", correct / total)
+    tracker.add_scalar("loss", test_loss / total)
 
-        # add saturation to the mix
-        tracker.add_saturations()
+    # add saturation to the mix
+    tracker.add_saturations()
 
-    # close the tracker to finish training
-    tracker.close()
+  # close the tracker to finish training
+  tracker.close()
 
 ````
 

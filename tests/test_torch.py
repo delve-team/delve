@@ -4,7 +4,7 @@ import pytest
 import torch
 import torch.nn
 
-from delve import CheckLayerSat
+from delve import SaturationTracker
 from delve.pca_layers import LinearPCALayer, Conv2DPCALayer, \
     change_all_pca_layer_thresholds_and_inject_random_directions, change_all_pca_layer_thresholds
 from delve.writers import CSVandPlottingWriter, PrintWriter, NPYWriter
@@ -23,10 +23,10 @@ def test_dense_saturation_runs_with_many_writers():
                                   primary_metric='test_accuracy')
     writer2 = NPYWriter(save_path)
     writer3 = PrintWriter()
-    sat = CheckLayerSat(save_path, [writer, writer2, writer3],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    sat = SaturationTracker(save_path, [writer, writer2, writer3],
+                            model,
+                            stats=['lsat', 'idim'],
+                            device=device)
 
     test_input = torch.randn(5, 10).to(device)
     _ = model(test_input)
@@ -43,10 +43,10 @@ def test_dense_saturation_runs():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    _ = CheckLayerSat(save_path, [writer],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    _ = SaturationTracker(save_path, [writer],
+                          model,
+                          stats=['lsat', 'idim'],
+                          device=device)
 
     test_input = torch.randn(5, 10).to(device)
     _ = model(test_input)
@@ -63,10 +63,10 @@ def test_dense_saturation_runs_with_pca():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    _ = CheckLayerSat(save_path, [writer],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    _ = SaturationTracker(save_path, [writer],
+                          model,
+                          stats=['lsat', 'idim'],
+                          device=device)
 
     test_input = torch.randn(5, 10).to(device)
     _ = model(test_input)
@@ -85,10 +85,10 @@ def test_conv_saturation_runs_with_pca():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    _ = CheckLayerSat(save_path, [writer],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    _ = SaturationTracker(save_path, [writer],
+                          model,
+                          stats=['lsat', 'idim'],
+                          device=device)
 
     test_input = torch.randn(32, 4, 10, 10).to(device)
     _ = model(test_input)
@@ -107,10 +107,10 @@ def test_conv_saturation_runs_with_pca_injecting_random_directions():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    _ = CheckLayerSat(save_path, [writer],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    _ = SaturationTracker(save_path, [writer],
+                          model,
+                          stats=['lsat', 'idim'],
+                          device=device)
 
     test_input = torch.randn(32, 4, 10, 10).to(device)
     _ = model(test_input)
@@ -131,10 +131,10 @@ def test_conv_saturation_runs_with_pca_change_threshold():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    _ = CheckLayerSat(save_path, [writer],
-                      model,
-                      stats=['lsat', 'idim'],
-                      device=device)
+    _ = SaturationTracker(save_path, [writer],
+                          model,
+                          stats=['lsat', 'idim'],
+                          device=device)
 
     test_input = torch.randn(32, 4, 10, 10).to(device)
     _ = model(test_input)
@@ -159,11 +159,11 @@ def test_lstm_saturation_runs():
     writer = CSVandPlottingWriter(save_path,
                                   fontsize=16,
                                   primary_metric='test_accuracy')
-    saturation = CheckLayerSat(save_path, [writer],
-                               model,
-                               stats=['lsat', 'idim'],
-                               timeseries_method=timeseries_method,
-                               device=device)
+    saturation = SaturationTracker(save_path, [writer],
+                                   model,
+                                   stats=['lsat', 'idim'],
+                                   timeseries_method=timeseries_method,
+                                   device=device)
 
     input = torch.randn(5, 3, 10).to(device)
     output, (hn, cn) = model(input)
@@ -180,11 +180,11 @@ def test_lstm_saturation_embed_runs():
     model.add_module('lstm', lstm)
 
     writer = CSVandPlottingWriter(save_path, fontsize=16)
-    saturation = CheckLayerSat(save_path, [writer],
-                               model,
-                               stats=['lsat', 'idim', 'embed'],
-                               timeseries_method=timeseries_method,
-                               device=device)
+    saturation = SaturationTracker(save_path, [writer],
+                                   model,
+                                   stats=['lsat', 'idim', 'embed'],
+                                   timeseries_method=timeseries_method,
+                                   device=device)
 
     input = torch.randn(5, 3, 10).to(device)
     output, (hn, cn) = model(input)

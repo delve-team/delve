@@ -1,6 +1,6 @@
 from delve.tools import reconstruct_csv_from_npy_data
 from delve.torch_utils import TorchCovarianceMatrix
-from delve.torchcallback import CheckLayerSat
+from delve.torchcallback import SaturationTracker
 
 try:
     from delve.writers import CSVWriter as csv
