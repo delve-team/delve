@@ -7,11 +7,30 @@ import torch.nn
 from delve import CheckLayerSat
 from delve.pca_layers import LinearPCALayer, Conv2DPCALayer, \
     change_all_pca_layer_thresholds_and_inject_random_directions, change_all_pca_layer_thresholds
-from delve.writers import CSVandPlottingWriter
+from delve.writers import CSVandPlottingWriter, PrintWriter, NPYWriter
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 TEMP_DIR = tempfile.TemporaryDirectory()
 TEMP_DIRNAME = TEMP_DIR.name
+
+
+def test_dense_saturation_runs_with_many_writers():
+    save_path = TEMP_DIRNAME
+    model = torch.nn.Sequential(torch.nn.Linear(10, 88)).to(device)
+
+    writer = CSVandPlottingWriter(save_path,
+                                  fontsize=16,
+                                  primary_metric='test_accuracy')
+    writer2 = NPYWriter(save_path)
+    writer3 = PrintWriter()
+    _ = CheckLayerSat(save_path, [writer, writer2, writer3],
+                      model,
+                      stats=['lsat', 'idim'],
+                      device=device)
+
+    test_input = torch.randn(5, 10).to(device)
+    _ = model(test_input)
+    return True
 
 
 def test_dense_saturation_runs():
