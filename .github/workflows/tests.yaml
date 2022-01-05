@@ -46,7 +46,6 @@ jobs:
             pip install -r requirements/docs.txt
             pip install --upgrade pytest flake8 sphinx --user
             pip install scipy --force-reinstall # for https://github.com/conda/conda/issues/6396
-            pip install .
             conda install pytest
             py.test . --cov-report=xml --cov=delve -vvv
       - name: Codecov
