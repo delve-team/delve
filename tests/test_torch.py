@@ -23,13 +23,16 @@ def test_dense_saturation_runs_with_many_writers():
                                   primary_metric='test_accuracy')
     writer2 = NPYWriter(save_path)
     writer3 = PrintWriter()
-    _ = CheckLayerSat(save_path, [writer, writer2, writer3],
+    sat = CheckLayerSat(save_path, [writer, writer2, writer3],
                       model,
                       stats=['lsat', 'idim'],
                       device=device)
 
     test_input = torch.randn(5, 10).to(device)
     _ = model(test_input)
+    sat.add_scalar("test_accuracy", 1.0)
+    sat.add_saturations()
+
     return True
 
 
