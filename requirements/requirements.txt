@@ -4,6 +4,6 @@ tqdm
 matplotlib
 pytest
 tensorboardX
-torch>=1.9.0  --find-links https://download.pytorch.org/whl/torch_stable.html
-torchvision>=0.10.0  --find-links https://download.pytorch.org/whl/torch_stable.html
+torch --find-links https://download.pytorch.org/whl/torch_stable.html
+torchvision --find-links https://download.pytorch.org/whl/torch_stable.html
 pandas
