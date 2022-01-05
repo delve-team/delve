@@ -1,7 +1,6 @@
 # Delve: Deep Live Visualization and Evaluation ![logo](https://github.com/delve-team/delve/blob/master/images/delve_logo.png)
 
-[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Tests](https://github.com/delve-team/delve/actions/workflows/tests.yaml/badge.svg)](https://github.com/delve-team/delve/actions/workflows/tests.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/136951823.svg)](https://zenodo.org/badge/latestdoi/136951823)
-
+[![PyPI version](https://badge.fury.io/py/delve.svg)](https://badge.fury.io/py/delve) [![Tests](https://github.com/delve-team/delve/actions/workflows/tests.yaml/badge.svg)](https://github.com/delve-team/delve/actions/workflows/tests.yaml) [![codecov.io](https://codecov.io/github/delve-team/delve/coverage.svg?branch=master)](https://codecov.io/github/delve-team/delve/?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![DOI](https://zenodo.org/badge/136951823.svg)](https://zenodo.org/badge/latestdoi/136951823)
 Delve is a Python package for analyzing the inference dynamics of your model.
 
 ![playground](https://github.com/justinshenk/playground/blob/master/saturation_demo.gif)
