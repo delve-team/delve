@@ -122,7 +122,7 @@ This is the running sum of all outputs $z_{l,k}$, where $k \in \{0,...,n\}$ at t
 Our formula for a batch-wise approximated covariance matrix can now be written like this:
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
 The batch-wise updating algorithm allows us to integrate the approximation of the covariance matrix as part of the regular forward pass during training and evaluation.
-Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows updating the covariance matrix asynchronous when the network is trained in a distributed manner.
+Our algorithm uses a thread-safe common value store on a single compute device or node, which furthermore allows updating the covariance matrix asynchronous when the network is trained in a distributed manner.
 To avoid problems that can be caused by rounding errors and numeric instability, our implementation of the algorithm exclusively converts by default all data into 64-bit floating-point values.
 
 Another challenge is the dimensionality of the data in convolutional layers, where a simple flattening of the data vector would result in a very high dimensional vector and a computationally expensive singular value decomposition as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
