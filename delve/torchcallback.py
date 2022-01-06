@@ -17,7 +17,7 @@ from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
 
-class CheckLayerSat(object):
+class SaturationTracker(object):
     """Takes PyTorch module and records layer saturation,
        intrinsic dimensionality and other scalars.
 

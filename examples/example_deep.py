@@ -10,7 +10,7 @@ from torchvision.transforms import Compose, ToTensor
 # setup compute device
 from tqdm import tqdm
 
-from delve import CheckLayerSat
+from delve import SaturationTracker
 
 if __name__ == "__main__":
 
@@ -43,11 +43,11 @@ if __name__ == "__main__":
     criterion = CrossEntropyLoss().to(device)
 
     # initialize delve
-    tracker = CheckLayerSat("experiment",
-                            save_to="plotcsv",
-                            stats=["lsat"],
-                            modules=model,
-                            device=device)
+    tracker = SaturationTracker("experiment",
+                                save_to="plotcsv",
+                                stats=["lsat"],
+                                modules=model,
+                                device=device)
 
     # begin training
     for epoch in range(10):

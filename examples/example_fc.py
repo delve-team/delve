@@ -1,7 +1,7 @@
 import torch
 from tqdm import trange
 
-from delve.torchcallback import CheckLayerSat
+from delve.torchcallback import SaturationTracker
 
 
 class LayerCake(torch.nn.Module):
@@ -52,7 +52,7 @@ for h in [10, 100, 300]:
 
     x, y, model = x.to(device), y.to(device), model.to(device)
 
-    stats = CheckLayerSat(
+    stats = SaturationTracker(
         'regression/h{}'.format(h),
         'csv',
         model,

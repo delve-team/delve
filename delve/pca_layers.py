@@ -116,29 +116,6 @@ def change_all_pca_layer_thresholds(threshold: float,
     return sat, in_dims, fs_dims, names
 
 
-def change_all_pca_layer_centering(centering: bool,
-                                   network: Module,
-                                   verbose: bool = False,
-                                   downsampling=None):
-    in_dims = []
-    fs_dims = []
-    sat = []
-    for module in network.modules():
-        if isinstance(module, Conv2DPCALayer) or isinstance(
-                module, LinearPCALayer):
-            module.centering = centering
-            if isinstance(module, Conv2DPCALayer):
-                log.info('Changed downsampling to ', downsampling)
-                module.downsampling = downsampling
-            in_dims.append(module.in_dim)
-            fs_dims.append(module.fs_dim)
-            sat.append(module.sat)
-            if verbose:
-                log.info(
-                    f'Changed threshold for layer {module} to {centering}')
-    return sat, in_dims, fs_dims
-
-
 class LinearPCALayer(Module):
     """Eigenspace of the covariance matrix generated in TorchCovarianceMatrix with
     equation :eq:`covariance`.
@@ -263,8 +240,8 @@ class LinearPCALayer(Module):
         in_dim = eigen_space.shape[1]
         if self.verbose:
             log.info(
-                f'Saturation: {round(eigen_space.shape[1] / self.eigenvalues.shape[0], 4)}%',
-                'Eigenspace has shape', eigen_space.shape)
+                f'Saturation: {round(eigen_space.shape[1] / self.eigenvalues.shape[0], 4)}%\n'
+                f'Eigenspace has shape {eigen_space.shape}')
         self.transformation_matrix: torch.Tensor = eigen_space.matmul(
             eigen_space.t()).type(torch.float32)
         self.reduced_transformation_matrix: torch.Tensor = eigen_space.type(

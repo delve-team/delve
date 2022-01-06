@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 from tqdm import tqdm
 
-from delve import CheckLayerSat
+from delve import SaturationTracker
 
 batch_size, bs = 128, 128  # TODO: Duplicate var names to avoid conflicts: Refactor req
 
@@ -142,19 +142,19 @@ if __name__ == '__main__':
     net.to(device)
     logging_dir = 'net/simpson_h2-{}'.format(2)
 
-    stats = CheckLayerSat(savefile=logging_dir,
-                          save_to='plot',
-                          modules=net,
-                          include_conv=False,
-                          stats=['lsat'],
-                          max_samples=1024,
-                          verbose=True,
-                          writer_args={
+    stats = SaturationTracker(savefile=logging_dir,
+                              save_to='plot',
+                              modules=net,
+                              include_conv=False,
+                              stats=['lsat'],
+                              max_samples=1024,
+                              verbose=True,
+                              writer_args={
                               'figsize': [30, 30],
                               'fontsize': 32
                           },
-                          conv_method='mean',
-                          device='cpu')
+                              conv_method='mean',
+                              device='cpu')
 
     #net = nn.DataParallel(net, device_ids=['cuda:0', 'cuda:1'])
     eps = torch.Tensor([1e-10]).cuda()
