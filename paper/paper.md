@@ -57,20 +57,29 @@ To make saturation usable in an application scenario, it is necessary to provide
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seamless as possible.
 A numerical comparison of these various methods is a promising avenue for future research into model introspection.
 
-``Delve`` provides a framework for allowing a seamless and minimal overhead integration for saturation and
-other statistical analysis of neural network layer eigenspaces.
-It hooks into PyTorch [@pytorch] models and allows saving statistics via TensorBoard [@tensorflow2015-whitepaper] events or CSV writers.
+``Delve`` is a tool for extracting information based on the covariance matrix of the data like saturation and the intrinsic dimensionality from neural network layers.
+To emphasize practical usability, special attention is placed on a low overhead and minimally invasive integration of ``Delve`` into
+existing training and inference setups:
+``Delve`` is directly hooking into [@pytorch] models to extract necessary information with little computational and memory overhead, thanks to an efficient covariance approximation algorithm.
+We enable the user to store and analyze the extracted statistics without changing their current experiment workflow, by making ``Delve`` easy to integrate into monitoring systems and making this interface easy to expand.
+This allows the user to utilize their preferred way of monitoring experiments, from simple CSV-Files and folder structures to more sophisticated solutions like
+TensorBoard [@tensorflow2015-whitepaper].
 A comprehensive source of documentation is provided on the home page
 ([http://delve-docs.readthedocs.io](delve-docs.readthedocs.io)).
 
 
 ## Statement of Need
-Research on changes in neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
-Furthermore, researchers who are interested in developing novel algorithms must implement from scratch much of the computational and algorithmic infrastructure for analysis and visualization.
-By packaging a library that is particularly useful for extracting statistics from neural network training, future researchers can benefit from access to a high-level interface and clearly documented methods for their work.
-``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
+Research on spectral properties of neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
+Publication like [@svcca] and [@feature-space] demonstrate that useful and interesting information can be extracted from the spectral analysis of these latent representations.
+It has also been shown that metrics like saturation [@Shenk:Thesis:2018;@spectral-analysis] can be used to optimize neural network architectures by identifying pathological patterns hinting on inefficiencies of the neural network structure.
+
+
+The main purpose of ``Delve`` is to provide an easy and flexible access to these types of layer-based statistics.
 The combination of ease of usage and extensibility in ``Delve`` enables exciting scientific explorations for machine learning researchers and engineers.
+``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
 The source code for ``Delve`` has been archived to Zenodo with the linked DOI: [@zenodo]
+
+
 
 ## Overview of the Library
 The software is structured into several modules which distribute tasks. Full details are available at <https://delve-docs.readthedocs.io/>.
@@ -98,31 +107,25 @@ Several layers are currently supported:
 Additional layers such as PyTorch's ConvTranspose2D are planned for future development (see issue [#43](https://github.com/delve-team/delve/issues/43)).
 
 ## Eigendecomposition of the feature covariance matrix
-The computation of saturation and other related metrics like the intrinsic dimensionality require the covariance matrix
-of the layers output.
-Computing the covariance matrix of a layers output on the training or evaluation set is impractical to do naivly, since
-it would require holding the entire dataset in memory.
-This would also contradict our goal of seamless integration in existing training loops, which commonly operate with
-mini-batches.
-Therefore, a batch-wise approximation algorithm is used in order to compute the covariance matrix life during training:
+The computation of saturation and other related metrics like the intrinsic dimensionality require the covariance matrix of the layers output.
+Computing the covariance matrix of a layer's output on the training or evaluation set is impractical to do naively, since it would require holding the entire dataset in memory.
+This would also contradict our goal of seamless integration in existing training loops, which commonly operate with mini-batches.
+Therefore, a batch-wise approximation algorithm is used to compute the covariance matrix life during training:
 
 We compute the covariance matrix $Q(Z_l,Z_l)$, where $Z_l$ is the output of a layer $l$ by using the covariance approximation algorithm for two random variables $X$ and $Y$ with $n$ samples:
 $$Q(X, Y) = \frac{\sum^{n}_{i=1} x_i y_i}{n} - \frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$$
 The advantage of this method is that only the number of seen samples, the sum of squares and the sum of the variables need to be stored,
 making the memory consumption per layer constant with respect to the size of the dataset.
-By exploiting the shape of the layer output matrix $A_l$ of the layer $l$ we can compute all covariances simultaniously:
+By exploiting the shape of the layer output matrix $A_l$ of the layer $l$ we can compute the covariance of all variable pairs simultaneously:
 We can compute $\sum^{n}_{i=1} x_i y_i$ for all feature combinations in layer $l$ by calculating the running squares $\sum^{B}_{b=0}A_{l,b}^T A_{l,b}$ of the batch output matrices $A_{l,b}$ where $b \in \{0,...,B-1\}$ for $B$ batches. We replace $\frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$ by the outer product $\bar{A}_l \bigotimes \bar{A}_l$ of the sample mean $\bar{A}_l$.
 This is the running sum of all outputs $z_{l,k}$, where $k \in \{0,...,n\}$ at training time, divided by the total number of training samples $n$.
 Our formula for a batch-wise approximated covariance matrix can now be written like this:
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
-The batch-wise updating algorithm allows us to integrate the approximation of the covariance matrix as part of the 
-regular forward pass during training and evaluation.
-Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows to update the covariance matrix asynchronous when the network is trained in a distributed manner.
-To avoid problems that can be caused by rounding errors and numeric instability our implementation of the algorithm exclusivly converts by default all data into 64-bit floating point values.
+The batch-wise updating algorithm allows us to integrate the approximation of the covariance matrix as part of the regular forward pass during training and evaluation.
+Our algorithm uses a thread-save common value store on a single compute device or node, which furthermore allows updating the covariance matrix asynchronous when the network is trained in a distributed manner.
+To avoid problems that can be caused by rounding errors and numeric instability, our implementation of the algorithm exclusively converts by default all data into 64-bit floating-point values.
 
-Another challange is the dimensionality of the data in convolutional layers, where a simple flattening
-of the data vector would result in a very high dimensional vector and a very expensive singular value decomposition 
-as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
+Another challenge is the dimensionality of the data in convolutional layers, where a simple flattening of the data vector would result in a very high dimensional vector and a computationally expensive singular value decomposition as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
 The advantage of this strategy is that no information is lost, while keeping the dimensionality of $Q$ at a manageable size.
 Optionally, to reduce the computations required further, the feature map can be automatically reduced in size using linear interpolation to a constant maximum height and width. Since information is lost during this process,
 this is disabled by default.
