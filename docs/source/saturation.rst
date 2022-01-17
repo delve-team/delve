@@ -21,11 +21,3 @@ for :math:`B` batches of layer output matrix :math:`A_l` and :math:`n` number of
 .. note::
 
     For more information about how saturation is computed, read `"Feature Space Saturation during Training" <https://arxiv.org/abs/2006.08679>`_.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
