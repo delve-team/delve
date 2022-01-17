@@ -18,16 +18,6 @@ To install the latest development version, clone the `GitHub` repository and use
    cd delve
    pip install .
 
-Dependencies
-------------
-
-Installation with pip should also include all dependencies, but a complete list is
-
-- numpy_
-- matplotlib_
-- scipy_
-- pandas_
-
 Usage
 -----
 

@@ -4,17 +4,6 @@ delve package
 Submodules
 ----------
 
-delve.kerascallback module
---------------------------
-
-.. note::
-   Keras implementation is in development and not tested.
-
-.. automodule:: delve.kerascallback
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 delve.metrics module
 --------------------
 
