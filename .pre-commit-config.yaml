@@ -4,7 +4,6 @@ repos:
     hooks:
     -   id: check-json
     -   id: check-yaml
-    -   id: end-of-file-fixer
     -   id: requirements-txt-fixer
 -   repo: https://github.com/pre-commit/mirrors-yapf
     rev: 'v0.31.0'  # Use the sha / tag you want to point at
