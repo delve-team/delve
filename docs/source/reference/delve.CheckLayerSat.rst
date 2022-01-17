@@ -1,6 +1,6 @@
-﻿delve.CheckLayerSat
+﻿delve.SaturationTracker
 ===================
 
 .. currentmodule:: delve
 
-.. autoclass:: CheckLayerSat
+.. autoclass:: SaturationTracker

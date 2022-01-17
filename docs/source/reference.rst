@@ -1,12 +1,12 @@
 Reference
 =============
 
-CheckLayerSat
+SaturationTracker
 -------------
 
-``CheckLayerSat`` provides a hook for PyTorch and extracts metrics during model training.
+``SaturationTracker`` provides a hook for PyTorch and extracts metrics during model training.
 
-.. autoclass:: delve.CheckLayerSat
+.. autoclass:: delve.SaturationTracker
 
 
 API Pages
@@ -17,5 +17,4 @@ API Pages
   :template: autosummary.rst
   :toctree: reference/
 
-  CheckLayerSat
-  TorchCovarianceMatrix
+  SaturationTracker

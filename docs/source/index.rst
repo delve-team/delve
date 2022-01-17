@@ -70,7 +70,7 @@ Several statistics are supported:
    embed       : samples embedded in the eigenspace of dimension 2
 
 
-To support researchers, it allows saving plots at various intervals through the :class:`~delve.torchcallback.CheckLayerSat` class.
+To support researchers, it allows saving plots at various intervals through the :class:`~delve.torchcallback.SaturationTracker` class.
 
 
 .. toctree::

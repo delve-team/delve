@@ -578,3 +578,9 @@ class SaturationTracker(object):
 
     def save(self):
         self.writer.save()
+
+
+class CheckLayerSat(SaturationTracker):
+    def __init_subclass__(self):
+        warnings.warn("Class has been renamed NewClassName",
+                      DeprecationWarning, 2)

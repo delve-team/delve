@@ -32,7 +32,7 @@ Extract layer saturation with Delve.
     import torch
     from tqdm import trange
 
-    from delve import CheckLayerSat
+    from delve import SaturationTracker
 
 
     class TwoLayerNet(torch.nn.Module):
@@ -65,7 +65,7 @@ Extract layer saturation with Delve.
         x, y, model = x.to(device), y.to(device), model.to(device)
 
         layers = [model.linear1, model.linear2]
-        stats = CheckLayerSat('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
+        stats = SaturationTracker('regression/h{}'.format(h), save_to="plotcsv", modules=layers, device=device, stats=["lsat", "lsat_eval"])
 
         loss_fn = torch.nn.MSELoss(reduction='sum')
         optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
