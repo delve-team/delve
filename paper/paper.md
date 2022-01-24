@@ -50,9 +50,9 @@ In the case of data-centric tools like GradCam, the solution propagates back to 
 However, the biggest concern in all aforementioned tools is the cost of computational resources and the integration of the analysis into the workflow of a deep learning practitioner.
 Tools like SVCCA and logistic regression probes require complex and computationally expensive procedures that need to be conducted after training.
 This naturally limits these techniques to small benchmarks and primarily academic datasets like Cifar10 [@feature-space].
-An analysis tool that is to be used during the development of a deep learning-based model needs to be able to be used with little computational and workflow overhead as possible.
+An analysis tool that is to be used during the development of a deep learning-based model needs to be able to be used with as little computational and workflow overhead as possible.
 Ideally, the analysis can be done live while the training is in progress, allowing the researcher to interrupt potentially long-running training sessions to improve the model.
-Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only known analysis technique known to the authors that has this capability while allowing to identify parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
+Saturation was proposed in 2018 [@Shenk:Thesis:2018] and later refined [@feature-space] and is the only analysis technique known to the authors that has this capability while allowing to identify parameter-inefficiencies in the setup [@feature-space;@sizematters;@goingdeeper].
 To make saturation usable in an application scenario, it is necessary to provide an easy-to-use framework that allows for an integration of the tool into the normal training and inference code with only minimally invasive changes.
 It is also necessary that the computation and analysis can be done online as part of the regular forward pass of the model, to make the integration as seamless as possible.
 A numerical comparison of these various methods is a promising avenue for future research into model introspection.
@@ -60,7 +60,7 @@ A numerical comparison of these various methods is a promising avenue for future
 ``Delve`` is a tool for extracting information based on the covariance matrix of the data like saturation and the intrinsic dimensionality from neural network layers.
 To emphasize practical usability, special attention is placed on a low overhead and minimally invasive integration of ``Delve`` into
 existing training and inference setups:
-``Delve`` is directly hooking into PyTorch [@pytorch] models to extract necessary information with little computational and memory overhead, thanks to an efficient covariance approximation algorithm.
+``Delve`` hooks directly into PyTorch [@pytorch] models to extract necessary information with little computational and memory overhead, thanks to an efficient covariance approximation algorithm.
 We enable the user to store and analyze the extracted statistics without changing their current experiment workflow, by making ``Delve`` easy to integrate into monitoring systems and making this interface easy to expand.
 This allows the user to utilize their preferred way of monitoring experiments, from simple CSV-Files and folder structures to more sophisticated solutions like
 TensorBoard [@tensorflow2015-whitepaper].
@@ -69,12 +69,12 @@ A comprehensive source of documentation is provided on the homepage
 
 
 ## Statement of Need
-Research on spectral properties of neural network representations has exploded in the past years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
-Publication like [@svcca] and [@feature-space] demonstrate that useful and interesting information can be extracted from the spectral analysis of these latent representations.
-It has also been shown that metrics like saturation [@Shenk:Thesis:2018;@spectral-analysis] can be used to optimize neural network architectures by identifying pathological patterns hinting on inefficiencies of the neural network structure.
+Research on spectral properties of neural network representations has exploded in recent years [@svcca;@svcca2;@gradcam;@kernelPCA;@alain2016;@featureAttribution].
+Publications like [@svcca] and [@feature-space] demonstrate that useful and interesting information can be extracted from the spectral analysis of these latent representations.
+It has also been shown that metrics like saturation [@Shenk:Thesis:2018;@spectral-analysis] can be used to optimize neural network architectures by identifying pathological patterns hinting at inefficiencies of the neural network structure.
 
 
-The main purpose of ``Delve`` is to provide an easy and flexible access to these types of layer-based statistics.
+The main purpose of ``Delve`` is to provide easy and flexible access to these types of layer-based statistics.
 The combination of ease of usage and extensibility in ``Delve`` enables exciting scientific explorations for machine learning researchers and engineers.
 ``Delve`` has already been used in a number of scientific publications [@feature-space;@sizematters;@goingdeeper].
 The source code for ``Delve`` has been archived to Zenodo with the linked DOI: [@zenodo]
@@ -112,23 +112,26 @@ Computing the covariance matrix of a layer's output on the training or evaluatio
 This would also contradict our goal of seamless integration in existing training loops, which commonly operate with mini-batches.
 Therefore, a batch-wise approximation algorithm is used to compute the covariance matrix online during training:
 
-We compute the covariance matrix $Q(Z_l,Z_l)$, where $Z_l$ is the output of a layer $l$ by using the covariance approximation algorithm for two random variables $X$ and $Y$ with $n$ samples:
+We can compute the covariance between two variables by using the covariance approximation algorithm for two random variables $X$ and $Y$ with $n$ samples:
 $$Q(X, Y) = \frac{\sum^{n}_{i=1} x_i y_i}{n} - \frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$$
+Where $x_i$ and $y_i$ are individual observations of the respective random variables $X$ and $Y$ and $n$ is the total number of samples.
 The advantage of this method is that only the number of seen samples, the sum of squares and the sum of the variables need to be stored,
 making the memory consumption per layer constant with respect to the size of the dataset.
-By exploiting the shape of the layer output matrix $A_l$ of the layer $l$ we can compute the covariance of all variable pairs simultaneously:
+By computing Q(X, Y) for all possible combinations of features, we obtain the covariance matrix of the layer's output $Q(Z_l, Z_l)$, where $Z_l$ is the layer's output over
+the entire dataset.
+We can parallelize the computations of all feature combinations by exploiting the shape of the layer output matrix $A_l$ of the layer $l$:
 We can compute $\sum^{n}_{i=1} x_i y_i$ for all feature combinations in layer $l$ by calculating the running squares $\sum^{B}_{b=0}A_{l,b}^T A_{l,b}$ of the batch output matrices $A_{l,b}$ where $b \in \{0,...,B-1\}$ for $B$ batches. We replace $\frac{(\sum^{n}_{i=1} x_i)  (\sum^{n}_{i=1} y_i)}{n^2}$ by the outer product $\bar{A}_l \bigotimes \bar{A}_l$ of the sample mean $\bar{A}_l$.
 This is the running sum of all outputs $z_{l,k}$, where $k \in \{0,...,n\}$ at training time, divided by the total number of training samples $n$.
 Our formula for a batch-wise approximated covariance matrix can now be written like this:
 $$Q(Z_l, Z_l) = \frac{\sum^{B}_{b=0}A_{l,b}^T A_{l,b}}{n} -(\bar{A}_l \bigotimes \bar{A}_l)$$
 The batch-wise updating algorithm allows us to integrate the approximation of the covariance matrix as part of the regular forward pass during training and evaluation.
-Our algorithm uses a thread-safe common value store on a single compute device or node, which furthermore allows updating the covariance matrix asynchronous when the network is trained in a distributed manner.
-To avoid problems that can be caused by rounding errors and numeric instability, our implementation of the algorithm converts by default all data into 64-bit floating-point values.
+Our algorithm uses a thread-safe common value store on a single compute device or node, which furthermore allows updating the covariance matrix asynchronously when the network is trained in a distributed manner.
+To avoid problems that can be caused by rounding errors and numerical instability, our implementation of the algorithm converts by default all data into 64-bit floating-point values by default.
 
-Another challenge is the dimensionality of the data in convolutional layers, where a simple flattening of the data vector would result in a very high dimensional vector and a computationally expensive singular value decomposition as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns an output-tensor of shape (samples $\times$ height $\times$ width $\times$ filters) into a data matrix of shape (samples $\cdot$ height $\cdot$ width $\times$ filters).}
+Another challenge is the dimensionality of the data in convolutional layers, where a simple flattening of the data vector would result in a very high dimensional vector and a computationally expensive singular value decomposition as a direct consequence. To address this issue, we treat every kernel position as an individual observation. This turns a 4th-degree output-tensor of shape (samples, height,  width, filters) into a matrix of shape (samples $\cdot$ height $\cdot$ width, filters).
 The advantage of this strategy is that no information is lost, while keeping the dimensionality of $Q$ at a manageable size.
-Optionally, to reduce the computations required further, the feature map can be automatically reduced in size using linear interpolation to a constant maximum height and width. Since information is lost during this process,
-this is disabled by default.
+Optionally, to reduce the computations required further, the feature map can be automatically reduced in size using linear interpolation to a constant maximum height and width. Since information is lost during this process, 
+this is disabled.
 
 This approximation method was described alongside the saturation metric in the works of [@Shenk:Thesis:2018;@spectral-analysis] and further refined by [@feature-space].
 
