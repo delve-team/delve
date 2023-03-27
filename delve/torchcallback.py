@@ -51,7 +51,7 @@ class SaturationTracker(object):
                                                      are recorded
         layer_filter  (func): A filter function that is used to avoid layers from being tracked.
                               This is function receiving a dictionary as input and returning
-                              it with undesired entries removed.
+                              it with undesired entries removed. Default: Identity function.
                               The dictionary contains string keys mapping to torch.nn.Module objects.
         writers_args (dict) : contains additional arguments passed over to the
                               writers. This is only used, when a writer is
