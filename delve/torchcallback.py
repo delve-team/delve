@@ -16,6 +16,8 @@ from delve.metrics import *
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
 
+from typing import Callable
+
 
 class SaturationTracker(object):
     """Takes PyTorch module and records layer saturation,
