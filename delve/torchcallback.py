@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import torch
 from torch.nn.functional import interpolate
-from torch.nn.modules import LSTM
+from torch.nn.modules import LSTM, Module
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
@@ -174,8 +174,8 @@ class SaturationTracker(object):
     def __init__(self,
                  savefile: str,
                  save_to: Union[str, delve.writers.AbstractWriter],
-                 modules: torch.nn.Module,
-                 layer_filter: Callable[[Dict[str, nn.Module]], Dict[str, nn.Module]] = lambda x: x,
+                 modules: Module,
+                 layer_filter: Callable[[Dict[str, Module]], Dict[str, Module]] = lambda x: x,
                  writer_args: Optional[Dict[str, Any]] = None,
                  log_interval=1,
                  max_samples=None,
