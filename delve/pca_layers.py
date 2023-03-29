@@ -198,8 +198,9 @@ class LinearPCALayer(Module):
         return cov_mtx
 
     def _compute_eigenspace(self):
-        self.eigenvalues.data, self.eigenvectors.data = self._compute_autorcorrelation(
-        ).symeig(True)  #.type(self.data_dtype)
+        self.eigenvalues.data, self.eigenvectors.data = torch.linalg.eigh(
+            self._compute_autorcorrelation(),  UPLO='U'
+        )  #.type(self.data_dtype)
         self.eigenvalues.data, idx = self.eigenvalues.sort(descending=True)
         # correct numerical error, matrix must be positivly semi-definitie
         self.eigenvalues[self.eigenvalues < 0] = 0

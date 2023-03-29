@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import torch
 from torch.nn.functional import interpolate
-from torch.nn.modules import LSTM
+from torch.nn.modules import LSTM, Module
 from torch.nn.modules.conv import Conv2d
 from torch.nn.modules.linear import Linear
 
@@ -15,6 +15,8 @@ from delve.logger import log
 from delve.metrics import *
 from delve.torch_utils import TorchCovarianceMatrix
 from delve.writers import STATMAP, WRITERS, CompositWriter, NPYWriter
+
+from typing import Callable
 
 
 class SaturationTracker(object):
@@ -49,6 +51,10 @@ class SaturationTracker(object):
                                                      Per default, only Conv2D,
                                                      Linear and LSTM-Cells
                                                      are recorded
+        layer_filter  (func): A filter function that is used to avoid layers from being tracked.
+                              This is function receiving a dictionary as input and returning
+                              it with undesired entries removed. Default: Identity function.
+                              The dictionary contains string keys mapping to torch.nn.Module objects.
         writers_args (dict) : contains additional arguments passed over to the
                               writers. This is only used, when a writer is
                               initialized through a string-key.
@@ -168,7 +174,8 @@ class SaturationTracker(object):
     def __init__(self,
                  savefile: str,
                  save_to: Union[str, delve.writers.AbstractWriter],
-                 modules: torch.nn.Module,
+                 modules: Module,
+                 layer_filter: Callable[[Dict[str, Module]], Dict[str, Module]] = lambda x: x,
                  writer_args: Optional[Dict[str, Any]] = None,
                  log_interval=1,
                  max_samples=None,
@@ -195,7 +202,7 @@ class SaturationTracker(object):
 
         self.timeseries_method = timeseries_method
         self.threshold = sat_threshold
-        self.layers = self.get_layers_recursive(modules)
+        self.layers = layer_filter(self.get_layers_recursive(modules))
         self.max_samples = max_samples
         self.log_interval = log_interval
         self.reset_covariance = reset_covariance
