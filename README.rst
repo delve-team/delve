@@ -198,7 +198,7 @@ If you use Delve in your publication, please cite:
    month        = aug,
    year         = 2021,
    publisher    = {Zenodo},
-   version      = {v0.1.49},
+   version      = {v0.1.50},
    doi          = {10.5281/zenodo.5233859},
    url          = {https://doi.org/10.5281/zenodo.5233859}
    }
